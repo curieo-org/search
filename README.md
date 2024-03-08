@@ -67,9 +67,18 @@ The project might have multiple branches: `master`, `development`, etc. which ca
 	│   ├── config.py
 	│   └── main.py
 	├── docker
+	│   │	└────Dockerfile.local
 	├── requirements
+	│   ├── base.txt
+	│   └── development.txt
 	├── scripts
-	├── 
+	│   └── docker-entrypoint.sh
+	├── .editorconfig
+	├── .gitignore
+ 	├── docker-compose.yml
+   	├── poetry.lock
+    	├── pytest.ini
+     	└── README.md
 
 ```
 
