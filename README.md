@@ -31,26 +31,46 @@ The project might have multiple branches: `master`, `development`, etc. which ca
 	│   ├── favicon.ico
 	│   ├── index.html
 	│   └── manifest.json
-	└── app
-	│	├── api
-    │   ├── common
-    │   ├── endpoints
-    │   │     ├── search_endpoint.py
-    │   ├── errors
-    │        ├── http_error.py
-    │        ├── if_none_match.py
-    │    ├── router
-    │        ├── gzip.py
-    │    ├── api.py
-    ├── middleware
-        ├── process_time.py
-		├── App.js
-		├── App.test.js
-		├── index.css
-		├── index.js
-		├── logo.svg
-		└── serviceWorker.js
-		└── setupTests.js
+	├── app
+	│   ├── api
+	│   │	├── common
+	│   │	├── endpoints
+	│   │	│	└── search_endpoint.py
+	│   │	├── errors
+	│   │	│	├──── http_error.py
+	│   │	│	└──── if_none_match.py
+	│   │	├── router
+	│   │	│	└──── api.py
+	│   ├── middleware
+	│   │		└── process_time.py
+	│   ├── rag
+	│   │	├── augmentation
+	│   │	├── ensemble
+	│   │	├── generation
+	│   │	│	└──── response_synthesis.py
+	│   │	├── reranker
+	│   │	│	└──── response_reranker.py
+	│   │	├── retrieval
+	│   │	│	├──── clinical_trials
+	│   │	│	│	├──── AACTTableQuestions_TableInfo
+	│   │	│	│	└──── clinical_trial_sql_query_engine.py 
+	│   │	│	├──── pubmed
+	│   │	│	│	└──── pubmedqueryengine.py
+	│   │	│	├──── drug
+	│   │	│	└──── web
+	│   │	│	│	└──── brave_search.py
+	│   ├── router
+	│   │	└──── orchestrator.py
+	│   ├── services
+	│   │	└──── search_utility.py
+	│   ├── tests
+	│   ├── config.py
+	│   └── main.py
+	├── docker
+	├── requirements
+	├── scripts
+	├── 
+
 ```
 
 ### Tools Required
