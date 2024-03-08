@@ -90,8 +90,32 @@ The project might have multiple branches: `master`, `development`, etc. which ca
 
 All installation steps go here.
 
--   Installing a particular tool
+-   Install `poetry` for the dependencies. - `poetry install`
+
+-   Set up Embedding Server from [TEI](https://github.com/huggingface/text-embeddings-inference/tree/main)
+
+    -   Setup for Re-rankers models
+
+    ```
+    model=BAAI/bge-large-en-v1.5
+    revision=refs/pr/5
+    volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
+
+    docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
+    ```
+
+    -   Using for Text Embeddings
+
+    ```
+    model=BAAI/bge-reranker-large
+    revision=refs/pr/4
+    volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
+
+    docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
+    ```
+
     -   Steps to complete it
+
 -   Installing another tool
 
 ## Running the App
