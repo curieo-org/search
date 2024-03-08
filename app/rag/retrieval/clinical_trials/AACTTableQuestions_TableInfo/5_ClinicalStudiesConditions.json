@@ -1,0 +1,4 @@
+{
+    "table_name": "tbl_studies_conditions",
+    "table_summary": "The table contains the Name(s) of the disease(s) or condition(s) studied in the clinical study or the focus of the clinical study. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document.' title' is the title of the document.'description' is the description of the document. The filed 'condition_name' has the name of disease or conditions names that are mentioned in the study."
+}
