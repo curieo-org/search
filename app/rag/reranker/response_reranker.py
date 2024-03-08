@@ -1,11 +1,9 @@
 import collections
-import json
-import os
 import requests
 import re
 
-from app.services.search_utility import setup_logger, get_project_root, storage_cached
-from app.config import BRAVE_RESULT_COUNT, BRAVE_SEARCH_API, EMBEDDING_RERANK_API, EMBEDDING_CHUNK_SIZE
+from app.services.search_utility import setup_logger
+from app.config import  EMBEDDING_RERANK_API, EMBEDDING_CHUNK_SIZE
 
 logger = setup_logger('Reranking')
 TAG_RE = re.compile(r'<[^>]+>')
@@ -54,5 +52,6 @@ class ReRankEngine:
             rerank_orders = response.json()
             results = [retrieval_results[order.get('index')] for order in rerank_orders]
         except Exception as ex:
+            logger.exception("ReRankEngine.call_embedding_api Exception -", exc_info = ex, stack_info=True)
             raise ex
         return results

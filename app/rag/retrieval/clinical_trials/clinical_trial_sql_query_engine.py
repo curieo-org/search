@@ -1,15 +1,11 @@
-from llama_index.core.query_pipeline import (QueryPipeline as QP, Link, InputComponent, FnComponent)
-from llama_index.core.llms import ChatMessage, ChatResponse
+from llama_index.core.query_pipeline import (QueryPipeline as QP, InputComponent, FnComponent)
+from llama_index.core.llms import ChatResponse
 from llama_index.llms.openai import OpenAI
 
 from llama_index.core.prompts import PromptTemplate
 from llama_index.core import VectorStoreIndex, load_index_from_storage, SQLDatabase
-from llama_index.core.schema import TextNode
-from llama_index.core.storage import StorageContext
 from llama_index.core.prompts.default_prompts import DEFAULT_TEXT_TO_SQL_PROMPT
-from llama_index.core.program import LLMTextCompletionProgram
 from llama_index.core.bridge.pydantic import BaseModel, Field
-from llama_index.core.service_context import ServiceContext
 from llama_index.core.objects import (
     SQLTableNodeMapping,
     ObjectIndex,
@@ -20,20 +16,22 @@ from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInfer
 
 import os
 from pathlib import Path
-from typing import Dict, List
-import pandas as pd
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, text
+from typing import List
+from sqlalchemy import create_engine
 from pyvis.network import Network
 import phoenix as px
-import llama_index
 
 from app.config import OPENAPI_KEY, CLINICAL_TRIALS_TABLE_INFO_DIR, POSTGRES_ENGINE, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
+from app.services.search_utility import setup_logger
+
+logger = setup_logger('ClinicalTrialText2SQLEngine')
 
 #px.launch_app(port=6060)
 
 class TableInfo(BaseModel):
-    """Information regarding a structured table."""
-
+    """
+    Information regarding a structured table.
+    """
     table_name: str = Field(
         ..., description="table name (must be underscores and NO spaces)"
     )
@@ -95,6 +93,7 @@ class ClinicalTrialText2SQLEngine:
         for i in range(file_counts):
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
+        logger.debug(f"ClinicalTrialText2SQLEngine.get_all_table_info table_infos: {len(table_infos)}")
         return table_infos
 
     def get_table_context_str(self, table_schema_objs: List[SQLTableSchema]):
@@ -121,6 +120,7 @@ class ClinicalTrialText2SQLEngine:
         sql_result_start = response.find("SQLResult:")
         if sql_result_start != -1:
             response = response[:sql_result_start]
+        logger.debug(f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}")
         return response.strip().strip("```").strip()
     
     def get_response_synthesis_prompt(self, query_str, sql_query, context_str) -> PromptTemplate:
@@ -172,9 +172,14 @@ class ClinicalTrialText2SQLEngine:
 
     def call_text2sql(self, search_text:str):
         try:
+            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
             response = self.qp.run(query=search_text)
+            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
+
         except Exception as ex:
+            logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
             raise ex
+        
         return {
             "result" : str(response)
         }

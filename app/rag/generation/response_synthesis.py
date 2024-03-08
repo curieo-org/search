@@ -1,11 +1,9 @@
 import collections
 import json
-import os
 import requests
-import re
 from urllib.parse import urlparse
 
-from app.services.search_utility import setup_logger, get_project_root, storage_cached
+from app.services.search_utility import setup_logger
 from app.config import TOGETHER_API, TOGETHER_KEY, TOGETHER_MODEL, TOGETHER_PROMPT_CONFIG, PROMPT_LANGUAGE
 
 logger = setup_logger('ResponseSynthesisEngine')
@@ -88,6 +86,7 @@ class ResponseSynthesisEngine:
             response = requests.request("POST", TOGETHER_API, headers=headers, data=payload)
         
         except Exception as ex:
+            logger.exception("ResponseSynthesisEngine.call_llm_service_api Exception -", exc_info = ex, stack_info=True)
             raise ex
         return {
             "result" : self.clean_response_text(response.json()['choices'][0]['text']),

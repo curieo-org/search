@@ -8,6 +8,7 @@ from app import config
 from app.api import api
 from app.api.errors.http_error import http_error_handler
 from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
+from app.services.search_utility import setup_logger
 
 from app.middleware.process_time import ProcessTimeHeaderMiddleware
 
