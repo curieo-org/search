@@ -104,6 +104,15 @@ All installation steps go here.
     docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
     ```
 
+    The Output:
+
+    ```
+    curl 127.0.0.1:8080/rerank \
+    -X POST \
+    -d '{"query":"What is Deep Learning?", "texts": ["Deep Learning is not...", "Deep learning is..."]}' \
+    -H 'Content-Type: application/json'
+    ```
+
     -   Using for Text Embeddings
 
     ```
@@ -114,23 +123,65 @@ All installation steps go here.
     docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
     ```
 
-    -   Steps to complete it
+    The Output:
 
--   Installing another tool
+    ```
+    curl 127.0.0.1:8080/embed \
+    -X POST \
+    -d '{"inputs":"What is Deep Learning?"}' \
+    -H 'Content-Type: application/json'
+    ```
+
+    If you want use without the docker the do the following steps:
+
+    ```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+    # On x86
+    cargo install --path router -F candle -F mkl
+    # On M1 or M2
+    cargo install --path router -F candle -F metal
+
+    model=BAAI/bge-large-en-v1.5
+    revision=refs/pr/5
+
+    text-embeddings-router --model-id $model --revision $revision --port 8080
+    ```
+
+    -   Add postgresql database and create the engine.
+    -   Add local redis engine and change in the config.py file
 
 ## Running the App
 
 Steps and commands for running the app are to be included here
 
--   Example steps:
+-   First complete the login process:
+
     ```
-      Example command
+      curl --location 'http://127.0.0.1:8000/login?username=curieo&password=curieo' --header 'accept: application/json'
     ```
+
+    You will receive the access token.
+
+-   Use the token to retrieve the search results.
+
+    -   Example API for Clinical Trial Request:
+
+        ```
+        curl --location 'http://127.0.0.1:8000/Search?query=What is diseases associated with A Natural History Study of Canavan Disease' \
+        --header 'Authorization: Bearer <access token>'
+        ```
+
+    -   Example API for Search:
+        ```
+        curl --location 'http://127.0.0.1:8000/Search?query=Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid' \
+        --header 'Authorization: Bearer <access token>'
+        ```
 
 ## Deployment
 
-This section is completely optional. Add additional notes about how to deploy this on a live system
+Not decided yet, we will work on that part.
 
 ## Versioning
 
-`0.0.1` :
+`0.0.1`
