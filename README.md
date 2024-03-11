@@ -162,12 +162,12 @@ Steps and commands for running the app are to be included here
     ```
 
     You will receive the access token.
+
+-   Use the below command to execute the server:
+
     ```
       uvicorn app.main:app --reload
     ```
-
--   Use the below command to execute the server:
-    
 
 -   Use the token to retrieve the search results.
 

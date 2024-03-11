@@ -17,6 +17,7 @@
         "reranker",
         "sqlalchemy",
         "starlette",
-        "togetherai"
+        "togetherai",
+        "uvicorn"
     ]
 }
