@@ -96,7 +96,7 @@ Steps and commands for running the app are to be included here
 -   Use the below command to execute the server:
 
     ```
-      uvicorn app.main:app --reload
+      poetry run uvicorn app.main:app --reload
     ```
 
 -   Use the token to retrieve the search results.
