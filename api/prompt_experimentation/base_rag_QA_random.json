@@ -1,0 +1,39 @@
+
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "question": "Does the research mention anything about the oral administration of the studied compound?",
+        "answer": "No, the research does not mention anything about the oral administration of the studied compound.",
+        "context": "Metformin"
+      },
+      {
+        "question": "What is the role of TWEAK and FN14 in the pathogenesis of sarcopenia?",
+        "answer": "Tumor necrosis factor (TNF)-like weak inducer of apoptosis (TWEAK) and its receptor fibroblast growth factor inducible 14 (FN14) are known to play important roles in the pathogenesis of sarcopenia.",
+        "context": "Sarcopenia is associated with hypomethylation of TWEAK and increased plasma levels of TWEAK and its downstream inflammatory factor TNF-\u03b1 in older adults: A case-control study."
+      },
+      {
+        "question": "What is the status of pharmacologic treatments for hydrocephalus as per the research paper?",
+        "answer": "No effective pharmacologic treatments for hydrocephalus have been developed.",
+        "context": "The genetic basis of hydrocephalus: genes, pathways, mechanisms, and global impact."
+      },
+      {
+        "question": "Can you explain the workflow provided by Holomics for analyzing multi-omics data?",
+        "answer": "The workflow provided by Holomics starts with the upload and pre-filtering of single-omics data, followed by single-omics analysis focusing on key features. Subsequently, the reduced datasets are subjected to multi-omics analyses to reveal correlations between different datasets.",
+        "context": "Holomics - a user-friendly R shiny application for multi-omics data integration and analysis."
+      },
+      {
+        "question": "What is the significance of sensitive and selective analysis of low content nucleic acid sequences?",
+        "answer": "Sensitive and selective analysis of low content nucleic acid sequences plays an important role in pathogen analysis, disease diagnosis and biomedicine.",
+        "context": "Cascade signal amplification strategy for the electrochemical aptasensing of nucleic acid: Combination of dual-output toehold-mediated DNA strand displacement, DNA walker and Exo III."
+      }
+    ],
+    "signature_instructions": "Answer biomedical questions with help of context title given.",
+    "signature_prefix": "Answer:",
+    "extended_signature_instructions": "Answer biomedical questions with help of context title given.",
+    "extended_signature_prefix": "Answer:"
+  }
+}
