@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "search"
+name = "app"
 version = "0.1.0"
 description = "A healthcare search engine"
 authors = ["raahul"]
@@ -7,7 +7,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-
+fastapi = "^0.109.0"
+fastapi-doc-http-response = "^0.0.3"
+fastapi-redis-cache = "^0.2.5"
+fastapi-versioning = "^0.10.0"
+llama-index = "^0.10.18"
+phoenix = "^0.9.1"
+pyvis = "^0.3.2"
+requests = "^2.31.0"
+sqlalchemy = "^2.0.15"
+authx = "1.0.1b1"
+itsdangerous = "^2.1.2"
+llama-index-embeddings-text-embeddings-inference = "^0.1.2"
 
 [build-system]
 requires = ["poetry-core"]

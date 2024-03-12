@@ -19,14 +19,11 @@ from pathlib import Path
 from typing import List
 from sqlalchemy import create_engine
 from pyvis.network import Network
-import phoenix as px
 
 from app.config import OPENAPI_KEY, CLINICAL_TRIALS_TABLE_INFO_DIR, POSTGRES_ENGINE, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
 from app.services.search_utility import setup_logger
 
 logger = setup_logger('ClinicalTrialText2SQLEngine')
-
-#px.launch_app(port=6060)
 
 class TableInfo(BaseModel):
     """
@@ -47,7 +44,7 @@ class ClinicalTrialText2SQLEngine:
     """
     def __init__(self, config):
         self.config = config
-        
+
         self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY))
         self.engine = create_engine(str(POSTGRES_ENGINE))
 
@@ -56,8 +53,8 @@ class ClinicalTrialText2SQLEngine:
         self.sql_database = SQLDatabase(self.engine)
         self.table_node_mapping = SQLTableNodeMapping(self.sql_database)
         self.sql_retriever = SQLRetriever(self.sql_database)
-        
-        self.table_schema_objs = [SQLTableSchema(table_name=t.table_name, context_str=t.table_summary) for t in self.get_all_table_info()] 
+
+        self.table_schema_objs = [SQLTableSchema(table_name=t.table_name, context_str=t.table_summary) for t in self.get_all_table_info()]
         self.embed_model = TextEmbeddingsInference(base_url=EMBEDDING_MODEL_API, model_name=EMBEDDING_MODEL_NAME)
 
         self.obj_index = ObjectIndex.from_objects(objects=self.table_schema_objs, object_mapping=self.table_node_mapping, index_cls=VectorStoreIndex, embed_model=self.embed_model)
@@ -85,7 +82,7 @@ class ClinicalTrialText2SQLEngine:
             raise ValueError(
                 f"More than one file matching index: {list(results_gen)}"
             )
-        
+
     def get_all_table_info(self):
         file_counts = len(os.listdir(CLINICAL_TRIALS_TABLE_INFO_DIR))
         table_infos = []
@@ -122,7 +119,7 @@ class ClinicalTrialText2SQLEngine:
             response = response[:sql_result_start]
         logger.debug(f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}")
         return response.strip().strip("```").strip()
-    
+
     def get_response_synthesis_prompt(self, query_str, sql_query, context_str) -> PromptTemplate:
         response_synthesis_prompt_str = (
             "Given an input question, synthesize a response from the query results.\n"
@@ -179,7 +176,7 @@ class ClinicalTrialText2SQLEngine:
         except Exception as ex:
             logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
             raise ex
-        
+
         return {
             "result" : str(response)
         }

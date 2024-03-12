@@ -82,15 +82,16 @@ The project might have multiple branches: `master`, `development`, etc. which ca
 
 ```
 
-### Tools Required
-
--   A text editor or an IDE (VsCode is Preferred)
-
 ### Installation
 
 All installation steps go here.
 
--   Install `poetry` for the dependencies. - `poetry install`
+- Make sure `pyenv` is installed.
+- Create a new virtual environment `python -m venv .venv`
+- Activate the env `source .venv/bin/activate`
+- Install poetry and uvicorn `pip install poetry uvicorn`
+- Install dependencies `poetry install`
+- Now you can run the project with `uvicorn `
 
 -   Set up Embedding Server from [TEI](https://github.com/huggingface/text-embeddings-inference/tree/main)
 
