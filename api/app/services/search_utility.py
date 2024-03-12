@@ -83,7 +83,7 @@ def storage_cached(cache_type: str, cache_hash_key_name: str):
                 cache_path = Path(get_project_root(), config.get('cache').get('path'))
 
                 cache_hash = md5(str(config).encode() + hash_key.encode()).hexdigest()
-                if cache_type == 'web':
+                if cache_type == 'app':
                     cache_hash = path_safe_string_conversion(hash_key)
 
                 if check_result_cache_exists(cache_path, cache_hash, cache_type):

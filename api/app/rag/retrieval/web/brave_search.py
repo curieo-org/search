@@ -19,14 +19,14 @@ class BraveSearchQueryEngine:
     #@storage_cached('brave_search_website', 'search_text')
     def call_brave_search_api(self, search_text: str) -> collections.defaultdict[list]:
         logger.info("BraveSearchQueryEngine.call_brave_search_api. query: " + search_text)
-        
+
         endpoint = "{url_address}?count={count}&q={search_text}&search_lang=en&extra_snippets=True".format(
             url_address=BRAVE_SEARCH_API,
             count=BRAVE_RESULT_COUNT,
             search_text=search_text
         )
 
-        headers = { 
+        headers = {
             'Accept': 'application/json',
             'Accept-Encoding': 'gzip',
             'X-Subscription-Token': str(BRAVE_SUBSCRIPTION_KEY)}
@@ -35,7 +35,7 @@ class BraveSearchQueryEngine:
         try:
             response = requests.get(endpoint, headers=headers)
             response.raise_for_status()
-            web_response = response.json().get('web').get('results')
+            web_response = response.json().get('app').get('results')
             i = 0
             if web_response:
                 for resp in web_response:
