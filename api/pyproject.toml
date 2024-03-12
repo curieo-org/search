@@ -19,6 +19,7 @@ sqlalchemy = "^2.0.15"
 authx = "1.0.1b1"
 itsdangerous = "^2.1.2"
 llama-index-embeddings-text-embeddings-inference = "^0.1.2"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
