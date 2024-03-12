@@ -91,7 +91,7 @@ All installation steps go here.
 - Activate the env `source .venv/bin/activate`
 - Install poetry and uvicorn `pip install poetry uvicorn`
 - Install dependencies `poetry install`
-- Now you can run the project with `uvicorn `
+- Now you can run the project with `uvicorn app.main:app --reload`
 
 -   Set up Embedding Server from [TEI](https://github.com/huggingface/text-embeddings-inference/tree/main)
 
