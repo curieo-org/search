@@ -14,7 +14,7 @@ function CountDisplay({ count }: CountDisplayProps) {
 }
 
 async function AsyncSearchResultsCount() {
-  const count = await getSearchResultCount()
+  const count = await getSearchResultsCount()
 
   return <CountDisplay count={count} />
 }

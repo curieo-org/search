@@ -22,20 +22,15 @@ async function fetcher(url: string) {
 
 export function ButtonCard({ id, name, src: _src, createdAt }: ButtonCard) {
   const { data, isLoading } = useSWR<Awaited<ReturnType<typeof fetcher>>>(
-    !_src && isGenerating ? `/api/search/${id}` : null,
+    !_src ? `/api/search/${id}` : null,
     {
       fetcher,
-      refreshInterval: (data) => (!!data?.recentSrc || !isGenerating ? 0 : 1000), // 1 second
+      refreshInterval: (data) => (!!data?.recentSrc ? 0 : 1000), // 1 second
     }
   )
   const src = data?.recentSrc || _src
   const showImageTag = !!src // don't render image tag if no src
-  const showImagePlaceholder = isLoading || isLoadingImage || !showImageTag
-
-  useEffect(() => {
-    if (!showImageTag || !isLoadingImage) return
-    setIsLoadingImage(true)
-  }, [isLoadingImage, showImageTag])
+  const showImagePlaceholder = isLoading || !showImageTag
 
   useEffect(() => {
     if (isLoading || !data?.error) return

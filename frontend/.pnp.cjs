@@ -40,6 +40,7 @@ const RAW_RUNTIME_STATE =
           ["lucide-react", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:0.356.0"],\
           ["nanoid", "npm:5.0.6"],\
           ["next", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:14.1.3"],\
+          ["next-axiom", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:1.1.1"],\
           ["postcss", "npm:8.4.35"],\
           ["react", "npm:18.2.0"],\
           ["react-dom", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:18.2.0"],\
@@ -1362,6 +1363,7 @@ const RAW_RUNTIME_STATE =
           ["lucide-react", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:0.356.0"],\
           ["nanoid", "npm:5.0.6"],\
           ["next", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:14.1.3"],\
+          ["next-axiom", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:1.1.1"],\
           ["postcss", "npm:8.4.35"],\
           ["react", "npm:18.2.0"],\
           ["react-dom", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:18.2.0"],\
@@ -3574,6 +3576,34 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["next-axiom", [\
+      ["npm:1.1.1", {\
+        "packageLocation": "../../../../.yarn/berry/cache/next-axiom-npm-1.1.1-e50a66c442-10c0.zip/node_modules/next-axiom/",\
+        "packageDependencies": [\
+          ["next-axiom", "npm:1.1.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:1.1.1", {\
+        "packageLocation": "./.yarn/__virtual__/next-axiom-virtual-831718b82a/5/.yarn/berry/cache/next-axiom-npm-1.1.1-e50a66c442-10c0.zip/node_modules/next-axiom/",\
+        "packageDependencies": [\
+          ["next-axiom", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:1.1.1"],\
+          ["@types/next", null],\
+          ["@types/react", "npm:18.2.65"],\
+          ["next", "virtual:e325437f7bae5dcdadde06e0b031dddc51c907f7eeb508a0eaff400dd23627dd08835ff0f0c9ac53013a19348ec5f886a8facefe0b4ed72761452f5ff2676a7b#npm:14.1.3"],\
+          ["react", "npm:18.2.0"],\
+          ["remeda", "npm:1.48.0"],\
+          ["whatwg-fetch", "npm:3.6.20"]\
+        ],\
+        "packagePeers": [\
+          "@types/next",\
+          "@types/react",\
+          "next",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["node-gyp", [\
       ["npm:10.0.1", {\
         "packageLocation": "./.yarn/unplugged/node-gyp-npm-10.0.1-48708ce70b/node_modules/node-gyp/",\
@@ -4253,6 +4283,15 @@ const RAW_RUNTIME_STATE =
           ["define-properties", "npm:1.2.1"],\
           ["es-errors", "npm:1.3.0"],\
           ["set-function-name", "npm:2.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["remeda", [\
+      ["npm:1.48.0", {\
+        "packageLocation": "../../../../.yarn/berry/cache/remeda-npm-1.48.0-4961a9de6b-10c0.zip/node_modules/remeda/",\
+        "packageDependencies": [\
+          ["remeda", "npm:1.48.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5149,6 +5188,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../.yarn/berry/cache/util-deprecate-npm-1.0.2-e3fe1a219c-10c0.zip/node_modules/util-deprecate/",\
         "packageDependencies": [\
           ["util-deprecate", "npm:1.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["whatwg-fetch", [\
+      ["npm:3.6.20", {\
+        "packageLocation": "../../../../.yarn/berry/cache/whatwg-fetch-npm-3.6.20-a6f79b98c4-10c0.zip/node_modules/whatwg-fetch/",\
+        "packageDependencies": [\
+          ["whatwg-fetch", "npm:3.6.20"]\
         ],\
         "linkType": "HARD"\
       }]\

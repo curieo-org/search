@@ -2,16 +2,21 @@ version: '3.8'
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: api
     ports:
     - 8000:8000
+    volumes:
+      - ./api:/usr/src/app
     depends_on:
       db:
         condition: service_healthy
-    links:
-    - db
+
+  frontend:
+    build: frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/usr/src/app
 
   db:
     image: postgres:14-alpine

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import { SubmitButton } from "./submit-button"
-// @ts-expect-error
 import toast from "react-hot-toast"
 import useSWR from "swr"
 

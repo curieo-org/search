@@ -1,7 +1,7 @@
 import { search } from "@/server/get-search-results"
 import { SearchResultCard } from "../search-result-card"
 
-interface SearchResultGridProps {
+interface SearchResultsGridProps {
   prompt?: string
 }
 
@@ -27,10 +27,10 @@ export async function SearchResultsGrid({ prompt }: SearchResultsGridProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-1200 ease-in-out">
-      <h2 className="font-semibold text-md text-left w-full mb-3">"Results"</h2>
+      <h2 className="font-semibold text-md text-left w-full mb-3">Results</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 justify-items-stretch w-full">
         {results.map((result) => (
-          <SearchResultCard key={result.id} result={result} />
+          <SearchResultCard key={result} result={result} />
         ))}
       </div>
     </div>
