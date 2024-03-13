@@ -7,10 +7,11 @@
 Welcome to Curieo Search, the search engine on a mission to revolutionize how you access healthcare information. Our goal is simple yet ambitious: to be the best healthcare search engine available, offering unparalleled access to accurate, up-to-date, and relevant medical information.
 
 ## Table of Contents
--   [Installation](#installation)
--   [Running the App](#running-the-app)
--   [Deployment](#deployment)
--   [Versioning](#versioning)
+- [⚕️🧬🔬Curieo Healthcare Search API 🔍](#️curieo-healthcare-search-api-)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Running the App](#running-the-app)
+  - [Deployment](#deployment)
 
 ## Installation
 
@@ -27,8 +28,8 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
     -   Setup for Re-rankers models
 
     ```
-    model=BAAI/bge-large-en-v1.5
-    revision=refs/pr/5
+    model=BAAI/bge-reranker-large
+    revision=refs/pr/4
     volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
 
     docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
@@ -46,11 +47,11 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
     -   Using for Text Embeddings
 
     ```
-    model=BAAI/bge-reranker-large
-    revision=refs/pr/4
+    model=BAAI/bge-large-en-v1.5
+    revision=refs/pr/5
     volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
 
-    docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
+    docker run --gpus all -p 8081:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
     ```
 
     The Output:
@@ -65,6 +66,9 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
     If you want use without the docker the do the following steps:
 
     ```
+    git clone git@github.com:huggingface/text-embeddings-inference.git
+    cd text-embeddings-inference
+
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
     # On x86
@@ -74,8 +78,11 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
 
     model=BAAI/bge-large-en-v1.5
     revision=refs/pr/5
-
     text-embeddings-router --model-id $model --revision $revision --port 8080
+
+    model=BAAI/bge-reranker-large
+    revision=refs/pr/4
+    text-embeddings-router --model-id $model --revision $revision --port 8081
     ```
 
     -   Add postgresql database and create the engine.
