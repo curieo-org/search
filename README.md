@@ -1,4 +1,4 @@
-# ⚕️🧬🔬Curieo Healthcare Search API 🔍
+# ⚕️🧬🔬Curieo Healthcare Search Project 🔍
 
 ![Current Version](https://img.shields.io/badge/version-v0.1-blue)
 ![GitHub Org's stars](https://img.shields.io/github/stars/curieo-org)

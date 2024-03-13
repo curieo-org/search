@@ -35,7 +35,7 @@ class BraveSearchQueryEngine:
         try:
             response = requests.get(endpoint, headers=headers)
             response.raise_for_status()
-            web_response = response.json().get('app').get('results')
+            web_response = response.json().get('web').get('results')
             i = 0
             if web_response:
                 for resp in web_response:

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from authx import AuthX, AuthXConfig
+# from authx import AuthX, AuthXConfig
 from fastapi_redis_cache import FastApiRedisCache, cache
 import os
 

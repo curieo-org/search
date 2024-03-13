@@ -1,12 +1,14 @@
-version: "3"
+version: '3.8'
 
 services:
   backend:
     build: backend
     ports:
-    - 8000:8000
+    - 8000:80
     volumes:
       - ./backend:/usr/src/app
+    networks:
+      - curieo_db
     depends_on:
       db:
         condition: service_healthy
@@ -16,19 +18,25 @@ services:
     restart: always
     ports:
       - 3000:3000
+    networks:
+      - curieo_db
     volumes:
       - ./frontend:/usr/src/app
 
   db:
     image: postgres:14-alpine
     ports:
-    - 5432:5432
+    - 5432:5432/tcp
+    networks:
+      curieo_db:
+        aliases:
+          - curieo_db
     volumes:
     - db_data:/var/lib/postgresql/data
     environment:
     - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=postgres
-    - POSTGRES_DB=db
+    - POSTGRES_DB=aact
+    - POSTGRES_HOST_AUTH_METHOD=trust
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -37,3 +45,6 @@ services:
 
 volumes:
   db_data:
+
+networks:
+  curieo_db:
