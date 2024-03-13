@@ -64,7 +64,7 @@ OPENAPI_KEY: str  = config('OPENAPI_KEY', cast=Secret)
 EMBEDDING_RERANK_API: str = config("EMBEDDING_RERANK_API", default="http://127.0.0.1:8080/rerank")
 EMBEDDING_CHUNK_SIZE: int = config("EMBEDDING_CHUNK_SIZE", default=512)
 EMBEDDING_MODEL_API: str = config("EMBEDDING_MODEL_API", default="http://127.0.0.1:8081")
-EMBEDDING_MODEL_NAME: str = config("EMBEDDING_MODEL_NAME", default="BAAI/bge-small-en-v1.5")
+EMBEDDING_MODEL_NAME: str = config("EMBEDDING_MODEL_NAME", default="BAAI/bge-large-en-v1.5")
 
 #RERANK 
 RERANK_TOP_COUNT: int = config("RERANK_TOP_COUNT", default=5)
