@@ -1,52 +1,34 @@
-# Install dependencies and rebuild the source code only when neededonly
-FROM node:21-alpine3.19 AS builder
-ENV NODE_ENV production
-
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+FROM node:18-alpine
 
 WORKDIR /app
-COPY . .
 
-RUN cd /app && echo 'YARN VERSION IN BUILDER: ' && yarn --version
-# Note yarn rebuild - this is to let yarn rebuild binaries
-RUN yarn rebuild && yarn build
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i; \
+  # Allow install without lockfile, so example works even without Node.js installed locally
+  else echo "Warning: Lockfile not found. It is recommended to commit lockfiles to version control." && yarn install; \
+  fi
 
-# Production image, copy all the files and run next
-FROM node:alpine AS runner
+COPY src ./src
+COPY public ./public
+COPY next.config.mjs .
+COPY postcss.config.js .
+COPY tailwind.config.ts .
+COPY tsconfig.json .
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-ENV NODE_ENV production
-WORKDIR /app
-
-# You only need to copy next.config.js if you are NOT using the default configuration
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/.yarn ./.yarn
-COPY --from=builder /app/yarn.lock ./yarn.lock
-COPY --from=builder /app/.yarnrc.yml ./.yarnrc.yml
-COPY --from=builder /app/.pnp.cjs ./.pnp.cjs
-COPY --from=builder /app/package.json ./package.json
-
-# The step below is from the Next.js Dockerfile example, but we don't need it because we use Yarn's Zero-installs.
-# COPY --from=builder /app/node_modules ./node_modules
-
-# Note yarn rebuild again - this is to let yarn rebuild binaries in the "runner" stage of the Dockerfile
-# We also have to remove unplugged, so that rebuilding happens and replaces the old binaries
-RUN rm -rf /app/.yarn/unplugged && yarn rebuild
-RUN chown -R nextjs:nodejs /app/.next
-RUN echo "YARN VERSION IN RUNNER: " && yarn --version
-
-USER nextjs
-
-EXPOSE 3000
-
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry.
+# Next.js collects completely anonymous telemetry data about general usage. Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line to disable telemetry at run time
 ENV NEXT_TELEMETRY_DISABLED 1
 
-CMD ["yarn", "start"]
+# Note: Don't expose ports here, Compose will handle that for us
+
+# Start Next.js in development mode based on the preferred package manager
+CMD \
+  if [ -f yarn.lock ]; then yarn dev; \
+  elif [ -f package-lock.json ]; then npm run dev; \
+  elif [ -f pnpm-lock.yaml ]; then pnpm dev; \
+  else npm run dev; \
+  fi

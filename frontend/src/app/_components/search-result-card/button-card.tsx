@@ -11,13 +11,11 @@ import useSWR from "swr"
 interface ButtonCard {
   id: string
   name: string
-  src: string | null
   createdAt: Date
 }
 
 async function fetcher(url: string) {
-  return fetch(url)
-    .then((res) => res.json())
+  return fetch(url).then((res) => res.json())
 }
 
 export function ButtonCard({ id, name, src: _src, createdAt }: ButtonCard) {

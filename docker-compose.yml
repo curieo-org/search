@@ -1,18 +1,19 @@
-version: '3.8'
+version: "3"
 
 services:
-  web:
-    build: api
+  backend:
+    build: backend
     ports:
     - 8000:8000
     volumes:
-      - ./api:/usr/src/app
+      - ./backend:/usr/src/app
     depends_on:
       db:
         condition: service_healthy
 
   frontend:
     build: frontend
+    restart: always
     ports:
       - 3000:3000
     volumes:
