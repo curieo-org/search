@@ -1,19 +1,27 @@
 version: '3.8'
 
 services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  backend:
+    build: backend
     ports:
     - 8000:80
+    volumes:
+      - ./backend:/usr/src/app
     networks:
       - curieo_db
     depends_on:
       db:
         condition: service_healthy
-    links:
-    - db
+
+  frontend:
+    build: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - curieo_db
+    volumes:
+      - ./frontend:/usr/src/app
 
   db:
     image: postgres:14-alpine
