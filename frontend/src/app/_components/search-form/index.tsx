@@ -17,11 +17,18 @@ export function SearchForm({ initialPrompt }: SearchFormProps) {
   //  if (!formState) return
   //  toast.error(formState.message)
   //}, [formState])
-
+  let formData = new FormData();
+  formData.append('username', 'curieo');
+  formData.append('password', 'whatever');
   useSWR(
     "/api/token",
     async (url: string) => {
-      const res = await fetch(url)
+      const res = await fetch(
+        url,
+        {
+            method: 'POST',
+            body: formData
+        });
       const json = await res.json()
       return json?.token ?? ""
     },
