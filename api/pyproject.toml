@@ -6,7 +6,7 @@ authors = ["raahul"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
+python = "^3.11"
 fastapi = "^0.109.0"
 fastapi-doc-http-response = "^0.0.3"
 fastapi-redis-cache = "^0.2.5"
@@ -19,6 +19,7 @@ sqlalchemy = "^2.0.15"
 authx = "1.0.1b1"
 itsdangerous = "^2.1.2"
 llama-index-embeddings-text-embeddings-inference = "^0.1.2"
+psycopg2-binary = "^2.9.9"
 dspy = {git = "git@github.com:curieo-org/dspy.git"}
 matplotlib = "^3.8.3"
 
@@ -28,3 +29,4 @@ pytest = "^8.1.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
