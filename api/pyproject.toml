@@ -20,6 +20,7 @@ authx = "1.0.1b1"
 itsdangerous = "^2.1.2"
 llama-index-embeddings-text-embeddings-inference = "^0.1.2"
 dspy = {git = "git@github.com:curieo-org/dspy.git"}
+matplotlib = "^3.8.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

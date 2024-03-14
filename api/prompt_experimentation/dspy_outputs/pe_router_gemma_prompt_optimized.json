@@ -1,0 +1,85 @@
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "What is the canonical smile representation for Lisinopril?",
+        "rationale": "route this question to the correct service. The question is asking for the canonical smile representation for Lisinopril. This is a question about the chemical structure of a drug, so it is related to the '3. useful only for retrieving drug related information' service.",
+        "answer": "3"
+      },
+      {
+        "augmented": true,
+        "question": "What treatment was given to the participants in Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp",
+        "rationale": "route the specific question to the relevant service. The question asks for the treatment given to the participants in the study titled \"Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp\". However, the question does not ask for any specific details about the treatment, such as its composition or mechanism, but rather the general information about the treatment. Therefore, the question can be answered using service option 0, which is useful for retrieving only the clinical trials information like sponsor details.",
+        "answer": "0."
+      },
+      {
+        "augmented": true,
+        "question": "How is the coexpression of SMYD4 and PRMT5 associated with the prognosis of HCC patients?",
+        "rationale": "route the question to the relevant service. The question is asking about the association between the coexpression of SMYD4 and PRMT5 with the prognosis of HCC patients. This question requires information about a specific study or research paper, which may include details about the methodology, results, and conclusions. Therefore, the question can be routed to the service that is useful for retrieving general information about healthcare data, including articles from PubMed, which may contain information about studies and research papers from the healthcare domain.",
+        "answer": "1"
+      },
+      {
+        "augmented": true,
+        "question": "In what ways does DigitISA offer an improvement over conventional immuno-sensing techniques?",
+        "rationale": "route this question to the correct service. The question is asking for a comparison between DigitISA and conventional immuno-sensing techniques, which falls under the category of life sciences. The article category mentioned is 'Scientific Communication and Education', which is not specifically related to the question. However, the question is comparing two different techniques in the field of life sciences, so the appropriate route number for this question is 2.",
+        "answer": "2"
+      },
+      {
+        "question": "What is the type of following study: Exposure, Dose, Body Burden and Health Effects of Lead",
+        "answer": "0"
+      },
+      {
+        "question": "What is the molecular formula for Ciprofloxacin?",
+        "answer": "3"
+      },
+      {
+        "question": "How does the proposed z-drift detection and correction system compare to out-of-focus correction modules offered by microscope manufacturers for their flagship instruments?",
+        "answer": "2"
+      },
+      {
+        "question": "What role does Cys70 palmitoylation play in stabilizing the localization of AnkG-190 in dendritic spines?",
+        "answer": "2"
+      },
+      {
+        "question": "What phenotypes were observed in mutant flies with SNCA p.V15A variant?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the canonical smile representation for Lisinopril?",
+        "answer": "3"
+      },
+      {
+        "question": "Does Amoxicillin have any aromatic rings?",
+        "answer": "3"
+      },
+      {
+        "question": "What does this following study does: Safety and Tolerability of RNS60 Given by IV to Healthy Subjects",
+        "answer": "0"
+      },
+      {
+        "question": "How many aromatic rings are present in the structure of Lisinopril?",
+        "answer": "3"
+      },
+      {
+        "question": "How many families were reported to have the SNCA p.V15A variant according to the research paper?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the chirality of Ibuprofen?",
+        "answer": "3"
+      },
+      {
+        "question": "Where did the study The Combined Effect of 2,3-Dimercaptosuccinic Acid and Multi-Nutrients on Children in Lead Poisoning take place",
+        "answer": "0"
+      }
+    ],
+    "signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "signature_prefix": "The route number to the question is:",
+    "extended_signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "extended_signature_prefix": "The route number to the question is:"
+  }
+}

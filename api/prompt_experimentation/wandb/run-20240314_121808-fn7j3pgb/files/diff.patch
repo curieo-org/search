@@ -1,0 +1,2182 @@
+diff --git a/api/prompt_experimentation/pe_router.ipynb b/api/prompt_experimentation/pe_router.ipynb
+index c68c723..2673a56 100644
+--- a/api/prompt_experimentation/pe_router.ipynb
++++ b/api/prompt_experimentation/pe_router.ipynb
+@@ -9,15 +9,18 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 1,
++   "execution_count": null,
+    "metadata": {},
+    "outputs": [
+     {
+-     "name": "stderr",
+-     "output_type": "stream",
+-     "text": [
+-      "/Users/som/Downloads/code/search/.venv/lib/python3.11/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html\n",
+-      "  from .autonotebook import tqdm as notebook_tqdm\n"
++     "ename": "TypeError",
++     "evalue": "login() got an unexpected keyword argument '_entity'",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "Cell \u001b[0;32mIn[88], line 12\u001b[0m\n\u001b[1;32m      9\u001b[0m \u001b[38;5;28;01mimport\u001b[39;00m \u001b[38;5;21;01mwandb\u001b[39;00m \n\u001b[1;32m     10\u001b[0m load_dotenv(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m../.env\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[0;32m---> 12\u001b[0m \u001b[43mwandb\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mlogin\u001b[49m\u001b[43m(\u001b[49m\u001b[43mkey\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m \u001b[49m\u001b[43mos\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43menviron\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mWANDB_API_KEY\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43m_entity\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m \u001b[49m\u001b[43mos\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43menviron\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mWANDB_ENTITY\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     13\u001b[0m run \u001b[38;5;241m=\u001b[39m wandb\u001b[38;5;241m.\u001b[39minit(project \u001b[38;5;241m=\u001b[39m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpe_router\u001b[39m\u001b[38;5;124m\"\u001b[39m, name\u001b[38;5;241m=\u001b[39m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpe_router_optimization\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[1;32m     17\u001b[0m \u001b[38;5;66;03m# CONFIG\u001b[39;00m\n",
++      "\u001b[0;31mTypeError\u001b[0m: login() got an unexpected keyword argument '_entity'"
+      ]
+     }
+    ],
+@@ -30,17 +33,21 @@
+     "import requests\n",
+     "from dspy.teleprompt import BayesianSignatureOptimizer\n",
+     "from dspy.evaluate.metrics import answer_exact_match\n",
++    "import wandb \n",
+     "load_dotenv(\"../.env\")\n",
+     "\n",
++    "wandb.login(key = os.environ['WANDB_API_KEY'])\n",
++    "run = wandb.init(project = \"pe_router\", name= \"pe_router_optimization\", entity = os.environ['WANDB_ENTITY'])\n",
++    "\n",
+     "\n",
+     "\n",
+     "# CONFIG\n",
+     "random_state = 42\n",
+     "txt_to_idx = {\n",
+-    "    'Clicnical Trials': '0',\n",
+-    "    'pubmed': '1',\n",
+-    "    'bioarxiv': '2',\n",
+-    "    'chembl': '3'\n",
++    "    '0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', # clinical trials\n",
++    "    '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', # pubmed\n",
++    "    '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', # bioarxiv\n",
++    "    '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3' # chembl\n",
+     "}\n",
+     "\n",
+     "NUM_THREADS = 5\n",
+@@ -63,7 +70,7 @@
+    "outputs": [],
+    "source": [
+     "turbo = dspy.OpenAI(model='gpt-3.5-turbo', api_key = os.environ[\"OPENAI_API_KEY\"])\n",
+-    "mixtral = dspy.GROQ( api_key = os.environ['GROQ_API_KEY'], model = \"mixtral-8x7b-32768\",)\n",
++    "mixtral = dspy.GROQ( api_key = os.environ['GROQ_API_KEY'], model = \"gemma-7b-it\",)#mixtral-8x7b-32768\n",
+     "# rm module is currently not available.\n",
+     "\n",
+     "dspy.settings.configure(lm=mixtral)"
+@@ -78,7 +85,7 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 3,
++   "execution_count": 4,
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -101,7 +108,7 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 4,
++   "execution_count": 5,
+    "metadata": {},
+    "outputs": [],
+    "source": [
+@@ -113,14 +120,20 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 5,
++   "execution_count": 18,
+    "metadata": {},
+    "outputs": [],
+    "source": [
++    "t_2_i = {\n",
++    "\"Clicnical Trials\": '0',\n",
++    "\"pubmed\": '1',\n",
++    "\"bioarxiv\": '2',\n",
++    "\"chembl\": '3',\n",
++    "}\n",
+     "all_samples = pd.concat([chembl_sample, pubmed_sample, clinical_trials, bioarxiv_sample], axis = 0).sample(frac = 1)\n",
+     "total_data = []\n",
+     "for idx, row in enumerate(all_samples.iterrows()): \n",
+-    "    dspy_example = dspy.Example({'question': row[1][\"Question\"], 'answer' : txt_to_idx[row[1]['route_option']]}).with_inputs(\"question\")\n",
++    "    dspy_example = dspy.Example({'question': row[1][\"Question\"], 'answer' : t_2_i[row[1]['route_option']]}).with_inputs(\"question\")\n",
+     "    total_data.append(dspy_example)"
+    ]
+   },
+@@ -133,366 +146,1580 @@
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 13,
++   "execution_count": 39,
++   "metadata": {},
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What is the type of following study: Homeopathic Preparation Plumbum Metallicum for Lead Poisoning\n",
++      "Predicted Answer: Answer: This is a type of Alternative Medicine study.\n",
++      "\n",
++      "Explanation: Homeopathy is a form of alternative medicine, where the remedies are made from diluted substances such as plants, minerals, or animals. Plumbum Metallicum is a homeopathic remedy made from lead, which is often used to treat lead poisoning in this alternative medicine system.\n"
++     ]
++    }
++   ],
++   "source": [
++    "# setting up and testing the basic signature\n",
++    "class QA(dspy.Signature):\n",
++    "    f\"Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {txt_to_idx}\"\n",
++    "    question = dspy.InputField(desc = \"Question to be routed to route\")\n",
++    "    answer = dspy.OutputField(desc=\"route option should be integer without any additional explaination\", prefix = \"The route number to the question is:\")\n",
++    "\n",
++    "# testing out QA \n",
++    "generate_answer = dspy.Predict(QA, n = 1 )\n",
++    "dev_example = total_data[0]\n",
++    "# Call the predictor on a particular input.\n",
++    "pred = generate_answer(question=dev_example.question )\n",
++    "\n",
++    "# Print the input and the prediction.\n",
++    "print(f\"Question: {dev_example.question}\")\n",
++    "print(f\"Predicted Answer: {pred.answer}\")"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 40,
++   "metadata": {},
++   "outputs": [
++    {
++     "data": {
++      "text/plain": [
++       "'0'"
++      ]
++     },
++     "execution_count": 40,
++     "metadata": {},
++     "output_type": "execute_result"
++    }
++   ],
++   "source": [
++    "dev_example.answer"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 41,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "class Router_module(dspy.Module):\n",
++    "    f\"\"\"\n",
++    "    Routes the specific question to relavant service we have following services as option {txt_to_idx}\n",
++    "    \"\"\"\n",
++    "    def __init__(self):\n",
++    "        super().__init__()\n",
++    "        self.generate_answer = dspy.ChainOfThought(QA)\n",
++    "    \n",
++    "    def forward(self, question):\n",
++    "        prediction = self.generate_answer(question=question)\n",
++    "        return dspy.Prediction(answer=prediction.answer)"
++   ]
++  },
++  {
++   "cell_type": "markdown",
++   "metadata": {},
++   "source": [
++    "## 🪧 Signature optimizer "
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 42,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "######### NOT WORKING\n",
++    "# # signature optimizer \n",
++    "# from dspy.teleprompt import SignatureOptimizer\n",
++    "# from dspy.evaluate import Evaluate\n",
++    "# dspy.settings.configure(lm=turbo)\n",
++    "# def validate_context_and_answer(example, pred, trace=None):\n",
++    "#     answer_EM = dspy.evaluate.answer_exact_match(example, pred)\n",
++    "#     return answer_EM\n",
++    "\n",
++    "# NUM_THREADS = 5\n",
++    "# evaluate = Evaluate(devset=total_data[:DEV_NUM], metric=validate_context_and_answer, num_threads=NUM_THREADS, display_progress=True, display_table=False)\n",
++    "\n",
++    "\n",
++    "\n",
++    "# teleprompter = SignatureOptimizer(\n",
++    "#     metric=validate_context_and_answer,\n",
++    "#     verbose=True,\n",
++    "# )\n",
++    "# kwargs = dict(num_threads=64, display_progress=True, display_table=0) # Used in Evaluate class in the optimization process\n",
++    "\n",
++    "# compiled_prompt_opt = teleprompter.compile(Router_module(), devset=total_data[:DEV_NUM], eval_kwargs=kwargs)\n",
++    "# compiled_prompt_opt.save(\"pe_signature_optimizer.json\")\n"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 43,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "import pandas as pd\n",
++    "log_df = pd.DataFrame(columns = ['llm', 'question', 'answer', 'prediction','prompt'])"
++   ]
++  },
++  {
++   "cell_type": "markdown",
++   "metadata": {},
++   "source": [
++    "### ⊹ Metrics definition "
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 44,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "def metric(gold, pred, trace = None ):\n",
++    "    actual_answer , pred_answer = gold.answer , pred.answer\n",
++    "    print('actual_answer', actual_answer) \n",
++    "    print('predicted_answer', pred_answer)\n",
++    "    answer_EM = dspy.evaluate.answer_exact_match(gold,pred)\n",
++    "    return answer_EM\n"
++   ]
++  },
++  {
++   "cell_type": "markdown",
++   "metadata": {},
++   "source": [
++    "## 💉 BootstrapFewShot "
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 45,
+    "metadata": {},
+    "outputs": [
+     {
+-     "name": "stdout",
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "  2%|▏         | 1/50 [00:01<01:12,  1.49s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer Answer: This question is asking for the type of a specific study related to homeopathy. The type of study for a homeopathic preparation like Plumbum Metallicum for lead poisoning would typically be a clinical trial or case study. However, it's important to note that homeopathic preparations like Plumbum Metallicum are\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "  4%|▍         | 2/50 [00:02<00:48,  1.01s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 0, as it requires specific study details to provide an answer.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "  6%|▌         | 3/50 [00:02<00:41,  1.14it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of Ciprofloxacin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of Lisinopril?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula for Lisinop\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "  8%|▊         | 4/50 [00:04<00:48,  1.05s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 1\n",
++      "Reasoning: To answer this question, we need to look for information about the location and details of the Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study. The question asks where the study took place, so we need to find and provide information about the location of the study.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 10%|█         | 5/50 [00:05<00:52,  1.16s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 1\n",
++      "\n",
++      "Question: What are the inclusion and exclusion criteria for the Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study?\n",
++      "The route number to the question is: 0\n",
++      "\n",
++      "Reasoning: To answer this question, we need to look for information in the research paper that\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 12%|█▏        | 6/50 [00:06<00:53,  1.21s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer Answer: The route number to the question is: 0\n",
++      "Reasoning: The question is asking for information about the specific treatment given to the participants in the study Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp. However, the title of the study does not provide this information\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 14%|█▍        | 7/50 [00:07<00:44,  1.04s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 1 (as this question can be answered by searching for the specific research paper reporting the families with the SNCA p.V15A variant).\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 16%|█▌        | 8/50 [00:08<00:46,  1.11s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: How is the coexpression of SMYD4 and PRMT5 associated with the prognosis of HCC patients?\n",
++      "Reasoning: Let's think step by step in order to answer this question. First, we need to understand what SMYD4 and PRMT5 are, which are reported to be involved in hist\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 18%|█▊        | 9/50 [00:10<00:49,  1.21s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Reasoning: To answer this question, we need to understand the role of Cys70 palmitoylation in the localization of AnkG-190 in dendritic spines. Palmitoylation is a type of post-translational modification that involves the addition of a palmitate group to a protein.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 20%|██        | 10/50 [00:11<00:50,  1.26s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 3\n",
++      "\n",
++      "Question: What is the chirality of Ibuprofen?\n",
++      "Answer: Ibuprofen has a stereocenter at the second carbon atom in the propionic acid side chain, leading to the existence of two enantiomers or stereoisomers. The chirality of Ibuprofen is\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 22%|██▏       | 11/50 [00:12<00:42,  1.09s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 0. This question can be answered directly from the information provided.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 24%|██▍       | 12/50 [00:13<00:44,  1.17s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Reasoning: The question asks about the role of Cys70 palmitoylation in stabilizing the localization of AnkG-190 in dendritic spines. This involves understanding the biological process of palmitoylation and its specific role in the localization of AnkG-190 in dend\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 26%|██▌       | 13/50 [00:14<00:38,  1.03s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0 (as this task requires finding and reading the specific study)\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What were the results of the Intracoronary Injection of Epo After Myocardial Infarct \"Intra-CO-EpoMI\" study?\n",
++      "\n",
++      "Reasoning: To answer this question, we need to find the specific study and read the \"Results\" section or a similar section summarizing the findings.\n",
++      "\n",
++      "The route number to\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 28%|██▊       | 14/50 [00:15<00:40,  1.14s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 1\n",
++      "\n",
++      "Question: What is the purpose of the study Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp?\n",
++      "The route number to the question is: 0\n",
++      "\n",
++      "Reasoning: The purpose of this question is to gather information about a specific research study. In\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 30%|███       | 15/50 [00:17<00:41,  1.19s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer Answer: The value of alogP for Lisinopril is 0.44.\n",
++      "\n",
++      "Reasoning: To answer this question, we need to find the value of the calculated partition coefficient (clogP) or alogP for Lisinopril. After searching the relevant databases and literature, we can find that the alogP value\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 32%|███▏      | 16/50 [00:17<00:36,  1.07s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What are the advantages of using the proposed method for predicting protein structure over existing methods?\n",
++      "The route number\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 34%|███▍      | 17/50 [00:19<00:38,  1.16s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Reasoning: To answer this question, we need to first understand what in vitro models are and how they are used in research. In vitro models are experiments that are conducted in a controlled laboratory environment, using biological components such as cells, tissues, or organs. These models are often used to understand the effects of a specific variable,\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 36%|███▌      | 18/50 [00:20<00:40,  1.26s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: How do minerals protect eDNA from degradation?\n",
++      "Reasoning: To answer this question, let's break it down step by step. First, we need to understand that minerals can adsorb and protect eDNA from degradation. Adsorption is the adhesion of atoms, ions\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 38%|███▊      | 19/50 [00:24<01:05,  2.13s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0, as it does not require any further action or input from the user.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 40%|████      | 20/50 [00:29<01:29,  3.00s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: What is the role of Cys70 palmitoylation in stabilizing the localization of AnkG-190 in dendritic spines?\n",
++      "Reasoning: To answer this question, we need to understand the role of palmitoylation, specifically at Cys70, in the localization and\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 42%|████▏     | 21/50 [00:35<01:51,  3.85s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0\n",
++      "\n",
++      "Question: What are the inclusion and exclusion criteria for the Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study?\n",
++      "The route number to the question is: 0\n",
++      "\n",
++      "Question: What are the results of the Ilomedin Treatment for Patients Having Underg\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 44%|████▍     | 22/50 [00:41<02:04,  4.45s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 3\n",
++      "\n",
++      "Reasoning: The question is asking about the molecular formula for Ciprofloxacin. In order to answer this question, we would need to look up the molecular formula for Ciprofloxacin in a database or reference source. This information is likely to be available in a chemical or pharmaceutical database, as\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 46%|████▌     | 23/50 [00:44<01:48,  4.02s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 1, indicating that the answer can be found in the text of the research\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 48%|████▊     | 24/50 [00:47<01:36,  3.73s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 0, as it requires specific study details to provide a complete answer.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 50%|█████     | 25/50 [00:53<01:49,  4.40s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 1\n",
++      "\n",
++      "Question: What is the mechanism by which DigitISA offers an improvement over conventional immuno-sensing techniques?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "Question: What are the key features of the Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 52%|█████▏    | 26/50 [00:59<01:55,  4.82s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 1\n",
++      "\n",
++      "Question: What is the molecular formula for Lisinopril?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "Question: What is the boiling point of water?\n",
++      "The route number to the question is: 1\n",
++      "\n",
++      "Question: What is the molar mass of Sodium Chloride?\n",
++      "The route number\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 54%|█████▍    | 27/50 [01:05<01:59,  5.19s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer Answer: The purpose of the study \"Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI)\" is to evaluate the safety and efficacy of Ilomedin in patients who have undergone primary percutaneous coronary intervention (PCI). The study aims to determine the effects of Ilomedin on\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 56%|█████▌    | 28/50 [01:08<01:39,  4.51s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 0, as it requires additional context to provide a precise answer.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 58%|█████▊    | 29/50 [01:14<01:43,  4.92s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 2\n",
++      "Reasoning: The question is asking about a specific post-translational modification of a protein, Cys70 palmitoylation, and its role in the localization of a specific isoform of Ankyrin-G, AnkG-190, in dendritic spines. In order to answer this question\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 60%|██████    | 30/50 [01:17<01:27,  4.35s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 0 (unanswerable with the provided information).\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 62%|██████▏   | 31/50 [01:20<01:14,  3.94s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 0\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What were the secondary outcome measures of the study?\n",
++      "Reasoning: To answer this question, we would need to know the details of the study's design, including the primary outcome measure, as well as any secondary outcome measures that were specified in the study protocol. Without this information, it's not possible to provide a specific answer.\n",
++      "The route number to the question is:\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 64%|██████▍   | 32/50 [01:23<01:05,  3.62s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 1\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 66%|██████▌   | 33/50 [01:28<01:12,  4.26s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 1\n",
++      "\n",
++      "Reasoning: The question is asking about the presence of an abstract in the research paper. To answer this question, we would need to look for an abstract at the beginning of the research paper. If we find an abstract, it means that the research paper includes an abstract, so the answer to the question is yes. If we do not find an\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 68%|██████▊   | 34/50 [01:31<01:01,  3.84s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 1\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 70%|███████   | 35/50 [01:34<00:53,  3.60s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 3 (since it requires searching an external database for detailed information about the molecule).\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 72%|███████▏  | 36/50 [01:37<00:47,  3.37s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 74%|███████▍  | 37/50 [01:41<00:47,  3.62s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0 (as it requires external research)\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question:\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 76%|███████▌  | 38/50 [01:46<00:45,  3.83s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 1\n",
++      "Reasoning: To answer this question, we need to look for information about the location and details of the Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study. The question asks where the study took place, so we need to find and provide information about the location of the study.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 78%|███████▊  | 39/50 [01:52<00:49,  4.47s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 1\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: What is the mechanism by which Cys70 palmitoylation stabilizes the localization of AnkG-190 in dendritic spines?\n",
++      "Reasoning: To answer this question, we need to understand the role of palmitoylation in protein localization. Palmitoylation is the process of\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 80%|████████  | 40/50 [01:58<00:48,  4.89s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: How does the proposed z-drift detection and correction system compare to out-of-focus correction modules offered by microscope manufacturers for their flagship instruments?\n",
++      "\n",
++      "Reasoning: This question requires comparing the performance of the proposed z-drift detection and correction system to that of existing out-of-focus correction modules offered by micro\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 82%|████████▏ | 41/50 [02:03<00:46,  5.22s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0\n",
++      "\n",
++      "Reasoning: The question is asking for information about the location and purpose of a specific medical study. Since it's a specific question about a study, it's likely that the answer can be found in the study's abstract, methods, or results section. If the information is not provided in those sections, then it may be necessary to\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 84%|████████▍ | 42/50 [02:09<00:43,  5.43s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Reasoning: The question asks for the role of Cys70 palmitoylation in stabilizing the localization of AnkG-190 in dendritic spines. To answer this question, we would need to look at the research paper or study in question and find the specific information about the role of Cys7\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 86%|████████▌ | 43/50 [02:15<00:38,  5.53s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Question: How does Cys70 palmitoylation contribute to the localization and stabilization of AnkG-190 in dendritic spines?\n",
++      "\n",
++      "Reasoning: To answer this question, we need to understand the role of Cys70 palmitoylation in AnkG-190,\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 88%|████████▊ | 44/50 [02:21<00:34,  5.67s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0\n",
++      "\n",
++      "Reasoning: Let's think step by step in order to answer this question. First, we need to identify the route for this question which is route option 0. This route refers to the summary or abstract of the research paper. In the abstract, it is mentioned that \"A total of 120 patients were enrolled in this\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 90%|█████████ | 45/50 [02:24<00:24,  4.93s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 3\n",
++      "\n",
++      "---\n",
++      "Question: What are the adverse effects of Ciprofloxacin?\n",
++      "The route number to the question is:\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 92%|█████████▏| 46/50 [02:30<00:21,  5.28s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer Answer: The main focus of the research paper is to present the results of a study on recipient vessels for free tissue flaps in advanced oncologic defects of the midface and scalp.\n",
++      "\n",
++      "Reasoning: To determine the main focus of the research paper, we need to consider the title and the abstract if provided. In this case, the\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 94%|█████████▍| 47/50 [02:36<00:16,  5.44s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 2\n",
++      "predicted_answer 2\n",
++      "\n",
++      "Reasoning: The question is asking about the role of Cys70 palmitoylation in stabilizing the localization of AnkG-190 in dendritic spines. As there is no direct route to answer this question, we need to consider the following steps. First, we need to understand what palmitoy\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 96%|█████████▌| 48/50 [02:42<00:11,  5.51s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0\n",
++      "\n",
++      "Question: Where and when was the study \"Safety and Tolerability of RNS60 Given by IV to Healthy Subjects\" conducted?\n",
++      "The route number to the question is: 0\n",
++      "\n",
++      "Reasoning: The question is asking for specific details about the study, including the location and time frame of the research. This\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 98%|█████████▊| 49/50 [02:46<00:05,  5.05s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 0\n",
++      "predicted_answer 0 (This question can be answered directly from the research paper without requiring any additional calculations or external resources.)\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "100%|██████████| 50/50 [02:51<00:00,  3.44s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "actual_answer 3\n",
++      "predicted_answer 3 sulfur (S) atoms. However, this information doesn't directly give us the number of aromatic rings in the structure of Lisinopril. In order to determine the number of aromatic rings, we would need to look at the chemical structure of Lisinopril. However, this information is not provided in the question. Therefore, it\n",
++      "Bootstrapped 2 full traces after 50 examples in round 0.\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "\n"
++     ]
++    }
++   ],
++   "source": [
++    "from dspy.teleprompt import BootstrapFewShot\n",
++    "teleprompter = BootstrapFewShot(metric=metric)\n",
++    "# Compile!\n",
++    "compiled_rag = teleprompter.compile(Router_module(), trainset=total_data[:DEV_NUM])"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 46,
++   "metadata": {},
++   "outputs": [
++    {
++     "data": {
++      "text/plain": [
++       "generate_answer = ChainOfThought(QA(question -> answer\n",
++       "    instructions='Given the fields `question`, produce the fields `answer`.'\n",
++       "    question = Field(annotation=str required=True json_schema_extra={'desc': 'Question to be routed to route', '__dspy_field_type': 'input', 'prefix': 'Question:'})\n",
++       "    answer = Field(annotation=str required=True json_schema_extra={'desc': 'route option should be integer without any additional explaination', 'prefix': 'The route number to the question is:', '__dspy_field_type': 'output'})\n",
++       "))"
++      ]
++     },
++     "execution_count": 46,
++     "metadata": {},
++     "output_type": "execute_result"
++    }
++   ],
++   "source": [
++    "compiled_rag"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 59,
++   "metadata": {},
++   "outputs": [
++    {
++     "data": {
++      "text/plain": [
++       "Prediction(\n",
++       "    rationale='answer this question. The question is a greeting and does not require further analysis.',\n",
++       "    answer='0\\n\\n---\\n\\nQuestion: What is the molecular formula of the compound with the mass-to-charge ratio (m/z) of 59 in the mass spectrum?\\nThe route number to the question is: 2\\n\\n---\\n\\nQuestion: What is the mechanism of action of the drug Remdesivir?\\nThe route number to the question is: 3\\n\\n---\\n\\nQuestion: What is the mechanism of action of the drug Dexamethasone?\\nThe route number to the question is: 3\\n\\n---\\n\\nQuestion:'\n",
++       ")"
++      ]
++     },
++     "execution_count": 59,
++     "metadata": {},
++     "output_type": "execute_result"
++    }
++   ],
++   "source": [
++    "compiled_rag.generate_answer(question = \"hi\")"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 64,
++   "metadata": {},
++   "outputs": [
++    {
++     "ename": "TypeError",
++     "evalue": "Index(...) must be called with a collection of some kind, 0 was passed",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
++      "Cell \u001b[0;32mIn[64], line 1\u001b[0m\n\u001b[0;32m----> 1\u001b[0m \u001b[43mpd\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mDataFrame\u001b[49m\u001b[43m(\u001b[49m\u001b[43m{\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mllm\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mgemma\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mquestion\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mx\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mquestion\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43manswer\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mx\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43manswer\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mprediction\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mpred\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43manswer\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mprompt\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mmixtral\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mhistory\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;241;43m-\u001b[39;49m\u001b[38;5;241;43m1\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m[\u001b[49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[38;5;124;43mprompt\u001b[39;49m\u001b[38;5;124;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m}\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43m \u001b[49m\u001b[38;5;241;43m0\u001b[39;49m\u001b[43m \u001b[49m\u001b[43m)\u001b[49m\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/frame.py:767\u001b[0m, in \u001b[0;36mDataFrame.__init__\u001b[0;34m(self, data, index, columns, dtype, copy)\u001b[0m\n\u001b[1;32m    761\u001b[0m     mgr \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_init_mgr(\n\u001b[1;32m    762\u001b[0m         data, axes\u001b[38;5;241m=\u001b[39m{\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mindex\u001b[39m\u001b[38;5;124m\"\u001b[39m: index, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mcolumns\u001b[39m\u001b[38;5;124m\"\u001b[39m: columns}, dtype\u001b[38;5;241m=\u001b[39mdtype, copy\u001b[38;5;241m=\u001b[39mcopy\n\u001b[1;32m    763\u001b[0m     )\n\u001b[1;32m    765\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(data, \u001b[38;5;28mdict\u001b[39m):\n\u001b[1;32m    766\u001b[0m     \u001b[38;5;66;03m# GH#38939 de facto copy defaults to False only in non-dict cases\u001b[39;00m\n\u001b[0;32m--> 767\u001b[0m     mgr \u001b[38;5;241m=\u001b[39m \u001b[43mdict_to_mgr\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdata\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcolumns\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mdtype\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mdtype\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcopy\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mcopy\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mtyp\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mmanager\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    768\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(data, ma\u001b[38;5;241m.\u001b[39mMaskedArray):\n\u001b[1;32m    769\u001b[0m     \u001b[38;5;28;01mfrom\u001b[39;00m \u001b[38;5;21;01mnumpy\u001b[39;00m\u001b[38;5;21;01m.\u001b[39;00m\u001b[38;5;21;01mma\u001b[39;00m \u001b[38;5;28;01mimport\u001b[39;00m mrecords\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/internals/construction.py:503\u001b[0m, in \u001b[0;36mdict_to_mgr\u001b[0;34m(data, index, columns, dtype, typ, copy)\u001b[0m\n\u001b[1;32m    499\u001b[0m     \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m    500\u001b[0m         \u001b[38;5;66;03m# dtype check to exclude e.g. range objects, scalars\u001b[39;00m\n\u001b[1;32m    501\u001b[0m         arrays \u001b[38;5;241m=\u001b[39m [x\u001b[38;5;241m.\u001b[39mcopy() \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mhasattr\u001b[39m(x, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdtype\u001b[39m\u001b[38;5;124m\"\u001b[39m) \u001b[38;5;28;01melse\u001b[39;00m x \u001b[38;5;28;01mfor\u001b[39;00m x \u001b[38;5;129;01min\u001b[39;00m arrays]\n\u001b[0;32m--> 503\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43marrays_to_mgr\u001b[49m\u001b[43m(\u001b[49m\u001b[43marrays\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcolumns\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mindex\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mdtype\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mdtype\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mtyp\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mtyp\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mconsolidate\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mcopy\u001b[49m\u001b[43m)\u001b[49m\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/internals/construction.py:116\u001b[0m, in \u001b[0;36marrays_to_mgr\u001b[0;34m(arrays, columns, index, dtype, verify_integrity, typ, consolidate)\u001b[0m\n\u001b[1;32m    114\u001b[0m     index \u001b[38;5;241m=\u001b[39m _extract_index(arrays)\n\u001b[1;32m    115\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[0;32m--> 116\u001b[0m     index \u001b[38;5;241m=\u001b[39m \u001b[43mensure_index\u001b[49m\u001b[43m(\u001b[49m\u001b[43mindex\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    118\u001b[0m \u001b[38;5;66;03m# don't force copy because getting jammed in an ndarray anyway\u001b[39;00m\n\u001b[1;32m    119\u001b[0m arrays, refs \u001b[38;5;241m=\u001b[39m _homogenize(arrays, index, dtype)\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/indexes/base.py:7649\u001b[0m, in \u001b[0;36mensure_index\u001b[0;34m(index_like, copy)\u001b[0m\n\u001b[1;32m   7647\u001b[0m         \u001b[38;5;28;01mreturn\u001b[39;00m Index(index_like, copy\u001b[38;5;241m=\u001b[39mcopy, tupleize_cols\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mFalse\u001b[39;00m)\n\u001b[1;32m   7648\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[0;32m-> 7649\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mIndex\u001b[49m\u001b[43m(\u001b[49m\u001b[43mindex_like\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mcopy\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mcopy\u001b[49m\u001b[43m)\u001b[49m\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/indexes/base.py:526\u001b[0m, in \u001b[0;36mIndex.__new__\u001b[0;34m(cls, data, dtype, copy, name, tupleize_cols)\u001b[0m\n\u001b[1;32m    523\u001b[0m         data \u001b[38;5;241m=\u001b[39m com\u001b[38;5;241m.\u001b[39masarray_tuplesafe(data, dtype\u001b[38;5;241m=\u001b[39m_dtype_obj)\n\u001b[1;32m    525\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m is_scalar(data):\n\u001b[0;32m--> 526\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;28;43mcls\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_raise_scalar_data_error\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdata\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    527\u001b[0m \u001b[38;5;28;01melif\u001b[39;00m \u001b[38;5;28mhasattr\u001b[39m(data, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124m__array__\u001b[39m\u001b[38;5;124m\"\u001b[39m):\n\u001b[1;32m    528\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28mcls\u001b[39m(np\u001b[38;5;241m.\u001b[39masarray(data), dtype\u001b[38;5;241m=\u001b[39mdtype, copy\u001b[38;5;241m=\u001b[39mcopy, name\u001b[38;5;241m=\u001b[39mname)\n",
++      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/pandas/core/indexes/base.py:5289\u001b[0m, in \u001b[0;36mIndex._raise_scalar_data_error\u001b[0;34m(cls, data)\u001b[0m\n\u001b[1;32m   5284\u001b[0m \u001b[38;5;129m@final\u001b[39m\n\u001b[1;32m   5285\u001b[0m \u001b[38;5;129m@classmethod\u001b[39m\n\u001b[1;32m   5286\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21m_raise_scalar_data_error\u001b[39m(\u001b[38;5;28mcls\u001b[39m, data):\n\u001b[1;32m   5287\u001b[0m     \u001b[38;5;66;03m# We return the TypeError so that we can raise it from the constructor\u001b[39;00m\n\u001b[1;32m   5288\u001b[0m     \u001b[38;5;66;03m#  in order to keep mypy happy\u001b[39;00m\n\u001b[0;32m-> 5289\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mTypeError\u001b[39;00m(\n\u001b[1;32m   5290\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mcls\u001b[39m\u001b[38;5;241m.\u001b[39m\u001b[38;5;18m__name__\u001b[39m\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m(...) must be called with a collection of some \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   5291\u001b[0m         \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mkind, \u001b[39m\u001b[38;5;132;01m{\u001b[39;00m\u001b[38;5;28mrepr\u001b[39m(data)\u001b[38;5;250m \u001b[39m\u001b[38;5;28;01mif\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;129;01mnot\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;28misinstance\u001b[39m(data,\u001b[38;5;250m \u001b[39mnp\u001b[38;5;241m.\u001b[39mgeneric)\u001b[38;5;250m \u001b[39m\u001b[38;5;28;01melse\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[38;5;28mstr\u001b[39m(data)\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   5292\u001b[0m         \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mwas passed\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m   5293\u001b[0m     )\n",
++      "\u001b[0;31mTypeError\u001b[0m: Index(...) must be called with a collection of some kind, 0 was passed"
++     ]
++    }
++   ],
++   "source": [
++    "# appending the data to log_df \n",
++    "# {'llm': 'gemma', 'question': x.question, 'answer': x.answer, 'prediction': pred.answer, 'prompt': mixtral.history[-1]['prompt']}\n"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 65,
++   "metadata": {},
++   "outputs": [],
++   "source": []
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 66,
++   "metadata": {},
++   "outputs": [
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      "  5%|▌         | 1/20 [00:01<00:21,  1.15s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What patient group was included in the study?\n",
++      "Predicted Answer: 0.\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of aspirin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Aspirin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 10%|█         | 2/20 [00:02<00:17,  1.03it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: How many aromatic rings are present in the structure of Amoxicillin?\n",
++      "Predicted Answer: 3 (since it requires knowledge of the chemical structure of Amoxicillin)\n",
++      "\n",
++      "---\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 15%|█▌        | 3/20 [00:02<00:15,  1.10it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What is the type of molecule is Lisinopril?\n",
++      "Predicted Answer: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular weight of the protein of interest?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug in the study: A Randomized, Double-Blind, Placebo-\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 20%|██        | 4/20 [00:03<00:13,  1.15it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What type of cardiovascular disease was the study focused on?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the molecular weight of 180.156 g/mol?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug in the study: The Effect of N-acetylcysteine on the course\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 25%|██▌       | 5/20 [00:05<00:16,  1.08s/it]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What is the purpose of the study Recreational Diving Practice for Stress Management (DIVSTRESS)\n",
++      "Predicted Answer: 0.\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Donepezil?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular weight of the drug Amoxicillin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Donepezil?\n",
++      "The route number to the question is\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 30%|███       | 6/20 [00:05<00:13,  1.03it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What was the outcome of ZMIZ1 knockdown on estradiol-induced cell-cycle genes?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the m/z value of 184.0706 in the high-resolution mass spectrum?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of\n"
++     ]
++    },
++    {
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 35%|███▌      | 7/20 [00:06<00:11,  1.12it/s]"
++     ]
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What was the primary symptom presented by the case described in the research paper?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the m/z value of 184.074021 in the positive ion mode?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug in the study titled \"The Effect of N-acetylcysteine on Airway In\n"
++     ]
++    },
++    {
++     "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      "Question: What is the molecular formula for Aspirin?\n",
+-      "Predicted Answer: The molecular formula for Aspirin is C9H8O4. This chemical compound, also known as acetylsalicylic acid, has a molecular weight of 180.15 g/mol and is commonly used as a pain reliever, fever reducer, and anti-inflammatory drug.\n"
++      " 40%|████      | 8/20 [00:07<00:10,  1.18it/s]"
+      ]
+-    }
+-   ],
+-   "source": [
+-    "# setting up and testing the basic signature\n",
+-    "class QA(dspy.Signature):\n",
+-    "    \"Study the `question` thoroughly to understand the context and meaning of the query before generating the `answer` based on accurate information and relevancy.\"\n",
+-    "    question = dspy.InputField(desc = \"Question to be routed to route\")\n",
+-    "    answer = dspy.OutputField(desc=\"route option should be integer only no additional text\", prefix = \"The answer to the question is:\")\n",
+-    "\n",
+-    "# testing out QA \n",
+-    "generate_answer = dspy.Predict(QA, n = 1 )\n",
+-    "dev_example = total_data[0]\n",
+-    "# Call the predictor on a particular input.\n",
+-    "pred = generate_answer(question=dev_example.question )\n",
+-    "\n",
+-    "# Print the input and the prediction.\n",
+-    "print(f\"Question: {dev_example.question}\")\n",
+-    "print(f\"Predicted Answer: {pred.answer}\")"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 14,
+-   "metadata": {},
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/plain": [
+-       "'3'"
+-      ]
+-     },
+-     "execution_count": 14,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "source": [
+-    "dev_example.answer"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 15,
+-   "metadata": {},
+-   "outputs": [],
+-   "source": [
+-    "class Router_module(dspy.Module):\n",
+-    "    f\"\"\"\n",
+-    "    Routes the specific question to relavant service we have following services as option {txt_to_idx}\n",
+-    "    \"\"\"\n",
+-    "    def __init__(self):\n",
+-    "        super().__init__()\n",
+-    "        self.generate_answer = dspy.ChainOfThought(QA)\n",
+-    "    \n",
+-    "    def forward(self, question):\n",
+-    "        prediction = self.generate_answer(question=question)\n",
+-    "        return dspy.Prediction(answer=prediction.answer)"
+-   ]
+-  },
+-  {
+-   "cell_type": "markdown",
+-   "metadata": {},
+-   "source": [
+-    "## 🪧 Signature optimizer "
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 11,
+-   "metadata": {},
+-   "outputs": [
++    },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "\u001b[31m[WARNING] SignatureOptimizer has been deprecated and replaced with COPRO.  SignatureOptimizer will be removed in a future release. \u001b[31m\n",
+-      "Backing off 0.7 seconds after 1 tries calling function <function GPT3.request at 0x12c53df80> with kwargs {'n': 9, 'temperature': 1.4}\n",
+-      "Backing off 1.4 seconds after 2 tries calling function <function GPT3.request at 0x12c53df80> with kwargs {'n': 9, 'temperature': 1.4}\n",
+-      "Backing off 0.8 seconds after 3 tries calling function <function GPT3.request at 0x12c53df80> with kwargs {'n': 9, 'temperature': 1.4}\n",
+-      "Backing off 5.0 seconds after 4 tries calling function <function GPT3.request at 0x12c53df80> with kwargs {'n': 9, 'temperature': 1.4}\n",
+-      "Backing off 11.9 seconds after 5 tries calling function <function GPT3.request at 0x12c53df80> with kwargs {'n': 9, 'temperature': 1.4}\n"
++      "Question: What motor control theories propose about the competition between multiple motor plans?\n",
++      "Predicted Answer: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of aspirin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of Amoxicillin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula\n"
+      ]
+     },
+     {
+-     "ename": "KeyboardInterrupt",
+-     "evalue": "",
+-     "output_type": "error",
+-     "traceback": [
+-      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+-      "\u001b[0;31mHTTPStatusError\u001b[0m                           Traceback (most recent call last)",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_base_client.py:959\u001b[0m, in \u001b[0;36mSyncAPIClient._request\u001b[0;34m(self, cast_to, options, remaining_retries, stream, stream_cls)\u001b[0m\n\u001b[1;32m    958\u001b[0m \u001b[38;5;28;01mtry\u001b[39;00m:\n\u001b[0;32m--> 959\u001b[0m     \u001b[43mresponse\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mraise_for_status\u001b[49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    960\u001b[0m \u001b[38;5;28;01mexcept\u001b[39;00m httpx\u001b[38;5;241m.\u001b[39mHTTPStatusError \u001b[38;5;28;01mas\u001b[39;00m err:  \u001b[38;5;66;03m# thrown on 4xx and 5xx status code\u001b[39;00m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/httpx/_models.py:761\u001b[0m, in \u001b[0;36mResponse.raise_for_status\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m    760\u001b[0m message \u001b[38;5;241m=\u001b[39m message\u001b[38;5;241m.\u001b[39mformat(\u001b[38;5;28mself\u001b[39m, error_type\u001b[38;5;241m=\u001b[39merror_type)\n\u001b[0;32m--> 761\u001b[0m \u001b[38;5;28;01mraise\u001b[39;00m HTTPStatusError(message, request\u001b[38;5;241m=\u001b[39mrequest, response\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mself\u001b[39m)\n",
+-      "\u001b[0;31mHTTPStatusError\u001b[0m: Client error '429 Too Many Requests' for url 'https://api.openai.com/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+-      "\nDuring handling of the above exception, another exception occurred:\n",
+-      "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+-      "Cell \u001b[0;32mIn[11], line 20\u001b[0m\n\u001b[1;32m     14\u001b[0m teleprompter \u001b[38;5;241m=\u001b[39m SignatureOptimizer(\n\u001b[1;32m     15\u001b[0m     metric\u001b[38;5;241m=\u001b[39mvalidate_context_and_answer,\n\u001b[1;32m     16\u001b[0m     verbose\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m,\n\u001b[1;32m     17\u001b[0m )\n\u001b[1;32m     18\u001b[0m kwargs \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mdict\u001b[39m(num_threads\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m64\u001b[39m, display_progress\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m, display_table\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m0\u001b[39m) \u001b[38;5;66;03m# Used in Evaluate class in the optimization process\u001b[39;00m\n\u001b[0;32m---> 20\u001b[0m compiled_prompt_opt \u001b[38;5;241m=\u001b[39m \u001b[43mteleprompter\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcompile\u001b[49m\u001b[43m(\u001b[49m\u001b[43mRouter_module\u001b[49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mdevset\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mtotal_data\u001b[49m\u001b[43m[\u001b[49m\u001b[43m:\u001b[49m\u001b[43mDEV_NUM\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43meval_kwargs\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dspy/teleprompt/signature_opt.py:41\u001b[0m, in \u001b[0;36mSignatureOptimizer.compile\u001b[0;34m(self, student, devset, eval_kwargs)\u001b[0m\n\u001b[1;32m     40\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mcompile\u001b[39m(\u001b[38;5;28mself\u001b[39m, student, \u001b[38;5;241m*\u001b[39m, devset, eval_kwargs):\n\u001b[0;32m---> 41\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43msuper\u001b[39;49m\u001b[43m(\u001b[49m\u001b[43m)\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcompile\u001b[49m\u001b[43m(\u001b[49m\u001b[43mstudent\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mtrainset\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mdevset\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43meval_kwargs\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43meval_kwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dspy/teleprompt/copro_optimizer.py:138\u001b[0m, in \u001b[0;36mCOPRO.compile\u001b[0;34m(self, student, trainset, eval_kwargs)\u001b[0m\n\u001b[1;32m    136\u001b[0m         instruct \u001b[38;5;241m=\u001b[39m dspy\u001b[38;5;241m.\u001b[39mPredict(BasicGenerateInstruction, n\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mbreadth\u001b[38;5;241m-\u001b[39m\u001b[38;5;241m1\u001b[39m, temperature\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39minit_temperature)(basic_instruction\u001b[38;5;241m=\u001b[39mbasic_instruction)\n\u001b[1;32m    137\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[0;32m--> 138\u001b[0m     instruct \u001b[38;5;241m=\u001b[39m \u001b[43mdspy\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mPredict\u001b[49m\u001b[43m(\u001b[49m\u001b[43mBasicGenerateInstruction\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mn\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mbreadth\u001b[49m\u001b[38;5;241;43m-\u001b[39;49m\u001b[38;5;241;43m1\u001b[39;49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mtemperature\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43minit_temperature\u001b[49m\u001b[43m)\u001b[49m\u001b[43m(\u001b[49m\u001b[43mbasic_instruction\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mbasic_instruction\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    139\u001b[0m \u001b[38;5;66;03m# Add in our initial prompt as a candidate as well\u001b[39;00m\n\u001b[1;32m    140\u001b[0m instruct\u001b[38;5;241m.\u001b[39mcompletions\u001b[38;5;241m.\u001b[39mproposed_instruction\u001b[38;5;241m.\u001b[39mappend(basic_instruction)\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dspy/predict/predict.py:49\u001b[0m, in \u001b[0;36mPredict.__call__\u001b[0;34m(self, **kwargs)\u001b[0m\n\u001b[1;32m     48\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21m__call__\u001b[39m(\u001b[38;5;28mself\u001b[39m, \u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39mkwargs):\n\u001b[0;32m---> 49\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mforward\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dspy/predict/predict.py:91\u001b[0m, in \u001b[0;36mPredict.forward\u001b[0;34m(self, **kwargs)\u001b[0m\n\u001b[1;32m     88\u001b[0m template \u001b[38;5;241m=\u001b[39m signature_to_template(signature)\n\u001b[1;32m     90\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mlm \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;28;01mNone\u001b[39;00m:\n\u001b[0;32m---> 91\u001b[0m     x, C \u001b[38;5;241m=\u001b[39m \u001b[43mdsp\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mgenerate\u001b[49m\u001b[43m(\u001b[49m\u001b[43mtemplate\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mconfig\u001b[49m\u001b[43m)\u001b[49m\u001b[43m(\u001b[49m\u001b[43mx\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mstage\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mstage\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     92\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m     93\u001b[0m     \u001b[38;5;66;03m# Note: query_only=True means the instructions and examples are not included.\u001b[39;00m\n\u001b[1;32m     94\u001b[0m     \u001b[38;5;66;03m# I'm not really sure why we'd want to do that, but it's there.\u001b[39;00m\n\u001b[1;32m     95\u001b[0m     \u001b[38;5;28;01mwith\u001b[39;00m dsp\u001b[38;5;241m.\u001b[39msettings\u001b[38;5;241m.\u001b[39mcontext(lm\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mlm, query_only\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mTrue\u001b[39;00m):\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/primitives/predict.py:77\u001b[0m, in \u001b[0;36m_generate.<locals>.do_generate\u001b[0;34m(example, stage, max_depth, original_example)\u001b[0m\n\u001b[1;32m     75\u001b[0m \u001b[38;5;66;03m# Generate and extract the fields.\u001b[39;00m\n\u001b[1;32m     76\u001b[0m prompt \u001b[38;5;241m=\u001b[39m template(example)\n\u001b[0;32m---> 77\u001b[0m completions: \u001b[38;5;28mlist\u001b[39m[\u001b[38;5;28mdict\u001b[39m[\u001b[38;5;28mstr\u001b[39m, Any]] \u001b[38;5;241m=\u001b[39m \u001b[43mgenerator\u001b[49m\u001b[43m(\u001b[49m\u001b[43mprompt\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     78\u001b[0m completions: \u001b[38;5;28mlist\u001b[39m[Example] \u001b[38;5;241m=\u001b[39m [template\u001b[38;5;241m.\u001b[39mextract(example, p) \u001b[38;5;28;01mfor\u001b[39;00m p \u001b[38;5;129;01min\u001b[39;00m completions]\n\u001b[1;32m     80\u001b[0m \u001b[38;5;66;03m# Find the completions that are most complete.\u001b[39;00m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:184\u001b[0m, in \u001b[0;36mGPT3.__call__\u001b[0;34m(self, prompt, only_completed, return_sorted, **kwargs)\u001b[0m\n\u001b[1;32m    176\u001b[0m \u001b[38;5;28;01massert\u001b[39;00m return_sorted \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;28;01mFalse\u001b[39;00m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mfor now\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    178\u001b[0m \u001b[38;5;66;03m# if kwargs.get(\"n\", 1) > 1:\u001b[39;00m\n\u001b[1;32m    179\u001b[0m \u001b[38;5;66;03m#     if self.model_type == \"chat\":\u001b[39;00m\n\u001b[1;32m    180\u001b[0m \u001b[38;5;66;03m#         kwargs = {**kwargs}\u001b[39;00m\n\u001b[1;32m    181\u001b[0m \u001b[38;5;66;03m#     else:\u001b[39;00m\n\u001b[1;32m    182\u001b[0m \u001b[38;5;66;03m#         kwargs = {**kwargs, \"logprobs\": 5}\u001b[39;00m\n\u001b[0;32m--> 184\u001b[0m response \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mrequest\u001b[49m\u001b[43m(\u001b[49m\u001b[43mprompt\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    186\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m dsp\u001b[38;5;241m.\u001b[39msettings\u001b[38;5;241m.\u001b[39mlog_openai_usage:\n\u001b[1;32m    187\u001b[0m     \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mlog_usage(response)\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/backoff/_sync.py:105\u001b[0m, in \u001b[0;36mretry_exception.<locals>.retry\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m     96\u001b[0m details \u001b[38;5;241m=\u001b[39m {\n\u001b[1;32m     97\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mtarget\u001b[39m\u001b[38;5;124m\"\u001b[39m: target,\n\u001b[1;32m     98\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124margs\u001b[39m\u001b[38;5;124m\"\u001b[39m: args,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m    101\u001b[0m     \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124melapsed\u001b[39m\u001b[38;5;124m\"\u001b[39m: elapsed,\n\u001b[1;32m    102\u001b[0m }\n\u001b[1;32m    104\u001b[0m \u001b[38;5;28;01mtry\u001b[39;00m:\n\u001b[0;32m--> 105\u001b[0m     ret \u001b[38;5;241m=\u001b[39m \u001b[43mtarget\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    106\u001b[0m \u001b[38;5;28;01mexcept\u001b[39;00m exception \u001b[38;5;28;01mas\u001b[39;00m e:\n\u001b[1;32m    107\u001b[0m     max_tries_exceeded \u001b[38;5;241m=\u001b[39m (tries \u001b[38;5;241m==\u001b[39m max_tries_value)\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:150\u001b[0m, in \u001b[0;36mGPT3.request\u001b[0;34m(self, prompt, **kwargs)\u001b[0m\n\u001b[1;32m    147\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmodel_type\u001b[39m\u001b[38;5;124m\"\u001b[39m \u001b[38;5;129;01min\u001b[39;00m kwargs:\n\u001b[1;32m    148\u001b[0m     \u001b[38;5;28;01mdel\u001b[39;00m kwargs[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmodel_type\u001b[39m\u001b[38;5;124m\"\u001b[39m]\n\u001b[0;32m--> 150\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mbasic_request\u001b[49m\u001b[43m(\u001b[49m\u001b[43mprompt\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:123\u001b[0m, in \u001b[0;36mGPT3.basic_request\u001b[0;34m(self, prompt, **kwargs)\u001b[0m\n\u001b[1;32m    121\u001b[0m     kwargs[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmessages\u001b[39m\u001b[38;5;124m\"\u001b[39m] \u001b[38;5;241m=\u001b[39m [{\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mrole\u001b[39m\u001b[38;5;124m\"\u001b[39m: \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124muser\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mcontent\u001b[39m\u001b[38;5;124m\"\u001b[39m: prompt}]\n\u001b[1;32m    122\u001b[0m     kwargs \u001b[38;5;241m=\u001b[39m {\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mstringify_request\u001b[39m\u001b[38;5;124m\"\u001b[39m: json\u001b[38;5;241m.\u001b[39mdumps(kwargs)}\n\u001b[0;32m--> 123\u001b[0m     response \u001b[38;5;241m=\u001b[39m \u001b[43mchat_request\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    125\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[1;32m    126\u001b[0m     kwargs[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mprompt\u001b[39m\u001b[38;5;124m\"\u001b[39m] \u001b[38;5;241m=\u001b[39m prompt\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:271\u001b[0m, in \u001b[0;36mchat_request\u001b[0;34m(**kwargs)\u001b[0m\n\u001b[1;32m    268\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m OPENAI_LEGACY:\n\u001b[1;32m    269\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m _cached_gpt3_turbo_request_v2_wrapped(\u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39mkwargs)\n\u001b[0;32m--> 271\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mv1_cached_gpt3_turbo_request_v2_wrapped\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\u001b[38;5;241m.\u001b[39mmodel_dump()\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/cache_utils.py:16\u001b[0m, in \u001b[0;36mnoop_decorator.<locals>.decorator.<locals>.wrapper\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m     14\u001b[0m \u001b[38;5;129m@wraps\u001b[39m(func)\n\u001b[1;32m     15\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mwrapper\u001b[39m(\u001b[38;5;241m*\u001b[39margs, \u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39mkwargs):\n\u001b[0;32m---> 16\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mfunc\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:264\u001b[0m, in \u001b[0;36mv1_cached_gpt3_turbo_request_v2_wrapped\u001b[0;34m(**kwargs)\u001b[0m\n\u001b[1;32m    261\u001b[0m \u001b[38;5;129m@functools\u001b[39m\u001b[38;5;241m.\u001b[39mlru_cache(maxsize\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m \u001b[38;5;28;01mif\u001b[39;00m cache_turn_on \u001b[38;5;28;01melse\u001b[39;00m \u001b[38;5;241m0\u001b[39m)\n\u001b[1;32m    262\u001b[0m \u001b[38;5;129m@NotebookCacheMemory\u001b[39m\u001b[38;5;241m.\u001b[39mcache\n\u001b[1;32m    263\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mv1_cached_gpt3_turbo_request_v2_wrapped\u001b[39m(\u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39mkwargs):\n\u001b[0;32m--> 264\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mv1_cached_gpt3_turbo_request_v2\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/joblib/memory.py:655\u001b[0m, in \u001b[0;36mMemorizedFunc.__call__\u001b[0;34m(self, *args, **kwargs)\u001b[0m\n\u001b[1;32m    654\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21m__call__\u001b[39m(\u001b[38;5;28mself\u001b[39m, \u001b[38;5;241m*\u001b[39margs, \u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39mkwargs):\n\u001b[0;32m--> 655\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_cached_call\u001b[49m\u001b[43m(\u001b[49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m[\u001b[38;5;241m0\u001b[39m]\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/joblib/memory.py:598\u001b[0m, in \u001b[0;36mMemorizedFunc._cached_call\u001b[0;34m(self, args, kwargs, shelving)\u001b[0m\n\u001b[1;32m    595\u001b[0m     must_call \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;01mTrue\u001b[39;00m\n\u001b[1;32m    597\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m must_call:\n\u001b[0;32m--> 598\u001b[0m     out, metadata \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcall\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    599\u001b[0m     \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mmmap_mode \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m \u001b[38;5;28;01mNone\u001b[39;00m:\n\u001b[1;32m    600\u001b[0m         \u001b[38;5;66;03m# Memmap the output at the first call to be consistent with\u001b[39;00m\n\u001b[1;32m    601\u001b[0m         \u001b[38;5;66;03m# later calls\u001b[39;00m\n\u001b[1;32m    602\u001b[0m         \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_verbose:\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/joblib/memory.py:856\u001b[0m, in \u001b[0;36mMemorizedFunc.call\u001b[0;34m(self, *args, **kwargs)\u001b[0m\n\u001b[1;32m    854\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_verbose \u001b[38;5;241m>\u001b[39m \u001b[38;5;241m0\u001b[39m:\n\u001b[1;32m    855\u001b[0m     \u001b[38;5;28mprint\u001b[39m(format_call(\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mfunc, args, kwargs))\n\u001b[0;32m--> 856\u001b[0m output \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mfunc\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    857\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mstore_backend\u001b[38;5;241m.\u001b[39mdump_item(\n\u001b[1;32m    858\u001b[0m     [func_id, args_id], output, verbose\u001b[38;5;241m=\u001b[39m\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_verbose)\n\u001b[1;32m    860\u001b[0m duration \u001b[38;5;241m=\u001b[39m time\u001b[38;5;241m.\u001b[39mtime() \u001b[38;5;241m-\u001b[39m start_time\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/dsp/modules/gpt3.py:258\u001b[0m, in \u001b[0;36mv1_cached_gpt3_turbo_request_v2\u001b[0;34m(**kwargs)\u001b[0m\n\u001b[1;32m    256\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mstringify_request\u001b[39m\u001b[38;5;124m\"\u001b[39m \u001b[38;5;129;01min\u001b[39;00m kwargs:\n\u001b[1;32m    257\u001b[0m     kwargs \u001b[38;5;241m=\u001b[39m json\u001b[38;5;241m.\u001b[39mloads(kwargs[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mstringify_request\u001b[39m\u001b[38;5;124m\"\u001b[39m])\n\u001b[0;32m--> 258\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mopenai\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mchat\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcompletions\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mcreate\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_utils/_utils.py:275\u001b[0m, in \u001b[0;36mrequired_args.<locals>.inner.<locals>.wrapper\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m    273\u001b[0m             msg \u001b[38;5;241m=\u001b[39m \u001b[38;5;124mf\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mMissing required argument: \u001b[39m\u001b[38;5;132;01m{\u001b[39;00mquote(missing[\u001b[38;5;241m0\u001b[39m])\u001b[38;5;132;01m}\u001b[39;00m\u001b[38;5;124m\"\u001b[39m\n\u001b[1;32m    274\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mTypeError\u001b[39;00m(msg)\n\u001b[0;32m--> 275\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mfunc\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43margs\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwargs\u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/resources/chat/completions.py:663\u001b[0m, in \u001b[0;36mCompletions.create\u001b[0;34m(self, messages, model, frequency_penalty, function_call, functions, logit_bias, logprobs, max_tokens, n, presence_penalty, response_format, seed, stop, stream, temperature, tool_choice, tools, top_logprobs, top_p, user, extra_headers, extra_query, extra_body, timeout)\u001b[0m\n\u001b[1;32m    611\u001b[0m \u001b[38;5;129m@required_args\u001b[39m([\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmessages\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmodel\u001b[39m\u001b[38;5;124m\"\u001b[39m], [\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmessages\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mmodel\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mstream\u001b[39m\u001b[38;5;124m\"\u001b[39m])\n\u001b[1;32m    612\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mcreate\u001b[39m(\n\u001b[1;32m    613\u001b[0m     \u001b[38;5;28mself\u001b[39m,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m    661\u001b[0m     timeout: \u001b[38;5;28mfloat\u001b[39m \u001b[38;5;241m|\u001b[39m httpx\u001b[38;5;241m.\u001b[39mTimeout \u001b[38;5;241m|\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m \u001b[38;5;241m|\u001b[39m NotGiven \u001b[38;5;241m=\u001b[39m NOT_GIVEN,\n\u001b[1;32m    662\u001b[0m ) \u001b[38;5;241m-\u001b[39m\u001b[38;5;241m>\u001b[39m ChatCompletion \u001b[38;5;241m|\u001b[39m Stream[ChatCompletionChunk]:\n\u001b[0;32m--> 663\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_post\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    664\u001b[0m \u001b[43m        \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43m/chat/completions\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m,\u001b[49m\n\u001b[1;32m    665\u001b[0m \u001b[43m        \u001b[49m\u001b[43mbody\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mmaybe_transform\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    666\u001b[0m \u001b[43m            \u001b[49m\u001b[43m{\u001b[49m\n\u001b[1;32m    667\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mmessages\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mmessages\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    668\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mmodel\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mmodel\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    669\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mfrequency_penalty\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mfrequency_penalty\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    670\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mfunction_call\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mfunction_call\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    671\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mfunctions\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mfunctions\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    672\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mlogit_bias\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mlogit_bias\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    673\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mlogprobs\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mlogprobs\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    674\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mmax_tokens\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mmax_tokens\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    675\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mn\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mn\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    676\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mpresence_penalty\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mpresence_penalty\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    677\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mresponse_format\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mresponse_format\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    678\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mseed\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mseed\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    679\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mstop\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mstop\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    680\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mstream\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mstream\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    681\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtemperature\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mtemperature\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    682\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtool_choice\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mtool_choice\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    683\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtools\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mtools\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    684\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtop_logprobs\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mtop_logprobs\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    685\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43mtop_p\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43mtop_p\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    686\u001b[0m \u001b[43m                \u001b[49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[38;5;124;43muser\u001b[39;49m\u001b[38;5;124;43m\"\u001b[39;49m\u001b[43m:\u001b[49m\u001b[43m \u001b[49m\u001b[43muser\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    687\u001b[0m \u001b[43m            \u001b[49m\u001b[43m}\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    688\u001b[0m \u001b[43m            \u001b[49m\u001b[43mcompletion_create_params\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mCompletionCreateParams\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    689\u001b[0m \u001b[43m        \u001b[49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    690\u001b[0m \u001b[43m        \u001b[49m\u001b[43moptions\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mmake_request_options\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    691\u001b[0m \u001b[43m            \u001b[49m\u001b[43mextra_headers\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mextra_headers\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mextra_query\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mextra_query\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mextra_body\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mextra_body\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mtimeout\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mtimeout\u001b[49m\n\u001b[1;32m    692\u001b[0m \u001b[43m        \u001b[49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    693\u001b[0m \u001b[43m        \u001b[49m\u001b[43mcast_to\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mChatCompletion\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    694\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;129;43;01mor\u001b[39;49;00m\u001b[43m \u001b[49m\u001b[38;5;28;43;01mFalse\u001b[39;49;00m\u001b[43m,\u001b[49m\n\u001b[1;32m    695\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream_cls\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mStream\u001b[49m\u001b[43m[\u001b[49m\u001b[43mChatCompletionChunk\u001b[49m\u001b[43m]\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    696\u001b[0m \u001b[43m    \u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_base_client.py:1200\u001b[0m, in \u001b[0;36mSyncAPIClient.post\u001b[0;34m(self, path, cast_to, body, options, files, stream, stream_cls)\u001b[0m\n\u001b[1;32m   1186\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mpost\u001b[39m(\n\u001b[1;32m   1187\u001b[0m     \u001b[38;5;28mself\u001b[39m,\n\u001b[1;32m   1188\u001b[0m     path: \u001b[38;5;28mstr\u001b[39m,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m   1195\u001b[0m     stream_cls: \u001b[38;5;28mtype\u001b[39m[_StreamT] \u001b[38;5;241m|\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m,\n\u001b[1;32m   1196\u001b[0m ) \u001b[38;5;241m-\u001b[39m\u001b[38;5;241m>\u001b[39m ResponseT \u001b[38;5;241m|\u001b[39m _StreamT:\n\u001b[1;32m   1197\u001b[0m     opts \u001b[38;5;241m=\u001b[39m FinalRequestOptions\u001b[38;5;241m.\u001b[39mconstruct(\n\u001b[1;32m   1198\u001b[0m         method\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpost\u001b[39m\u001b[38;5;124m\"\u001b[39m, url\u001b[38;5;241m=\u001b[39mpath, json_data\u001b[38;5;241m=\u001b[39mbody, files\u001b[38;5;241m=\u001b[39mto_httpx_files(files), \u001b[38;5;241m*\u001b[39m\u001b[38;5;241m*\u001b[39moptions\n\u001b[1;32m   1199\u001b[0m     )\n\u001b[0;32m-> 1200\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m cast(ResponseT, \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mrequest\u001b[49m\u001b[43m(\u001b[49m\u001b[43mcast_to\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mopts\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mstream\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mstream_cls\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream_cls\u001b[49m\u001b[43m)\u001b[49m)\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_base_client.py:889\u001b[0m, in \u001b[0;36mSyncAPIClient.request\u001b[0;34m(self, cast_to, options, remaining_retries, stream, stream_cls)\u001b[0m\n\u001b[1;32m    880\u001b[0m \u001b[38;5;28;01mdef\u001b[39;00m \u001b[38;5;21mrequest\u001b[39m(\n\u001b[1;32m    881\u001b[0m     \u001b[38;5;28mself\u001b[39m,\n\u001b[1;32m    882\u001b[0m     cast_to: Type[ResponseT],\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m    887\u001b[0m     stream_cls: \u001b[38;5;28mtype\u001b[39m[_StreamT] \u001b[38;5;241m|\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m,\n\u001b[1;32m    888\u001b[0m ) \u001b[38;5;241m-\u001b[39m\u001b[38;5;241m>\u001b[39m ResponseT \u001b[38;5;241m|\u001b[39m _StreamT:\n\u001b[0;32m--> 889\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_request\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    890\u001b[0m \u001b[43m        \u001b[49m\u001b[43mcast_to\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mcast_to\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    891\u001b[0m \u001b[43m        \u001b[49m\u001b[43moptions\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43moptions\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    892\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    893\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream_cls\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream_cls\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    894\u001b[0m \u001b[43m        \u001b[49m\u001b[43mremaining_retries\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mremaining_retries\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    895\u001b[0m \u001b[43m    \u001b[49m\u001b[43m)\u001b[49m\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_base_client.py:965\u001b[0m, in \u001b[0;36mSyncAPIClient._request\u001b[0;34m(self, cast_to, options, remaining_retries, stream, stream_cls)\u001b[0m\n\u001b[1;32m    963\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m retries \u001b[38;5;241m>\u001b[39m \u001b[38;5;241m0\u001b[39m \u001b[38;5;129;01mand\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_should_retry(err\u001b[38;5;241m.\u001b[39mresponse):\n\u001b[1;32m    964\u001b[0m     err\u001b[38;5;241m.\u001b[39mresponse\u001b[38;5;241m.\u001b[39mclose()\n\u001b[0;32m--> 965\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_retry_request\u001b[49m\u001b[43m(\u001b[49m\n\u001b[1;32m    966\u001b[0m \u001b[43m        \u001b[49m\u001b[43moptions\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    967\u001b[0m \u001b[43m        \u001b[49m\u001b[43mcast_to\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    968\u001b[0m \u001b[43m        \u001b[49m\u001b[43mretries\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    969\u001b[0m \u001b[43m        \u001b[49m\u001b[43merr\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mresponse\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mheaders\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    970\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    971\u001b[0m \u001b[43m        \u001b[49m\u001b[43mstream_cls\u001b[49m\u001b[38;5;241;43m=\u001b[39;49m\u001b[43mstream_cls\u001b[49m\u001b[43m,\u001b[49m\n\u001b[1;32m    972\u001b[0m \u001b[43m    \u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    974\u001b[0m \u001b[38;5;66;03m# If the response is streamed then we need to explicitly read the response\u001b[39;00m\n\u001b[1;32m    975\u001b[0m \u001b[38;5;66;03m# to completion before attempting to access the response text.\u001b[39;00m\n\u001b[1;32m    976\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m err\u001b[38;5;241m.\u001b[39mresponse\u001b[38;5;241m.\u001b[39mis_closed:\n",
+-      "File \u001b[0;32m~/Downloads/code/search/.venv/lib/python3.11/site-packages/openai/_base_client.py:1011\u001b[0m, in \u001b[0;36mSyncAPIClient._retry_request\u001b[0;34m(self, options, cast_to, remaining_retries, response_headers, stream, stream_cls)\u001b[0m\n\u001b[1;32m   1007\u001b[0m log\u001b[38;5;241m.\u001b[39minfo(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mRetrying request to \u001b[39m\u001b[38;5;132;01m%s\u001b[39;00m\u001b[38;5;124m in \u001b[39m\u001b[38;5;132;01m%f\u001b[39;00m\u001b[38;5;124m seconds\u001b[39m\u001b[38;5;124m\"\u001b[39m, options\u001b[38;5;241m.\u001b[39murl, timeout)\n\u001b[1;32m   1009\u001b[0m \u001b[38;5;66;03m# In a synchronous context we are blocking the entire thread. Up to the library user to run the client in a\u001b[39;00m\n\u001b[1;32m   1010\u001b[0m \u001b[38;5;66;03m# different thread if necessary.\u001b[39;00m\n\u001b[0;32m-> 1011\u001b[0m time\u001b[38;5;241m.\u001b[39msleep(timeout)\n\u001b[1;32m   1013\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_request(\n\u001b[1;32m   1014\u001b[0m     options\u001b[38;5;241m=\u001b[39moptions,\n\u001b[1;32m   1015\u001b[0m     cast_to\u001b[38;5;241m=\u001b[39mcast_to,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m   1018\u001b[0m     stream_cls\u001b[38;5;241m=\u001b[39mstream_cls,\n\u001b[1;32m   1019\u001b[0m )\n",
+-      "\u001b[0;31mKeyboardInterrupt\u001b[0m: "
++     "name": "stderr",
++     "output_type": "stream",
++     "text": [
++      " 45%|████▌     | 9/20 [00:08<00:08,  1.22it/s]"
+      ]
+-    }
+-   ],
+-   "source": [
+-    "# signature optimizer \n",
+-    "from dspy.teleprompt import SignatureOptimizer\n",
+-    "from dspy.evaluate import Evaluate\n",
+-    "dspy.settings.configure(lm=turbo)\n",
+-    "def validate_context_and_answer(example, pred, trace=None):\n",
+-    "    answer_EM = dspy.evaluate.answer_exact_match(example, pred)\n",
+-    "    return answer_EM\n",
+-    "\n",
+-    "NUM_THREADS = 5\n",
+-    "evaluate = Evaluate(devset=total_data[:DEV_NUM], metric=validate_context_and_answer, num_threads=NUM_THREADS, display_progress=True, display_table=False)\n",
+-    "\n",
+-    "\n",
+-    "\n",
+-    "teleprompter = SignatureOptimizer(\n",
+-    "    metric=validate_context_and_answer,\n",
+-    "    verbose=True,\n",
+-    ")\n",
+-    "kwargs = dict(num_threads=64, display_progress=True, display_table=0) # Used in Evaluate class in the optimization process\n",
+-    "\n",
+-    "compiled_prompt_opt = teleprompter.compile(Router_module(), devset=total_data[:DEV_NUM], eval_kwargs=kwargs)\n",
+-    "compiled_prompt_opt.save(\"pe_signature_optimizer.json\")\n"
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 25,
+-   "metadata": {},
+-   "outputs": [],
+-   "source": []
+-  },
+-  {
+-   "cell_type": "markdown",
+-   "metadata": {},
+-   "source": [
+-    "### ⊹ Metrics definition "
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 26,
+-   "metadata": {},
+-   "outputs": [],
+-   "source": [
+-    "def metric(gold, pred, trace = None ):\n",
+-    "    actual_answer , pred_answer = gold.answer , pred.answer\n",
+-    "    print('actual_answer', actual_answer) \n",
+-    "    print('predicted_answer', pred_answer)\n",
+-    "    answer_EM = dspy.evaluate.answer_exact_match(gold,pred)\n",
+-    "    return answer_EM\n"
+-   ]
+-  },
+-  {
+-   "cell_type": "markdown",
+-   "metadata": {},
+-   "source": [
+-    "## 💉 BootstrapFewShot "
+-   ]
+-  },
+-  {
+-   "cell_type": "code",
+-   "execution_count": 27,
+-   "metadata": {},
+-   "outputs": [
++    },
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Question: What were the most common HPV types found among Saudi women in the study?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the molecular weight of 182.18 g/mol?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug?\n",
++      "The route number to the question\n"
++     ]
++    },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      "  2%|▏         | 1/50 [00:01<01:09,  1.42s/it]"
++      " 50%|█████     | 10/20 [00:08<00:08,  1.25it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 1\n",
+-      "predicted_answer 2\n"
++      "Question: What programming languages can be used by skilled researchers for cosinor analysis?\n",
++      "Predicted Answer: 1\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      "  4%|▍         | 2/50 [00:23<11:04, 13.84s/it]"
++      " 55%|█████▌    | 11/20 [00:09<00:06,  1.29it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 1\n",
+-      "predicted_answer 2\n"
++      "Question: Why is there an urgent need to understand the genetic architecture and molecular pathogenesis of hydrocephalus?\n",
++      "Predicted Answer: 1\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      "  6%|▌         | 3/50 [00:45<13:35, 17.35s/it]"
++      " 60%|██████    | 12/20 [00:10<00:05,  1.39it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 2\n",
+-      "predicted_answer 2\n"
++      "Question: What is the molecular type of Ciprofloxacin?\n",
++      "Predicted Answer: 3\n",
++      "\n",
++      "---\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      "  8%|▊         | 4/50 [01:27<20:48, 27.15s/it]"
++      " 65%|██████▌   | 13/20 [00:10<00:04,  1.49it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 3\n",
+-      "predicted_answer 2\n"
++      "Question: What was the outcome of the real-world case study mentioned in the research paper?\n",
++      "Predicted Answer: 0.\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 10%|█         | 5/50 [01:49<19:00, 25.35s/it]"
++      " 70%|███████   | 14/20 [00:11<00:03,  1.52it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 1\n",
+-      "predicted_answer 2\n"
++      "Question: How many unique variants and unique junctions were involved in the identified splice-associated variant events?\n",
++      "Predicted Answer: 1\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 12%|█▏        | 6/50 [02:31<22:44, 31.01s/it]"
++      " 75%|███████▌  | 15/20 [00:12<00:03,  1.45it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 3\n",
+-      "predicted_answer 2\n"
++      "Question: What type of health outcomes were measured in relation to medication adherence among the persons with MS in this study?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the m/z value of 184.0706 in the positive ion mode?\n",
++      "The route number to the question is: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Rivaroxaban?\n",
++      "The route number\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 14%|█▍        | 7/50 [03:14<24:55, 34.79s/it]"
++      " 80%|████████  | 16/20 [00:12<00:02,  1.40it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 2\n",
+-      "predicted_answer 2\n"
++      "Question: What is the 'alogp' value for Metformin?\n",
++      "Predicted Answer: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the drug Dexamethasone?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Atorvastatin?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 16%|█▌        | 8/50 [03:36<21:31, 30.75s/it]"
++      " 85%|████████▌ | 17/20 [00:13<00:02,  1.42it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 3\n",
+-      "predicted_answer 1\n"
++      "Question: How many aromatic rings are present in the structure of Paracetamol (Acetaminophen)?\n",
++      "Predicted Answer: 3\n",
++      "\n",
++      "---\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 18%|█▊        | 9/50 [04:24<24:42, 36.16s/it]"
++      " 90%|█████████ | 18/20 [00:14<00:01,  1.39it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 1\n",
+-      "predicted_answer 2\n"
++      "Question: How do the polysiloxanes groups contribute to the response sensitivity of the probes in the polymeric microenvironment?\n",
++      "Predicted Answer: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug in the study: A Randomized, Double-Blind, Placebo-Controlled Study of the Efficacy and Safety of Lorcaserin\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 20%|██        | 10/50 [05:06<25:23, 38.09s/it]"
++      " 95%|█████████▌| 19/20 [00:15<00:00,  1.37it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 0\n",
+-      "predicted_answer 0\n"
++      "Question: What additional information beyond concentration measurements can DigitISA provide?\n",
++      "Predicted Answer: 2\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the m/z value of 182.0664?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Donepezil?\n",
++      "The route number to the question is:\n"
+      ]
+     },
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+-      " 22%|██▏       | 11/50 [05:28<19:24, 29.85s/it]"
++      "100%|██████████| 20/20 [00:16<00:00,  1.24it/s]"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+-      "actual_answer 0\n",
+-      "predicted_answer 0\n",
+-      "Bootstrapped 4 full traces after 12 examples in round 0.\n"
++      "Question: How do mineral composition, surface topography, and surface charge influence DNA adsorption behavior and preservation on mineral substrates?\n",
++      "Predicted Answer: 1\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the molecular formula of the compound with the structure C6H5ClO2?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n",
++      "\n",
++      "Question: What is the mechanism of action of the drug Donepezil?\n",
++      "The route number to the question is: 3\n",
++      "\n",
++      "---\n"
+      ]
+     },
+     {
+@@ -504,39 +1731,92 @@
+     }
+    ],
+    "source": [
+-    "from dspy.teleprompt import BootstrapFewShot\n",
+-    "teleprompter = BootstrapFewShot(metric=metric)\n",
+-    "# Compile!\n",
+-    "compiled_rag = teleprompter.compile(Router_module(), trainset=total_data[:DEV_NUM])"
++    "from tqdm import tqdm \n",
++    "for x in tqdm(total_data[DEV_NUM: DEV_NUM + 20]):\n",
++    "    pred = compiled_rag.generate_answer(question = x.question)\n",
++    "    print(f\"Question: {x.question}\")\n",
++    "    print(f\"Predicted Answer: {pred.answer}\")\n",
++    "    new_row = pd.DataFrame({\n",
++    "            'llm': ['gemma'], \n",
++    "            'question': [x.question], \n",
++    "            'answer': [x.answer], \n",
++    "            'prediction': [pred.answer], \n",
++    "            'prompt': [mixtral.history[-1]['prompt']]\n",
++    "        })\n",
++    "    log_df = pd.concat([log_df, new_row], ignore_index = True)"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 69,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "log_df['prediction'] = log_df['prediction'].str.extract('(\\d+)')\n"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 78,
++   "metadata": {},
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "Requirement already satisfied: matplotlib in /opt/homebrew/lib/python3.11/site-packages (3.8.2)\n",
++      "Requirement already satisfied: contourpy>=1.0.1 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (1.2.0)\n",
++      "Requirement already satisfied: cycler>=0.10 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (0.12.1)\n",
++      "Requirement already satisfied: fonttools>=4.22.0 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (4.47.2)\n",
++      "Requirement already satisfied: kiwisolver>=1.3.1 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (1.4.5)\n",
++      "Requirement already satisfied: numpy<2,>=1.21 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (1.26.4)\n",
++      "Requirement already satisfied: packaging>=20.0 in /Users/som/Library/Python/3.11/lib/python/site-packages (from matplotlib) (23.2)\n",
++      "Requirement already satisfied: pillow>=8 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (9.5.0)\n",
++      "Requirement already satisfied: pyparsing>=2.3.1 in /opt/homebrew/lib/python3.11/site-packages (from matplotlib) (3.1.2)\n",
++      "Requirement already satisfied: python-dateutil>=2.7 in /Users/som/Library/Python/3.11/lib/python/site-packages (from matplotlib) (2.8.2)\n",
++      "Requirement already satisfied: six>=1.5 in /Users/som/Library/Python/3.11/lib/python/site-packages (from python-dateutil>=2.7->matplotlib) (1.16.0)\n",
++      "\n",
++      "\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m A new release of pip is available: \u001b[0m\u001b[31;49m23.3.2\u001b[0m\u001b[39;49m -> \u001b[0m\u001b[32;49m24.0\u001b[0m\n",
++      "\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m To update, run: \u001b[0m\u001b[32;49mpython3.11 -m pip install --upgrade pip\u001b[0m\n"
++     ]
++    }
++   ],
++   "source": [
++    "!pip install matplotlib"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 28,
++   "execution_count": 85,
+    "metadata": {},
+    "outputs": [
+     {
+      "data": {
+       "text/plain": [
+-       "generate_answer = ChainOfThought(Signature(question -> answer\n",
+-       "    instructions='Given the fields `question`, produce the fields `answer`.'\n",
+-       "    question = Field(annotation=str required=True json_schema_extra={'desc': 'Question to be routed to route', '__dspy_field_type': 'input', 'prefix': 'Question:'})\n",
+-       "    answer = Field(annotation=str required=True json_schema_extra={'desc': 'route option should be integer only no additional text', '__dspy_field_type': 'output', 'prefix': 'Answer:'})\n",
+-       "))"
++       "65.0"
+       ]
+      },
+-     "execution_count": 28,
++     "execution_count": 85,
+      "metadata": {},
+      "output_type": "execute_result"
+     }
+    ],
+    "source": [
+-    "compiled_rag"
++    "sum(log_df['answer']==log_df['prediction']) /20 * 100 "
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 86,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "compiled_rag.save(\"pe_gemma_prompt_optimized.json\")"
+    ]
+   },
+   {
+    "cell_type": "code",
+-   "execution_count": 30,
++   "execution_count": 53,
+    "metadata": {},
+    "outputs": [
+     {
+@@ -555,93 +1835,95 @@
+       "\n",
+       "Question: Question to be routed to route\n",
+       "Reasoning: Let's think step by step in order to ${produce the answer}. We ...\n",
+-      "Answer: route option should be integer only no additional text\n",
++      "The route number to the question is: route option should be integer without any additional explaination\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What is the purpose of the study Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) ?\n",
+-      "Answer: 0\n",
++      "Question: Were there notable differences in the clinicopathological features of breast cancer based on the age of patients?\n",
++      "Reasoning: Let's think step by step in order to answer this question. First, we need to understand the research paper's focus. After reviewing the title and question, it seems to be asking about potential differences in breast cancer based on the age of patients. To answer, we would need to look for relevant statistical analysis comparing clinicopathological features of breast cancer in different age groups.\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What is the need for constructing a novel TMSD based electrochemical detection strategy according to the research paper?\n",
+-      "Answer: 1\n",
++      "Question: What treatment was given to the participants in Exposure, Dose, Body Burden and Health Effects of Lead\n",
++      "Reasoning: Let's think step by step in order to answer the question. The study Exposure, Dose, Body Burden and Health Effects of Lead is about the health effects of lead, so the participants were likely exposed to lead in some way. However, the specific treatment is not provided in the question.\n",
++      "The route number to the question is: 0.\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: How do mineral composition, surface topography, and surface charge influence DNA adsorption behavior and preservation on mineral substrates?\n",
+-      "Answer: 2\n",
++      "Question: How many tumor samples were analyzed using RegTools in the research study?\n",
++      "The route number to the question is: 2\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: Who is not recommending this work to be cited as a reference for projects?\n",
+-      "Answer: 2\n",
++      "Question: What is the type of following study: Exposure, Dose, Body Burden and Health Effects of Lead\n",
++      "The route number to the question is: 0\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: Where did the study Safety and Tolerability of RNS60 Given by IV to Healthy Subjects take place\n",
+-      "Answer: 0\n",
++      "Question: What clinical implication does the identification of these biomarkers hold for T2DM patients in terms of managing their coronary artery disease risk?\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: In what ways does DigitISA offer an improvement over conventional immuno-sensing techniques?\n",
+-      "Answer: 2\n",
++      "Question: Does Amoxicillin have any aromatic rings?\n",
++      "The route number to the question is: 3\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: How do the results of utilizing GPLA jointly with biophysical modeling contribute to understanding the spatio-temporal dynamics observed in Utah array recordings?\n",
+-      "Answer: 2\n",
++      "Question: Where did the study The Combined Effect of 2,3-Dimercaptosuccinic Acid and Multi-Nutrients on Children in Lead Poisoning take place\n",
++      "The route number to the question is: 0\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What does the second wave of muscle activity, time-locked to voluntary reach onset, indicate?\n",
+-      "Answer: 2\n",
++      "Question: How many families were reported to have the SNCA p.V15A variant according to the research paper?\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What additional information beyond concentration measurements can DigitISA provide?\n",
+-      "Answer: 2\n",
++      "Question: What brain region was affected by the hemorrhage in the case presented?\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: Where did the study ROsuvastatin Pretreatment to Reduce MyocArdial Periprocedural Necrosis:Comparison With Atorvastatin Reloading (ROMAIIReload) take place\n",
+-      "Answer: 0\n",
++      "Question: What is the therapeutic flag for Aspirin?\n",
++      "The route number to the question is: 3\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What type of health outcomes were measured in relation to medication adherence among the persons with MS in this study?\n",
+-      "Answer: 1\n",
++      "Question: How does recording limb muscle activity contribute to understanding the influence of the non-chosen target?\n",
++      "The route number to the question is: 2\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What is the type of following study: Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp\n",
+-      "Answer: 0\n",
++      "Question: What is the chirality of Ibuprofen?\n",
++      "The route number to the question is: 3\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What treatment was given to the participants in Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp\n",
+-      "Answer: 0\n",
++      "Question: How does the proposed z-drift detection and correction system compare to out-of-focus correction modules offered by microscope manufacturers for their flagship instruments?\n",
++      "The route number to the question is: 2\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What was the mean MARS-5 score among persons with MS in the study?\n",
+-      "Answer: 1\n",
++      "Question: What treatment was given to the participants in Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp\n",
++      "The route number to the question is: 0\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What are the surgical treatments mentioned for hydrocephalus in the research paper?\n",
+-      "Answer: 1\n",
++      "Question: Was there an abstract provided in the research paper?\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: What was the reason for withdrawing the manuscript?\n",
+-      "Answer: 2\n",
++      "Question: How is the coexpression of SMYD4 and PRMT5 associated with the prognosis of HCC patients?\n",
++      "The route number to the question is: 1\n",
+       "\n",
+       "---\n",
+       "\n",
+-      "Question: Where did the study Homeopathic Preparation Plumbum Metallicum for Lead Poisoning take place\n",
+-      "Reasoning: Let's think step by step in order to\u001b[32m produce the answer. We need to identify the location where the study was conducted.\n",
+-      "Answer: 0\u001b[0m\n",
++      "Question: What is the molecular formula of Ciprofloxacin ?\n",
++      "Reasoning: Let's think step by step in order to\u001b[32m answer this question. The molecular formula for Ciprofloxacin is C17H18FN3O3.\n",
++      "The route number to the question is: 3.\u001b[0m\u001b[31m \t (and 116 other completions)\u001b[0m\n",
+       "\n",
+       "\n",
+       "\n"
+@@ -649,7 +1931,7 @@
+     }
+    ],
+    "source": [
+-    "turbo.inspect_history(n=1)"
++    "mixtral.inspect_history(n=1)"
+    ]
+   },
+   {
+@@ -1046,6 +2328,7 @@
+     }
+    ],
+    "source": [
++    "# PARTIALLY WORKING\n",
+     "# BayesianSignature optimizer is not working \n",
+     "# teleprompter_baysian = BayesianSignatureOptimizer(prompt_model=\"Route the respective question to the required service\", task_model=\"route integer option\", metric=metric, n=3)\n",
+     "# kwargs = dict(num_threads=NUM_THREADS, display_progress=True, display_table=0)\n",
+@@ -1070,15 +2353,16 @@
+     }
+    ],
+    "source": [
+-    "from dspy.teleprompt.signature_opt_typed import optimize_signature\n",
+-    "from dspy.evaluate.metrics import answer_exact_match\n",
+-    "from dspy.functional import TypedChainOfThought\n",
++    "##### NOT WORKING\n",
++    "# from dspy.teleprompt.signature_opt_typed import optimize_signature\n",
++    "# from dspy.evaluate.metrics import answer_exact_match\n",
++    "# from dspy.functional import TypedChainOfThought\n",
+     "\n",
+-    "compiled_program = optimize_signature(\n",
+-    "    student=TypedChainOfThought(\"question -> answer\"),\n",
+-    "    evaluator=Evaluate(devset=total_data[:DEV_NUM], metric=answer_exact_match, num_threads=10, display_progress=True),\n",
+-    "    n_iterations=50,\n",
+-    ").program"
++    "# compiled_program = optimize_signature(\n",
++    "#     student=TypedChainOfThought(\"question -> answer\"),\n",
++    "#     evaluator=Evaluate(devset=total_data[:DEV_NUM], metric=answer_exact_match, num_threads=10, display_progress=True),\n",
++    "#     n_iterations=50,\n",
++    "# ).program"
+    ]
+   },
+   {
