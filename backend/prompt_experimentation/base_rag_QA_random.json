@@ -19,7 +19,7 @@
         "question": "What is the status of pharmacologic treatments for hydrocephalus as per the research paper?",
         "answer": "No effective pharmacologic treatments for hydrocephalus have been developed.",
         "context": "The genetic basis of hydrocephalus: genes, pathways, mechanisms, and global impact."
-      },
+      }, 
       {
         "question": "Can you explain the workflow provided by Holomics for analyzing multi-omics data?",
         "answer": "The workflow provided by Holomics starts with the upload and pre-filtering of single-omics data, followed by single-omics analysis focusing on key features. Subsequently, the reduced datasets are subjected to multi-omics analyses to reveal correlations between different datasets.",
