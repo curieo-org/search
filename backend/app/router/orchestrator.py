@@ -48,16 +48,19 @@ class Orchestrator:
         breaks_sql = False
 
         if router_id == 0:
+            result = []
+            breaks_sql = True
+            pass
             # retriever call
-            clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
-            try:
-                sqlResponse = clinicalTrialSearch.call_text2sql(search_text=search_text)
-                result = str(sqlResponse)
-                logger.debug(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
-            except Exception as e:
-                breaks_sql = True
-                logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
-                pass
+            # clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
+            # try:
+            #     sqlResponse = clinicalTrialSearch.call_text2sql(search_text=search_text)
+            #     result = str(sqlResponse)
+            #     logger.debug(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+            # except Exception as e:
+            #     breaks_sql = True
+            #     logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
+            #     pass
 
         elif router_id == 1:
             # drug information call
