@@ -1,0 +1,4 @@
+{
+    "schema": "Node Properties: [{'tag': 'compound_details', 'properties': ['molecule_name', 'molecule_type', 'first_approval', 'max_phase', 'full_weight', 'full_molecular_formula', 'standard_inchi', 'standard_inchi_key', 'canonical_smiles']}, {'tag': 'molecule_name', 'properties': []}], Edge Properties: [{'tag': 'has_parent', 'properties': []}, {'tag': 'similar_to', 'properties': ['similarity']}], Relationships: ['(input: molecule_name)-[edge_name:has_parent]->(drug:compound_details)', '(drug:compound_details)-[similarity_edge:similar_to]->(similar_drug:compound_details)'], Where Conditions: ['id(input) == \"drug name\"'], Return Elements: ['similar_drug', 'similarity_edge']",
+    "summary": "All values are text and in lower case."
+}
