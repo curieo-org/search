@@ -1,6 +1,6 @@
 type SearchResultCardProps = any;
 
-export async function SearchResultCard({ key, result }: SearchResultCardProps) {
+export function SearchResultCard({ key, result }: SearchResultCardProps) {
   return (
     <div
       id={key}
