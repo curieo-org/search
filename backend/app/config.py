@@ -74,6 +74,17 @@ RERANK_TOP_COUNT: int = config("RERANK_TOP_COUNT", default=5)
 CLINICAL_TRIALS_TABLE_INFO_DIR: str = config("CLINICAL_TRIALS_TABLE_INFO_DIR", default="app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo")
 POSTGRES_ENGINE: Secret = config('POSTGRES_ENGINE', cast=Secret)
 
+## Drug ChEMBL Configurations Details
+#table info dir
+DRUG_CHEMBL_TABLE_INFO_DIR: str = config("DRUG_CHEMBL_TABLE_INFO_DIR", default="app/rag/retrieval/drug_chembl/ChEMBLTableQuestions_TableInfo")
+# NEBULA GRAPH Configuration
+NEBULA_GRAPH_HOST: str = config("NEBULA_GRAPH_HOST")
+NEBULA_GRAPH_PORT: str = config("NEBULA_GRAPH_PORT")
+NEBULA_GRAPH_USER: str = config("NEBULA_GRAPH_USER")
+NEBULA_GRAPH_PASSWORD: str = config("NEBULA_GRAPH_PASSWORD")
+NEBULA_GRAPH_SPACE: str = config("NEBULA_GRAPH_SPACE")
+
+
 ## REDIS Configuration
 #REDIS URL
 REDIS_URL: str = config("REDIS_URL", default="redis://127.0.0.1:6379")
