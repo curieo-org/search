@@ -22,8 +22,9 @@ orchestrator = Orchestrator(config)
 
 logger = setup_logger('Search_Endpoint')
 
+
 @router.get(
-    "/Search/",
+    "/search",
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)]
