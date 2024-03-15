@@ -1,49 +1,48 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "./submit-button";
 import toast from "react-hot-toast";
-import useSWR from "swr";
 
 interface SearchFormProps {
-  initialPrompt?: string;
+  token: string;
+  setSearchResults: Dispatch<SetStateAction<string>>;
 }
 
-export function SearchForm({ initialPrompt }: SearchFormProps) {
+export function SearchForm({ token, setSearchResults }: SearchFormProps) {
   const submitRef = useRef<React.ElementRef<"button">>(null);
-  const [token, setToken] = useState("");
 
-  //useEffect(() => {
-  //  if (!formState) return
-  //  toast.error(formState.message)
-  //}, [formState])
-  let formData = new FormData();
-  formData.append("username", "curieo");
-  formData.append("password", "whatever");
-  useSWR(
-    "/api/token",
-    async (url: string) => {
-      const res = await fetch(url, {
-        method: "POST",
-        body: formData,
-      });
-      const json = await res.json();
-      return json?.access_token ?? "";
-    },
-    {
-      onSuccess: (token) => {
-        setToken(token);
-        localStorage.setItem("token", token);
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const data = {
+      query: formData.get("query")?.toString(),
+    };
+
+    const params = new URLSearchParams(data);
+    const url = "api/search?" + params;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    },
-  );
-
+    });
+    if (res.status == 200) {
+      const json = await res.json();
+      setSearchResults(json?.result ?? "");
+    } else {
+      toast.error(res.statusText);
+    }
+  }
   return (
-    <form className="flex h-fit w-full flex-row items-center rounded-xl bg-black px-1 shadow-lg">
+    <form
+      className="flex h-fit w-full flex-row items-center rounded-xl bg-black px-1 shadow-lg"
+      action="#"
+      onSubmit={handleSubmit}
+    >
       <input
-        defaultValue={initialPrompt}
         type="text"
-        name="prompt"
+        name="query"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
