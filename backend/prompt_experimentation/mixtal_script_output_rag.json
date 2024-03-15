@@ -1,0 +1,85 @@
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "Can you provide examples of previously unreported patterns of splicing disruption identified in known cancer drivers using RegTools?",
+        "rationale": "answer this question. First, we need to understand that RegTools is a tool for analyzing alternative splicing patterns in RNA-seq data. The question asks for examples of previously unreported patterns of splicing disruption identified in known cancer drivers using RegTools. Therefore, this question is related to the service that provides information about life sciences, specifically in the field of bioinformatics and genomics.",
+        "answer": "2"
+      },
+      {
+        "augmented": true,
+        "question": "What is the molecular formula for Aspirin?",
+        "rationale": "answer the question. We need to find the molecular formula of Aspirin. Aspirin is a common name for acetylsalicylic acid, which has the molecular formula C9H8O4.",
+        "answer": "3."
+      },
+      {
+        "augmented": true,
+        "question": "What was the primary objective of expanding the Trauma Program Performance Improvement team in the study?",
+        "rationale": "produce the answer. We need to first understand what the Trauma Program Performance Improvement team is and what its responsibilities are. After analyzing the question, it appears that the primary objective of expanding the team is being asked for. This is a question about the goals and objectives of a study, which falls under the category of '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain'.",
+        "answer": "1"
+      },
+      {
+        "augmented": true,
+        "question": "What motor control theories propose about the competition between multiple motor plans?",
+        "rationale": "produce the answer. We need to find information about motor control theories that propose competition between multiple motor plans. This information can be found in articles related to neuroscience, which falls under the '2' service category.",
+        "answer": "2"
+      },
+      {
+        "question": "How many aromatic rings are present in the Ibuprofen molecule?",
+        "answer": "3"
+      },
+      {
+        "question": "What treatment was given to the participants in The Combined Effect of 2,3-Dimercaptosuccinic Acid and Multi-Nutrients on Children in Lead Poisoning",
+        "answer": "0"
+      },
+      {
+        "question": "How does Generalized Phase Locking Analysis (GPLA) help address the challenge of interpreting high dimensional functional connectivity measures in neural data?",
+        "answer": "2"
+      },
+      {
+        "question": "Where did this Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study took place? ",
+        "answer": "0"
+      },
+      {
+        "question": "What is the chirality of Aspirin?",
+        "answer": "3"
+      },
+      {
+        "question": "What hypothesis guided the research team in implementing the expansion of the Trauma Program Performance Improvement team?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the molecular type of the compound being researched?",
+        "answer": "3"
+      },
+      {
+        "question": "What is the purpose of the study Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp",
+        "answer": "0"
+      },
+      {
+        "question": "What patient outcome is predictive of high ZMIZ1 expression?",
+        "answer": "2"
+      },
+      {
+        "question": "Where did the study Recreational Diving Practice for Stress Management (DIVSTRESS) take place",
+        "answer": "0"
+      },
+      {
+        "question": "What were the observed consequences of the SNCA p.V15A variant in in vitro models?",
+        "answer": "1"
+      },
+      {
+        "question": "Why is understanding the compromise of CRISPR-Cas function important in E. faecalis populations?",
+        "answer": "2"
+      }
+    ],
+    "signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "signature_prefix": "The route number to the question is:",
+    "extended_signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "extended_signature_prefix": "The route number to the question is:"
+  }
+}
