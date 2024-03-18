@@ -55,19 +55,19 @@ async def get_search_results(
 
 
 @router.get(
-    "/latest-search-queries",
-    summary="List all latest search queries",
-    description="List all lates Search Queries",
+    "/top-search-queries",
+    summary="List all top search queries",
+    description="List all Top Search Queries",
     dependencies=[Depends(security.access_token_required)],
     response_model=list[str]
 )
 @version(1, 0)
-async def get_latest_search_queries() -> JSONResponse:
-    logger.debug(f"Search_Endpoint.get_latest_search_queries")
+async def get_top_search_queries() -> JSONResponse:
+    logger.debug(f"Search_Endpoint.get_top_search_queries")
 
     cache = Redis()
     last_x_keys = await cache.get_sorted_set("searched_queries", 0, 10)
 
-    logger.debug(f"Search_Endpoint.get_latest_search_queries. result: {last_x_keys}")
+    logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
 
     return JSONResponse(status_code=200, content=last_x_keys)

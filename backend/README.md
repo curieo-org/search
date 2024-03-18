@@ -121,6 +121,12 @@ Steps and commands for running the app are to be included here
         --header 'Authorization: Bearer <access token>'
         ```
 
+    -   Example API for Top 10 Search:
+        ```
+        curl --location 'http://127.0.0.1:8000/top-search-queries' \
+        --header 'Authorization: Bearer <access token>'
+        ```
+
 ## Deployment
 
 Not decided yet, we will work on that part.
