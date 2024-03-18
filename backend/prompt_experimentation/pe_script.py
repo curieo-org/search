@@ -7,6 +7,7 @@ from tqdm import tqdm
 from dspy.teleprompt import BootstrapFewShot
 import matplotlib.pyplot as plt
 import wandb
+from app import config
 # Initialize the argument parser
 parser = argparse.ArgumentParser(description='Set up WANDB project and LLM configurations.')
 parser.add_argument('--data_path', type=str, help='The path to the input data file.')
@@ -24,7 +25,7 @@ args = parser.parse_args()
 load_dotenv(args.env_file)
 
 # Login to WANDB
-wandb.login(key=os.environ['WANDB_API_KEY'])
+wandb.login(key=config.WANDB_API_KEY)
 
 # Initialize WANDB run
 run = wandb.init(project=args.project_name, name=args.run_name, entity=args.entity)
@@ -52,11 +53,11 @@ DEV_NUM = args.num_samples
 
 idx_to_txt = {v: k for k, v in txt_to_idx.items()}
 if args.llm == "gpt-3.5-turbo":
-    turbo = dspy.OpenAI(model='gpt-3.5-turbo', api_key = os.environ["OPENAI_API_KEY"])
+    turbo = dspy.OpenAI(model='gpt-3.5-turbo', api_key = config.OPENAI_API_KEY)
 elif args.llm == "gemma-7b-it":
-    turbo = dspy.GROQ( api_key = os.environ['GROQ_API_KEY'], model = "gemma-7b-it",)
+    turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "gemma-7b-it",)
 elif args.llm == "mixtral-8x7b-32768":
-    turbo = dspy.GROQ( api_key = os.environ['GROQ_API_KEY'], model = "mixtral-8x7b-32768",)
+    turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "mixtral-8x7b-32768",)
 # rm module is currently not available.
 
 dspy.settings.configure(lm=turbo)
