@@ -45,6 +45,27 @@ async def get_search_results(
         search_result = await orchestrator.query_and_get_answer(search_text=query)
         await cache.set_value(query, search_result)
 
+    await cache.add_to_sorted_set("searched_queries", query)
+
     logger.debug(f"Search_Endpoint.get_search_results. result: {search_result}")
 
     return JSONResponse(status_code=200, content=search_result)
+
+
+
+@router.get(
+    "/latest-search-queries",
+    summary="List all latest search queries",
+    description="List all lates Search Queries",
+    dependencies=[Depends(security.access_token_required)]
+)
+@version(1, 0)
+async def get_latest_search_queries() -> JSONResponse:
+    logger.debug(f"Search_Endpoint.get_latest_search_queries")
+
+    cache = Redis()
+    last_x_keys = await cache.get_sorted_set("searched_queries", 0, 10)
+
+    logger.debug(f"Search_Endpoint.get_latest_search_queries. result: {last_x_keys}")
+
+    return JSONResponse(status_code=200, content=last_x_keys)

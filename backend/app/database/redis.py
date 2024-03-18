@@ -1,6 +1,7 @@
 import redis.asyncio as aioredis
 import os
-from app.config import REDIS_URL, CACHE_MAX_AGE
+import random
+from app.config import REDIS_URL, CACHE_MAX_AGE, CACHE_MAX_SORTED_SET
 
 connection = None
 
@@ -32,3 +33,20 @@ class Redis:
         global connection
 
         await connection.set(key, value, ex=expire)
+
+
+    async def add_to_sorted_set(self, space: str, key: str):
+        global connection
+
+        await connection.zincrby(space, 1, key)
+
+
+    async def get_sorted_set(self, space: str, start: int, stop: int) -> list[str]:
+        global connection
+
+        random_number = random.random()
+        if random_number < 0.1:
+            await connection.zremrangebyrank(space, 0, -CACHE_MAX_SORTED_SET-1)
+            
+        values = await connection.zrevrange(space, start, stop, withscores=False)
+        return [str(value, 'utf-8') for value in values]

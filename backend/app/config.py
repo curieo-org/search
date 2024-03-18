@@ -86,6 +86,7 @@ NEBULA_GRAPH_SPACE: str = config("NEBULA_GRAPH_SPACE")
 #REDIS URL
 REDIS_URL: Secret = config("REDIS_URL", cast=Secret)
 CACHE_MAX_AGE: str = config("SEARCH_CACHE_MAX_AGE", default='86400')
+CACHE_MAX_SORTED_SET: int = config("CACHE_MAX_SORTED_SET", default=100)
 
 
 ## JWT
