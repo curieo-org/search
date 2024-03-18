@@ -22,6 +22,7 @@ llama-index-embeddings-text-embeddings-inference = "^0.1.2"
 psycopg2-binary = "^2.9.9"
 dspy = {git = "git@github.com:curieo-org/dspy.git"}
 matplotlib = "^3.8.3"
+python-multipart = "^0.0.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

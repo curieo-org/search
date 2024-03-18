@@ -1,52 +1,65 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { SubmitButton } from "./submit-button"
-import toast from "react-hot-toast"
-import useSWR from "swr"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { SubmitButton } from "./submit-button";
+import toast from "react-hot-toast";
 
 interface SearchFormProps {
-  initialPrompt?: string
+  token: string;
+  setSearchResults: Dispatch<SetStateAction<string>>;
 }
 
-export function SearchForm({ initialPrompt }: SearchFormProps) {
-  const submitRef = useRef<React.ElementRef<"button">>(null)
-  const [token, setToken] = useState("")
+export function SearchForm({ token, setSearchResults }: SearchFormProps) {
+  const submitRef = useRef<React.ElementRef<"button">>(null);
 
-  //useEffect(() => {
-  //  if (!formState) return
-  //  toast.error(formState.message)
-  //}, [formState])
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const data = {
+      query: formData.get("query")?.toString(),
+    };
 
-  useSWR(
-    "/api/token",
-    async (url: string) => {
-      const res = await fetch(url)
-      const json = await res.json()
-      return json?.token ?? ""
-    },
-    {
-      onSuccess: (token) => setToken(token),
+    const params = new URLSearchParams(data);
+    const url = "api/search?" + params;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status == 200) {
+      const json = await res.json();
+      setSearchResults(json?.result ?? "");
+    } else {
+      toast.error(res.statusText);
     }
-  )
-
+  }
   return (
-    <form className="bg-black rounded-xl shadow-lg h-fit flex flex-row px-1 items-center w-full">
+    <form
+      className="flex h-fit w-full flex-row items-center rounded-xl bg-black px-1 shadow-lg"
+      action="#"
+      onSubmit={handleSubmit}
+    >
       <input
-        defaultValue={initialPrompt}
         type="text"
-        name="prompt"
+        name="query"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            e.preventDefault()
-            submitRef.current?.click()
+            e.preventDefault();
+            submitRef.current?.click();
           }
         }}
-        placeholder="..."
-        className="bg-transparent text-white placeholder:text-gray-400 ring-0 outline-none resize-none py-2.5 px-2 font-mono text-sm h-10 w-full transition-all duration-300"
+        className="h-10 w-full resize-none bg-transparent px-2 py-2.5 font-mono text-sm text-white outline-none ring-0 transition-all duration-300 placeholder:text-gray-400"
       />
-      <input aria-hidden type="text" name="token" value={token} className="hidden" readOnly />
+      <input
+        aria-hidden
+        type="text"
+        name="token"
+        value={token}
+        className="hidden"
+        readOnly
+      />
       <SubmitButton ref={submitRef} />
     </form>
-  )
+  );
 }

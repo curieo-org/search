@@ -15,5 +15,5 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
 ## Setup
 
 
-- Running the Curieo [API](api/README.md)
-- Running the Curieo [App](app/README.md)
+- Running the Curieo [API](backend/README.md)
+- Running the Curieo [App](frontend/README.md)

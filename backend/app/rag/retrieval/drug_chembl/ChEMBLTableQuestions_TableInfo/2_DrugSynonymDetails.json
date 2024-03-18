@@ -1,0 +1,4 @@
+{
+    "schema": "Node Properties: [{'tag': 'compound_details', 'properties': ['molecule_name', 'molecule_type', 'first_approval', 'max_phase', 'full_weight', 'full_molecular_formula', 'standard_inchi', 'standard_inchi_key', 'canonical_smiles']}, {'tag': 'molecule_name', 'properties': []}, {'tag': 'molecule_synonym', 'properties': []], Edge Properties: [{'tag': 'has_parent', 'properties': []}, {'tag': 'synonym_of', 'properties': []}], Relationships: ['(input: molecule_name)-[edge_name:has_parent]->(drug:compound_details)', '(synonym:molecule_synonym)-[synonym_edge:synonym_of]->(drug:compound_details)'], Where Conditions: ['id(input) == \"drug name\"'], Return Elements: ['synonym']",
+    "summary": "All values are text and in lower case."
+}

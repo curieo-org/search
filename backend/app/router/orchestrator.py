@@ -4,6 +4,7 @@ from llama_index.llms.openai import OpenAI
 
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.rag.retrieval.clinical_trials.clinical_trial_sql_query_engine import ClinicalTrialText2SQLEngine
+from app.rag.retrieval.drug_chembl.drug_chembl_graph_query_engine import DrugChEMBLText2CypherEngine
 from app.rag.reranker.response_reranker import ReRankEngine
 from app.rag.generation.response_synthesis import ResponseSynthesisEngine
 from app.config import config, OPENAPI_KEY, RERANK_TOP_COUNT
@@ -64,8 +65,20 @@ class Orchestrator:
 
         elif router_id == 1:
             # drug information call
+            logger.debug(f"Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
+
+            drugChemblSearch = DrugChEMBLText2CypherEngine(config)
             result = []
-            breaks_sql = True
+
+            try:
+                cypherResponse = drugChemblSearch.call_text2cypher(search_text=search_text)
+                result = str(cypherResponse)
+
+                logger.debug(f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}")
+            except Exception as e:
+                breaks_sql = True
+                logger.exception("Orchestrator.query_and_get_answer.cypherResponse Exception -", exc_info = e, stack_info=True)
+
             print()
         
         if router_id == 2 or breaks_sql == True:

@@ -1,12 +1,8 @@
-from typing import List
-from uuid import UUID
-
-from fastapi import (APIRouter, Depends, Header, HTTPException)
+from fastapi import (APIRouter, Depends, HTTPException)
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger
 from fastapi_versioning import version
 from authx import AuthX, AuthXConfig
-from fastapi_doc_http_response import get_responses
 from fastapi_redis_cache import cache
 
 from app.api.router.gzip import GzipRoute
@@ -27,16 +23,8 @@ orchestrator = Orchestrator(config)
 logger = setup_logger('Search_Endpoint')
 
 
-@router.get('/login')
-def login(username: str, password: str):
-    if username == "curieo" and password == "curieo":
-        token = security.create_access_token(uid=username)
-        return {"access_token": token}
-    raise HTTPException(401, detail={"message": "Bad credentials"})
-
-
 @router.get(
-    "/Search/",
+    "/search",
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)]
@@ -46,8 +34,8 @@ def login(username: str, password: str):
 async def get_search_results(
     query: str = ""
 ) -> JSONResponse:
-    logger.debug(f"Search_Endpoint.get_search_results. query: {query}")           
+    logger.debug(f"Search_Endpoint.get_search_results. query: {query}")
     data = await orchestrator.query_and_get_answer(search_text=query)
     logger.debug(f"Search_Endpoint.get_search_results. result: {data}")
-    
+
     return JSONResponse(status_code=200, content=data)
