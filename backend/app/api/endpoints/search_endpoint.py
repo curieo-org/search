@@ -27,7 +27,8 @@ logger = setup_logger('Search_Endpoint')
     "/search",
     summary="List all Search Results",
     description="List all Search Results",
-    dependencies=[Depends(security.access_token_required)]
+    dependencies=[Depends(security.access_token_required)],
+    response_model=str
 )
 @version(1, 0)
 async def get_search_results(
@@ -57,7 +58,8 @@ async def get_search_results(
     "/latest-search-queries",
     summary="List all latest search queries",
     description="List all lates Search Queries",
-    dependencies=[Depends(security.access_token_required)]
+    dependencies=[Depends(security.access_token_required)],
+    response_model=list[str]
 )
 @version(1, 0)
 async def get_latest_search_queries() -> JSONResponse:
