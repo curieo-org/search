@@ -26,10 +26,10 @@ logger = setup_logger('Search_Endpoint')
 @router.get(
     "/search",
     summary="List all Search Results",
-    description="List all Search Results",
-    dependencies=[Depends(security.access_token_required)]
+    description="List all Search Results"#,
+    # dependencies=[Depends(security.access_token_required)]
 )
-@cache(expire=31536000)
+# @cache(expire=31536000)
 @version(1, 0)
 async def get_search_results(
     query: str = ""

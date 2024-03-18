@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import List
 from sqlalchemy import create_engine
 from pyvis.network import Network
+import pandas as pd
 
 from app.config import OPENAPI_KEY, CLINICAL_TRIALS_TABLE_INFO_DIR, POSTGRES_ENGINE, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
 from app.services.search_utility import setup_logger
@@ -47,6 +48,7 @@ class ClinicalTrialText2SQLEngine:
 
         self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY))
         self.engine = create_engine(str(POSTGRES_ENGINE))
+        self.query = ""
 
         self.text2sql_prompt = DEFAULT_TEXT_TO_SQL_PROMPT.partial_format(dialect=self.engine.dialect.name)
 
@@ -70,6 +72,10 @@ class ClinicalTrialText2SQLEngine:
 
         self.qp = self.build_query_pipeline()
 
+    def append_to_file(self, statement): 
+        with open(f"./DDdebug_output.txt", "a") as f:
+            f.write(statement + "\n")
+
     def _get_table_info_with_index(self, idx: int) -> str:
         results_gen = Path(CLINICAL_TRIALS_TABLE_INFO_DIR).glob(f"{idx}_*")
         results_list = list(results_gen)
@@ -84,6 +90,7 @@ class ClinicalTrialText2SQLEngine:
             )
 
     def get_all_table_info(self):
+
         file_counts = len(os.listdir(CLINICAL_TRIALS_TABLE_INFO_DIR))
         table_infos = []
 
@@ -103,11 +110,19 @@ class ClinicalTrialText2SQLEngine:
                 table_opt_context += table_schema_obj.context_str
                 table_info += table_opt_context
             context_strs.append(table_info)
+        self.append_to_file("********************************************")   
+        self.append_to_file("**************************** TABLE CONTEXT STRING ************************************")
+        self.append_to_file("\n\n".join(context_strs))
+        self.append_to_file("********************************************")   
         return "\n\n".join(context_strs)
 
     def parse_response_to_sql(self, response: ChatResponse) -> str:
         """Parse response to SQL."""
         response = response.message.content
+        self.append_to_file("********************************************")   
+        self.append_to_file("*********** SQL output response **************")
+        self.append_to_file(response)
+        self.append_to_file("********************************************")   
         sql_query_start = response.find("SQLQuery:")
         if sql_query_start != -1:
             response = response[sql_query_start:]
@@ -145,10 +160,6 @@ class ClinicalTrialText2SQLEngine:
             },
         verbose=True,
         )
-        print(f"{self.get_table_context_str}")
-        print(f"{self.text2sql_prompt}")
-        print(f"{self.parse_response_to_sql}")
-        print(f"{self.response_synthesis_prompt}")
         qp.add_chain(["input", "table_retriever", "table_output_parser"])
         qp.add_link("input", "text2sql_prompt", dest_key="query_str")
         qp.add_link("table_output_parser", "text2sql_prompt", dest_key="schema")
@@ -172,9 +183,12 @@ class ClinicalTrialText2SQLEngine:
 
     def call_text2sql(self, search_text:str):
         try:
-            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
+            self.append_to_file("********************************************")   
+            self.append_to_file(f"*******{search_text}*******")
+            self.append_to_file("********************************************")   
+            # logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
             response = self.qp.run(query=search_text)
-            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
+            # logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
 
         except Exception as ex:
             logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)

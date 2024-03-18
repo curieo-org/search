@@ -1,7 +1,7 @@
 from starlette.config import Config, environ
 from starlette.datastructures import Secret
 
-config = Config(".env")
+config = Config("/Users/som/Downloads/code/search/backend/.env")
 DEBUG = config('DEBUG', cast=bool, default=False)
 
 DEFAULT_BASE_URL = 'http://127.0.0.1'
@@ -71,7 +71,7 @@ RERANK_TOP_COUNT: int = config("RERANK_TOP_COUNT", default=5)
 
 ## Clinical Trails Configurations Details
 #table info dir
-CLINICAL_TRIALS_TABLE_INFO_DIR: str = config("CLINICAL_TRIALS_TABLE_INFO_DIR", default="app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo")
+CLINICAL_TRIALS_TABLE_INFO_DIR: str = config("CLINICAL_TRIALS_TABLE_INFO_DIR", default="/Users/som/Downloads/code/search/backend/app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo")
 POSTGRES_ENGINE: Secret = config('POSTGRES_ENGINE', cast=Secret)
 
 ## Drug ChEMBL Configurations Details
