@@ -145,7 +145,10 @@ class ClinicalTrialText2SQLEngine:
             },
         verbose=True,
         )
-
+        print(f"{self.get_table_context_str}")
+        print(f"{self.text2sql_prompt}")
+        print(f"{self.parse_response_to_sql}")
+        print(f"{self.response_synthesis_prompt}")
         qp.add_chain(["input", "table_retriever", "table_output_parser"])
         qp.add_link("input", "text2sql_prompt", dest_key="query_str")
         qp.add_link("table_output_parser", "text2sql_prompt", dest_key="schema")
