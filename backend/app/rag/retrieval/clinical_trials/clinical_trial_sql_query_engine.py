@@ -134,14 +134,14 @@ class ClinicalTrialText2SQLEngine:
         qp = QP(
         modules={
             "input": InputComponent(),
-            "table_retriever": self.obj_retriever,
-            "table_output_parser": FnComponent(fn=self.get_table_context_str),
+            "table_retriever": self.obj_retriever, 
+            "table_output_parser": FnComponent(fn=self.get_table_context_str), 
             "text2sql_prompt": self.text2sql_prompt,
             "text2sql_llm": self.llm,
-            "sql_output_parser": FnComponent(fn=self.parse_response_to_sql),
+            "sql_output_parser": FnComponent(fn=self.parse_response_to_sql), 
             "sql_retriever": self.sql_retriever,
             "response_synthesis_prompt": self.response_synthesis_prompt,
-            "response_synthesis_llm": self.llm,
+            "response_synthesis_llm": self.llm, 
             },
         verbose=True,
         )

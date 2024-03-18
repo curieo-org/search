@@ -97,3 +97,14 @@ JWT_SECRET_KEY: Secret = config("JWT_SECRET_KEY", cast=Secret)
 
 # Algorithm used to sign JWT. Can be RS256, HS256 and None.
 JWT_ALGORITHM: str = config("JWT_ALGORITHM", default='HS256')
+
+
+# Wandb 
+WANDB_API_KEY: Secret = config("WANDB_API_KEY", cast=Secret)
+WANDB_PROJECT: str = config("WANDB_PROJECT", default="pe_router")
+WANDB_ENTITY: str = config("WANDB_ENTITY", default="curieo")
+WANDB_NOTE: str = config("WANDB_NOTE", default="Curieo Search")
+
+
+# GROQ 
+GROQ_API_KEY: Secret = config("GROQ_API_KEY", cast=Secret)

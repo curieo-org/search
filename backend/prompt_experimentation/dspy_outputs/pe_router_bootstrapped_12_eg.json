@@ -1,0 +1,85 @@
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "Who is not recommending this work to be cited as a reference for projects?",
+        "rationale": "produce the answer. We need to identify the entity that is explicitly stating not to cite this work.",
+        "answer": "2"
+      },
+      {
+        "augmented": true,
+        "question": "What is the role of CRISPR-Cas systems in Enterococcus faecalis strains?",
+        "rationale": "Answer: 2",
+        "answer": "2"
+      },
+      {
+        "augmented": true,
+        "question": "How many participants was enrolled in Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp",
+        "rationale": "Answer: 0",
+        "answer": "0"
+      },
+      {
+        "augmented": true,
+        "question": "Where did the study Homeopathic Preparation Plumbum Metallicum for Lead Poisoning take place",
+        "rationale": "produce the answer. We need to identify the location where the study was conducted.",
+        "answer": "0"
+      },
+      {
+        "question": "What is the type of following study: Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI)",
+        "answer": "0"
+      },
+      {
+        "question": "What was the mean MARS-5 score among persons with MS in the study?",
+        "answer": "1"
+      },
+      {
+        "question": "How did the infant progress post-surgery and what was the outcome of the follow-up angiography?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the purpose of the study Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI)\n?",
+        "answer": "0"
+      },
+      {
+        "question": "What type of health outcomes were measured in relation to medication adherence among the persons with MS in this study?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the type of following study: Recipient Vessels for Free Tissue Flaps in Advanced Oncologic Defects of the Midface and Scalp",
+        "answer": "0"
+      },
+      {
+        "question": "Why is graphical representation of methylation data crucial in exploring epigenetic regulation?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the purpose of the study Recreational Diving Practice for Stress Management (DIVSTRESS)",
+        "answer": "0"
+      },
+      {
+        "question": "Where did this Ilomedin Treatment for Patients Having Undergone Primary Percutaneous Coronary Intervention (PCI) study took place? ",
+        "answer": "0"
+      },
+      {
+        "question": "Is Lisinopril an oral medication or not?",
+        "answer": "3"
+      },
+      {
+        "question": "How many aromatic rings are present in the Simvastatin molecule?",
+        "answer": "3"
+      },
+      {
+        "question": "What is the molecular type of Ciprofloxacin?",
+        "answer": "3"
+      }
+    ],
+    "signature_instructions": "Given the fields `question`, produce the fields `answer`.",
+    "signature_prefix": "Answer:",
+    "extended_signature_instructions": "Given the fields `question`, produce the fields `answer`.",
+    "extended_signature_prefix": "Answer:"
+  }
+}

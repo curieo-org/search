@@ -1,0 +1,426 @@
+,llm,question,answer,prediction,prompt,is_pred_right
+60,non_optimized_gemma,What patient group was included in the study?,1,"{
+  ""choice"": 3,
+  ""reason"": ""Choice 3 is the most relevant as it is described as useful for retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What patient group was included in the study?",
+61,non_optimized_gemma,How many aromatic rings are present in the structure of Amoxicillin?,3,"[
+{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options, as it is related to general healthcare data which may include regulatory updates or guidance documents.""
+}
+]","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: How many aromatic rings are present in the structure of Amoxicillin?",
+62,non_optimized_gemma,What is the type of molecule is Lisinopril?,3,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Option 1 is about clinical trials information and Option 2 is about drug related information. The question is asking about regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products similar to mRNA vaccine for COVID-19, which is more related to general information about healthcare data (Option 3).""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What is the type of molecule is Lisinopril?",
+63,non_optimized_gemma,What type of cardiovascular disease was the study focused on?,1,"{
+  ""choice"": 3,
+  ""reason"": ""Choice 3 is the most relevant as it is related to general healthcare data, which may include regulatory updates or guidance documents. The other options are not relevant as they are specific to clinical trials information or drug-related data.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What type of cardiovascular disease was the study focused on?",
+64,non_optimized_gemma,What is the purpose of the study Recreational Diving Practice for Stress Management (DIVSTRESS),0,"{
+""choice"": 3,
+""reason"": ""Choice 3 was deemed the most relevant response as it is described as useful for retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What is the purpose of the study Recreational Diving Practice for Stress Management (DIVSTRESS)",
+65,non_optimized_gemma,What was the outcome of ZMIZ1 knockdown on estradiol-induced cell-cycle genes?,2,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Option 3 is related to retrieving general information about healthcare data, which could include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What was the outcome of ZMIZ1 knockdown on estradiol-induced cell-cycle genes?",
+66,non_optimized_gemma,What was the primary symptom presented by the case described in the research paper?,1,"{
+""choice"": 3,
+""reason"": ""Choice 3 was deemed the most relevant response as it is described as being useful for retrieving general information about healthcare data. Given that the question pertains to recent regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products similar to mRNA vaccines for COVID-19, a more general search for healthcare data would likely yield the most comprehensive results.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What was the primary symptom presented by the case described in the research paper?",
+67,non_optimized_gemma,What motor control theories propose about the competition between multiple motor plans?,2,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. The question asks for regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products similar to mRNA vaccines for COVID-19. While none of the options directly mention regulatory updates or guidance documents, option 3 is the most general and may include such information. Options 1 and 2 are more specific to clinical trials and drug information, respectively, and do not seem to be directly related to the question.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What motor control theories propose about the competition between multiple motor plans?",
+68,non_optimized_gemma,What were the most common HPV types found among Saudi women in the study?,1,"{
+  ""choice"": 3,
+  ""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Option 3 is related to retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What were the most common HPV types found among Saudi women in the study?",
+69,non_optimized_gemma,What programming languages can be used by skilled researchers for cosinor analysis?,2,"{
+    ""choice"": 3,
+    ""reason"": ""Choice 3 is the most relevant as it is described as useful for retrieving general information about healthcare data, which could potentially include regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What programming languages can be used by skilled researchers for cosinor analysis?",
+70,non_optimized_gemma,Why is there an urgent need to understand the genetic architecture and molecular pathogenesis of hydrocephalus?,1,"[
+    {
+        ""choice"": 3,
+        ""reason"": ""Choice 3 is the most relevant as it covers general healthcare data, which may include regulatory updates or guidance documents.""
+    }
+]","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: Why is there an urgent need to understand the genetic architecture and molecular pathogenesis of hydrocephalus?",
+71,non_optimized_gemma,What is the molecular type of Ciprofloxacin?,3,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options, as it is related to general healthcare data and regulatory updates, which may include information about CMC requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What is the molecular type of Ciprofloxacin?",
+72,non_optimized_gemma,What was the outcome of the real-world case study mentioned in the research paper?,1,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Although it is for retrieving general healthcare data, it is more likely to include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products, such as mRNA vaccines for COVID-19, compared to the other options.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What was the outcome of the real-world case study mentioned in the research paper?",
+73,non_optimized_gemma,How many unique variants and unique junctions were involved in the identified splice-associated variant events?,2,"{
+""choice"": 3,
+""reason"": ""Choice 3 is the most relevant as it is described as useful for retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: How many unique variants and unique junctions were involved in the identified splice-associated variant events?",
+74,non_optimized_gemma,What type of health outcomes were measured in relation to medication adherence among the persons with MS in this study?,1,"{
+  ""choice"": 3,
+  ""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Option 1 is about clinical trials information and Option 2 is about drug-related information. The question is asking about regulatory updates or guidance documents, which is more related to general healthcare data (Option 3). However, it is important to note that the question is specifically asking about CMC (chemistry, manufacturing, and controls) requirements for biopharmaceutical products similar to mRNA vaccine for COVID-19. Therefore, while Option 3 is the most relevant, it may still not be entirely accurate as it is not specifically about CMC requirements or mRNA vaccines.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What type of health outcomes were measured in relation to medication adherence among the persons with MS in this study?",
+75,non_optimized_gemma,What is the 'alogp' value for Metformin?,3,"{
+""choice"": 3
+""reason"": ""Choice 3 was deemed the most relevant response as it is described as being useful for retrieving general information about healthcare data. Given that the question pertains to recent regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products similar to mRNA vaccines for COVID-19, a general search for healthcare data would likely yield the most comprehensive results.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What is the 'alogp' value for Metformin?",
+76,non_optimized_gemma,How many aromatic rings are present in the structure of Paracetamol (Acetaminophen)?,3,"{
+""choice"": 3,
+""reason"": ""Choice 3 is the most relevant as it is described as useful for retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: How many aromatic rings are present in the structure of Paracetamol (Acetaminophen)?",
+77,non_optimized_gemma,How do the polysiloxanes groups contribute to the response sensitivity of the probes in the polymeric microenvironment?,1,"{
+""choice"": 3,
+""reason"": ""Choice 3 was selected as it is the most relevant to the question out of the provided options. Option 3 is related to retrieving general information about healthcare data, which could include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: How do the polysiloxanes groups contribute to the response sensitivity of the probes in the polymeric microenvironment?",
+78,non_optimized_gemma,What additional information beyond concentration measurements can DigitISA provide?,2,"{
+  ""choice"": 3
+}
+
+The reason for choosing option 3 is that it is the most general of the options provided and is therefore the most likely to include information about regulatory updates or guidance documents. The other options are more specific to clinical trials or drug information, and are less likely to include the type of information being requested.","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: What additional information beyond concentration measurements can DigitISA provide?",
+79,non_optimized_gemma,"How do mineral composition, surface topography, and surface charge influence DNA adsorption behavior and preservation on mineral substrates?",2,"{
+  ""choice"": 3,
+  ""reason"": ""Choice 3 is the most relevant as it is described as useful for retrieving general information about healthcare data, which may include regulatory updates or guidance documents related to CMC (Chemistry, Manufacturing, and Controls) requirements for biopharmaceutical products.""
+}","You are working as router of a healthcare search engine.Some choices are given below. It is provided in a numbered list (1 to 3) where each item in the list corresponds to a summary.
+---------------------
+(1) useful for retrieving only the clinical trials information like adverse effects,eligibility details                           of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems
+
+(2) useful only for retrieving the drug related information like molecular weights,                         similarities,smile codes, target medicines, effects on other medicine
+
+(3) useful for retrieving general information about healthcare data.
+---------------------
+ If you are not super confident then please use choice 3 as default choice.Using only the choices above and not prior knowledge, return the choice that is most relevant to the question: ' Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
+
+
+The output should be ONLY JSON formatted as a JSON instance.
+
+Here is an example:
+[
+    {
+        choice: 1,
+        reason: ""<insert reason for choice>"" } Question: How do mineral composition, surface topography, and surface charge influence DNA adsorption behavior and preservation on mineral substrates?",
