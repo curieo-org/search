@@ -19,6 +19,8 @@ pub fn router(with_state: AppState) -> Router {
         .route("/", get(|| async { "Hello, server!" }))
         .nest("/api", api_routes)
         .with_state(with_state.clone())
+        // TODO: Add middleware for session management
+        // TODO: CORS should be configurable via settings
         .layer(CorsLayer::new().allow_methods(Any).allow_origin(Any))
         .layer(
             TraceLayer::new_for_http()
