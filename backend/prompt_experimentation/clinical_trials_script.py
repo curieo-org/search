@@ -105,12 +105,13 @@ def metric(gold, pred, trace=None):
         correct =  dspy.Predict(Assess)(assessment_question=correct)
 
     correct = [m.assessment_answer.lower() == 'yes' for m in [correct]]
-    score = sum(correct)
+    score = 1
     if trace is not None: return score >= 2
+    print(score)
     return score if correct else 0
 
 
-teleprompter = BootstrapFewShot(metric=metric)
+teleprompter = BootstrapFewShot(metric=metric,max_labeled_demos = 1, max_bootstrapped_demos=1)
 compiled_rag = teleprompter.compile(SQL_module(), trainset=total_data[:DEV_NUM])
 
 
