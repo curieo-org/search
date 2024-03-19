@@ -47,7 +47,7 @@ elif args.llm == "mixtral-8x7b-32768":
 elif args.llm == "phi-2":
     turbo = dspy.Together(model = "microsoft/phi-2", api_key=os.environ["TOGETHER_KEY"])
 elif args.llm == "nsql":
-    turbo = dspy.Together(model = "codellama/CodeLlama-13b-Instruct-hf", api_key=os.environ["TOGETHER_KEY"])
+    turbo = dspy.Together(model = "meta-llama/Llama-2-13b-chat-hf", api_key=os.environ["TOGETHER_KEY"])
 
 
 # rm module is currently not available.
