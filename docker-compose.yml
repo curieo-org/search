@@ -12,6 +12,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cache:
+        condition: service_healthy
 
   frontend:
     build: frontend
@@ -39,6 +41,20 @@ services:
     - POSTGRES_HOST_AUTH_METHOD=trust
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cache:
+    image: redis:alpine
+    ports:
+    - 6379:6379/tcp
+    networks:
+      curieo_db:
+        aliases:
+          - curieo_cache
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5

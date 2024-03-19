@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 # from authx import AuthX, AuthXConfig
-from fastapi_redis_cache import FastApiRedisCache, cache
 import os
+from app.database.redis import Redis
 
 from app import config
 from app.api import api
@@ -27,13 +27,11 @@ def get_application() -> FastAPI:
     @application.on_event("startup")
     async def startup():    # pylint: disable=W0612
         print()
-        redis_cache = FastApiRedisCache()
-        redis_cache.init(
-            host_url=config.REDIS_URL,
-            prefix="curieo-search-cache",
-            response_header="X-curieo-Cache",
-            ignore_arg_types=[Request]
-        )
+
+        # connect to redis
+        cache = Redis()
+        await cache.connect()
+
         #db connection
         #embedding connection
         #redis connection
@@ -45,6 +43,11 @@ def get_application() -> FastAPI:
     @application.on_event("shutdown")
     async def shutdown():   # pylint: disable=W0612
         print()
+
+        # disconnect from redis
+        cache = Redis()
+        await cache.disconnect()
+        
         #db connection
         #embedding connection
         #redis connection

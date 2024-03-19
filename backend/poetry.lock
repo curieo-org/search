@@ -820,26 +820,6 @@ files = [
 fastapi = "*"
 
 [[package]]
-name = "fastapi-redis-cache"
-version = "0.2.5"
-description = "A simple and robust caching solution for FastAPI endpoints, fueled by the unfathomable power of Redis."
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "fastapi-redis-cache-0.2.5.tar.gz", hash = "sha256:150f14d0a97ce50ab56b7380fb78a1548318059b9158c1d438a61f1645b8ecc2"},
-    {file = "fastapi_redis_cache-0.2.5-py3-none-any.whl", hash = "sha256:fc95268c7340bf8ff7e16d114cbaf8627b793261f02dd8b41feb703e5f06d321"},
-]
-
-[package.dependencies]
-fastapi = "*"
-pydantic = "*"
-python-dateutil = "*"
-redis = "*"
-
-[package.extras]
-dev = ["black", "coverage", "fakeredis", "flake8", "isort", "pytest", "pytest-cov", "pytest-flake8", "pytest-random-order", "requests"]
-
-[[package]]
 name = "fastapi-versioning"
 version = "0.10.0"
 description = "api versioning for fastapi web applications"
@@ -2419,6 +2399,7 @@ description = "Nvidia JIT LTO Library"
 optional = false
 python-versions = ">=3"
 files = [
+    {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-manylinux2014_aarch64.whl", hash = "sha256:75d6498c96d9adb9435f2bbdbddb479805ddfb97b5c1b32395c694185c20ca57"},
     {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-manylinux2014_x86_64.whl", hash = "sha256:c6428836d20fe7e327191c175791d38570e10762edc588fb46749217cd444c74"},
     {file = "nvidia_nvjitlink_cu12-12.4.99-py3-none-win_amd64.whl", hash = "sha256:991905ffa2144cb603d8ca7962d75c35334ae82bf92820b6ba78157277da1ad2"},
 ]
@@ -5077,4 +5058,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "ec554615c569fe67afcd0c8e19290af9036142596fa75035a5c9c18ce1aa20cc"
+content-hash = "5e753b7db2e3f96b1ef53d7b6e85e85321a4d7107da61b04af2735c127f1d445"

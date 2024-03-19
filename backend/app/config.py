@@ -22,9 +22,6 @@ SEARCH_API_ROOT: str = config("SEARCH_API_ROOT", default=DEFAULT_BASE_URL)
 # Used for creating Backend urls to deliver to clients.
 SEARCH_API_PUBLIC_URL: str = config("SEARCH_API_PUBLIC_URL", default=DEFAULT_BASE_URL)
 
-# Default max-age of cacheable resources
-SEARCH_CACHE_MAX_AGE: str = config("SEARCH_CACHE_MAX_AGE", default='86400')
-
 # Locale to return in Content-Language if none is known
 SEARCH_FALLBACK_LOCALE: str = config("SEARCH_FALLBACK_LOCALE", default='en-US')
 
@@ -87,7 +84,9 @@ NEBULA_GRAPH_SPACE: str = config("NEBULA_GRAPH_SPACE")
 
 ## REDIS Configuration
 #REDIS URL
-REDIS_URL: str = config("REDIS_URL", default="redis://127.0.0.1:6379")
+REDIS_URL: Secret = config("REDIS_URL", cast=Secret)
+CACHE_MAX_AGE: str = config("SEARCH_CACHE_MAX_AGE", default='86400')
+CACHE_MAX_SORTED_SET: int = config("CACHE_MAX_SORTED_SET", default=100)
 
 
 ## JWT
