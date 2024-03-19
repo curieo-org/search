@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi.logger import logger
 from fastapi_versioning import version
 from authx import AuthX, AuthXConfig
 from app.database.redis import Redis

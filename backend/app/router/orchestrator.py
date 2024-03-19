@@ -26,7 +26,7 @@ class Orchestrator:
         self.config = config
         self.choices = [
             ToolMetadata(
-                description="""useful for retrieving only the clinical trials information like adverse effects,eligibility details 
+                description="""useful for retrieving only the clinical trials information like adverse effects,eligibility details
                          of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems""",
                 name="clinical_trial_choice",
             ),
@@ -104,7 +104,7 @@ class Orchestrator:
 
             print()
 
-        if router_id == 2 or breaks_sql == True:
+        if router_id == 2 or breaks_sql:
             logger.debug(
                 "Orchestrator.query_and_get_answer.router_id Fallback Entered."
             )
