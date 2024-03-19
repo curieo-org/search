@@ -1,4 +1,4 @@
-from fastapi import (APIRouter, Depends, HTTPException)
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger
 from fastapi_versioning import version
@@ -20,7 +20,7 @@ auth_config.JWT_SECRET_KEY = str(JWT_SECRET_KEY)
 security = AuthX(config=auth_config)
 orchestrator = Orchestrator(config)
 
-logger = setup_logger('Search_Endpoint')
+logger = setup_logger("Search_Endpoint")
 
 
 @router.get(
@@ -28,12 +28,10 @@ logger = setup_logger('Search_Endpoint')
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)],
-    response_model=str
+    response_model=str,
 )
 @version(1, 0)
-async def get_search_results(
-    query: str = ""
-) -> JSONResponse:
+async def get_search_results(query: str = "") -> JSONResponse:
     logger.debug(f"Search_Endpoint.get_search_results. query: {query}")
 
     query = query.strip()
@@ -41,7 +39,9 @@ async def get_search_results(
     search_result = await cache.get_value(query)
 
     if search_result:
-        logger.debug(f"Search_Endpoint.get_search_results. cached_result: {search_result}")
+        logger.debug(
+            f"Search_Endpoint.get_search_results. cached_result: {search_result}"
+        )
     else:
         search_result = await orchestrator.query_and_get_answer(search_text=query)
         await cache.set_value(query, search_result)
@@ -53,17 +53,16 @@ async def get_search_results(
     return JSONResponse(status_code=200, content=search_result)
 
 
-
 @router.get(
     "/top-search-queries",
     summary="List all top search queries",
     description="List all Top Search Queries",
     dependencies=[Depends(security.access_token_required)],
-    response_model=list[str]
+    response_model=list[str],
 )
 @version(1, 0)
 async def get_top_search_queries() -> JSONResponse:
-    logger.debug(f"Search_Endpoint.get_top_search_queries")
+    logger.debug("Search_Endpoint.get_top_search_queries")
 
     cache = Redis()
     last_x_keys = await cache.get_sorted_set("searched_queries", 0, 10)
