@@ -1,7 +1,7 @@
 from starlette.config import Config, environ
 from starlette.datastructures import Secret
 
-config = Config("/Users/som/Downloads/code/search/backend/.env")
+config = Config("../.env")
 DEBUG = config('DEBUG', cast=bool, default=False)
 
 DEFAULT_BASE_URL = 'http://127.0.0.1'
@@ -21,9 +21,6 @@ SEARCH_API_ROOT: str = config("SEARCH_API_ROOT", default=DEFAULT_BASE_URL)
 # The public facing url of the Search Backend.
 # Used for creating Backend urls to deliver to clients.
 SEARCH_API_PUBLIC_URL: str = config("SEARCH_API_PUBLIC_URL", default=DEFAULT_BASE_URL)
-
-# Default max-age of cacheable resources
-SEARCH_CACHE_MAX_AGE: str = config("SEARCH_CACHE_MAX_AGE", default='86400')
 
 # Locale to return in Content-Language if none is known
 SEARCH_FALLBACK_LOCALE: str = config("SEARCH_FALLBACK_LOCALE", default='en-US')
@@ -71,7 +68,7 @@ RERANK_TOP_COUNT: int = config("RERANK_TOP_COUNT", default=5)
 
 ## Clinical Trails Configurations Details
 #table info dir
-CLINICAL_TRIALS_TABLE_INFO_DIR: str = config("CLINICAL_TRIALS_TABLE_INFO_DIR", default="/Users/som/Downloads/code/search/backend/app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo")
+CLINICAL_TRIALS_TABLE_INFO_DIR: str = config("CLINICAL_TRIALS_TABLE_INFO_DIR", default="app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo")
 POSTGRES_ENGINE: Secret = config('POSTGRES_ENGINE', cast=Secret)
 
 ## Drug ChEMBL Configurations Details
@@ -86,9 +83,6 @@ NEBULA_GRAPH_SPACE: str = config("NEBULA_GRAPH_SPACE")
 
 
 ## REDIS Configuration
-#REDIS URL
-REDIS_URL: str = config("REDIS_URL", default="redis://127.0.0.1:6379")
-
 
 ## JWT
 # JWT_SECRET_KEY key used to validate RS256 signed JWTs.
@@ -97,3 +91,14 @@ JWT_SECRET_KEY: Secret = config("JWT_SECRET_KEY", cast=Secret)
 
 # Algorithm used to sign JWT. Can be RS256, HS256 and None.
 JWT_ALGORITHM: str = config("JWT_ALGORITHM", default='HS256')
+
+
+# Wandb 
+WANDB_API_KEY: Secret = config("WANDB_API_KEY", cast=Secret)
+WANDB_PROJECT: str = config("WANDB_PROJECT", default="pe_router")
+WANDB_ENTITY: str = config("WANDB_ENTITY", default="curieo")
+WANDB_NOTE: str = config("WANDB_NOTE", default="Curieo Search")
+
+
+# GROQ 
+GROQ_API_KEY: Secret = config("GROQ_API_KEY", cast=Secret)

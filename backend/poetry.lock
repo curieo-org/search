@@ -765,13 +765,13 @@ files = [
 
 [[package]]
 name = "fsspec"
-version = "2024.3.0"
+version = "2024.3.1"
 description = "File-system specification"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "fsspec-2024.3.0-py3-none-any.whl", hash = "sha256:779001bd0122c9c4975cf03827d5e86c3afb914a3ae27040f15d341ab506a693"},
-    {file = "fsspec-2024.3.0.tar.gz", hash = "sha256:f13a130c0ed07e15c4e1aeb0472a823e9c426b0b5792a1f40d902b0a71972d43"},
+    {file = "fsspec-2024.3.1-py3-none-any.whl", hash = "sha256:918d18d41bf73f0e2b261824baeb1b124bcf771767e3a26425cd7dec3332f512"},
+    {file = "fsspec-2024.3.1.tar.gz", hash = "sha256:f39780e282d7d117ffb42bb96992f8a90795e4d0fb0f661a70ca39fe9c43ded9"},
 ]
 
 [package.extras]
@@ -1117,13 +1117,13 @@ llama-index-readers-llama-parse = ">=0.1.2,<0.2.0"
 
 [[package]]
 name = "llama-index-agent-openai"
-version = "0.1.5"
+version = "0.1.6"
 description = "llama-index agent openai integration"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "llama_index_agent_openai-0.1.5-py3-none-any.whl", hash = "sha256:1ab06fe853d9d391ba724dcb0009b249ae88ca4de4b5842226373b0c55ee435a"},
-    {file = "llama_index_agent_openai-0.1.5.tar.gz", hash = "sha256:42099326d526af140493c5f744ef70bef0aed8a941b6c9aea4b3eff9c63f0ba6"},
+    {file = "llama_index_agent_openai-0.1.6-py3-none-any.whl", hash = "sha256:5e8b1f03b56630cfc96304fa748c3c584f78a55f08bf14974b38c9fb8a5d0c90"},
+    {file = "llama_index_agent_openai-0.1.6.tar.gz", hash = "sha256:9c56655822f5eb8b72648e87fe64119b1e907e4a7dbcc2da4b6f3fe162828b71"},
 ]
 
 [package.dependencies]
@@ -1132,13 +1132,13 @@ llama-index-llms-openai = ">=0.1.5,<0.2.0"
 
 [[package]]
 name = "llama-index-cli"
-version = "0.1.9"
+version = "0.1.10"
 description = "llama-index cli"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "llama_index_cli-0.1.9-py3-none-any.whl", hash = "sha256:d9f8e1040f5770c8410a6b429fde0a504cadc1ed3834b9d63c603c01ac03565b"},
-    {file = "llama_index_cli-0.1.9.tar.gz", hash = "sha256:410abbe74b0efc362ffc5b3ed853ef909bfc97c94f7b276257ce18708f20e22b"},
+    {file = "llama_index_cli-0.1.10-py3-none-any.whl", hash = "sha256:3dd9d2f2cd84fed3d18a322df9dc389b19dc7a8048fa4bfcac1d901ccc59d1cd"},
+    {file = "llama_index_cli-0.1.10.tar.gz", hash = "sha256:1d1d0d2f7b1752a62270438654557d8325f7e8921e45a5b1cc22e6f06ba62600"},
 ]
 
 [package.dependencies]
