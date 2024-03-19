@@ -1,0 +1,77 @@
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "question": "What was the outcome of ZMIZ1 knockdown on estradiol-induced cell-cycle genes?",
+        "answer": "2"
+      },
+      {
+        "question": "What is the molecular type of the compound being researched?",
+        "answer": "3"
+      },
+      {
+        "question": "What is mentioned as a challenge in the genetics of hydrocephalus?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the type of molecule is Lisinopril?",
+        "answer": "3"
+      },
+      {
+        "question": "What treatment was given to the participants in Exposure, Dose, Body Burden and Health Effects of Lead",
+        "answer": "0"
+      },
+      {
+        "question": "What is the main focus of the research paper?",
+        "answer": "2"
+      },
+      {
+        "question": "What is the canonical smile representation for Lisinopril?",
+        "answer": "3"
+      },
+      {
+        "question": "What is the total number of splice-associated variant events discovered in the study?",
+        "answer": "2"
+      },
+      {
+        "question": "What is the type of molecule is Lisinopril?",
+        "answer": "3"
+      },
+      {
+        "question": "What is the purpose of the study Exposure, Dose, Body Burden and Health Effects of Lead",
+        "answer": "0"
+      },
+      {
+        "question": "What patient group was included in the study?",
+        "answer": "1"
+      },
+      {
+        "question": "What treatment was given to the participants in The Combined Effect of 2,3-Dimercaptosuccinic Acid and Multi-Nutrients on Children in Lead Poisoning",
+        "answer": "0"
+      },
+      {
+        "question": "How is the coexpression of SMYD4 and PRMT5 associated with the prognosis of HCC patients?",
+        "answer": "1"
+      },
+      {
+        "question": "What type of cardiovascular disease was the study focused on?",
+        "answer": "1"
+      },
+      {
+        "question": "What were the observed consequences of the SNCA p.V15A variant in in vitro models?",
+        "answer": "1"
+      },
+      {
+        "question": "What is the chirality of Ciprofloxacin?",
+        "answer": "3"
+      }
+    ],
+    "signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "signature_prefix": "The route number to the question is:",
+    "extended_signature_instructions": "Study the `question` thoroughly to understand the context and meaning of the query before generating the route to specific route.Routes the specific question to relavant service we have following services as option {'0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems': '0', '1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain': '1', '2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine': '3'}",
+    "extended_signature_prefix": "The route number to the question is:"
+  }
+}

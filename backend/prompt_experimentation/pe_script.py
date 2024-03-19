@@ -12,7 +12,7 @@ from app import config
 parser = argparse.ArgumentParser(description='Set up WANDB project and LLM configurations.')
 parser.add_argument('--data_path', type=str, help='The path to the input data file.')
 parser.add_argument('--num_samples', type=int, default=50, help='Number of samples to use.')
-parser.add_argument('--llm', type=str, choices=['gpt-3.5-turbo', 'gemma-7b-it', 'mixtral-8x7b-32768'], help='The Large Language Model to use.')
+parser.add_argument('--llm', type=str, choices=['gpt-3.5-turbo', 'gemma-7b-it', 'mixtral-8x7b-32768', 'phi-2'], help='The Large Language Model to use.')
 parser.add_argument('--project_name', type=str, default='pe_router', help='WANDB project name.')
 parser.add_argument('--run_name', type=str, default='pe_router_optimization', help='WANDB run name.')
 parser.add_argument('--entity', type=str, help='WANDB entity name.')
@@ -25,7 +25,7 @@ args = parser.parse_args()
 load_dotenv(args.env_file)
 
 # Login to WANDB
-wandb.login(key=config.WANDB_API_KEY)
+wandb.login(key=str(config.WANDB_API_KEY))
 
 # Initialize WANDB run
 run = wandb.init(project=args.project_name, name=args.run_name, entity=args.entity)
@@ -58,6 +58,10 @@ elif args.llm == "gemma-7b-it":
     turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "gemma-7b-it",)
 elif args.llm == "mixtral-8x7b-32768":
     turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "mixtral-8x7b-32768",)
+elif args.llm == "phi-2":
+    turbo = dspy.Together(model = "microsoft/phi-2", api_key=os.environ["TOGETHER_KEY"])
+
+
 # rm module is currently not available.
 
 dspy.settings.configure(lm=turbo)
@@ -112,7 +116,7 @@ class Router_module(dspy.Module):
     
 
 
-log_df = pd.DataFrame(columns = ['llm', 'question', 'answer', 'prediction','prompt'])
+log_df = pd.DataFrame(columns = ['llm', 'question', 'answer', 'prediction','prompt', 'raw_prediction'])
 ### ⊹ Metrics definition 
 def metric(gold, pred, trace = None ):
     actual_answer , pred_answer = gold.answer , pred.answer
@@ -137,7 +141,8 @@ for x in tqdm(total_data[DEV_NUM: DEV_NUM + 20]):
             'question': [x.question], 
             'answer': [x.answer], 
             'prediction': [pred.answer], 
-            'prompt': [turbo.history[-1]['prompt']]
+            'prompt': [turbo.history[-1]['prompt']], 
+            'raw_prediction' : [pred.answer]
         })
     log_df = pd.concat([log_df, new_row], ignore_index = True)
 log_df['prediction'] = log_df['prediction'].str.extract('(\d+)')
