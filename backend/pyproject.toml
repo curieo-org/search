@@ -6,7 +6,7 @@ authors = ["raahul"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.12"
 fastapi = "^0.109.0"
 fastapi-doc-http-response = "^0.0.3"
 fastapi-redis-cache = "^0.2.5"
@@ -23,6 +23,7 @@ psycopg2-binary = "^2.9.9"
 dspy = {git = "git@github.com:curieo-org/dspy.git"}
 matplotlib = "^3.8.3"
 python-multipart = "^0.0.9"
+wandb = "^0.16.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

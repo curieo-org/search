@@ -1,7 +1,7 @@
 from starlette.config import Config, environ
 from starlette.datastructures import Secret
 
-config = Config(".env")
+config = Config("../.env")
 DEBUG = config('DEBUG', cast=bool, default=False)
 
 DEFAULT_BASE_URL = 'http://127.0.0.1'
