@@ -38,7 +38,7 @@ class Orchestrator:
         self.selector = LLMSingleSelector.from_defaults(llm=OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY)), prompt_template_str=self.ROUTER_PROMPT)
 
 
-    async def query_and_get_answer(self, search_text):
+    async def query_and_get_answer(self, search_text) -> str:
 
         # search router call
         logger.debug(f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}")
@@ -102,6 +102,7 @@ class Orchestrator:
                 search_text=search_text,
                 reranked_results=rerankResponse_sliced
             )
+            result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
             logger.debug(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
 
         return result

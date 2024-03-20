@@ -123,7 +123,7 @@ Steps and commands for running the app are to be included here
 
     -   Example API for Top 10 Search:
         ```
-        curl --location 'http://127.0.0.1:8000/top-search-queries' \
+        curl --location 'http://127.0.0.1:8000/topqueries?limit=10' \
         --header 'Authorization: Bearer <access token>'
         ```
 

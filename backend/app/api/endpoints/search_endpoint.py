@@ -55,18 +55,21 @@ async def get_search_results(
 
 
 @router.get(
-    "/top-search-queries",
+    "/topqueries",
     summary="List all top search queries",
     description="List all Top Search Queries",
     dependencies=[Depends(security.access_token_required)],
     response_model=list[str]
 )
 @version(1, 0)
-async def get_top_search_queries() -> JSONResponse:
+async def get_top_search_queries(limit: int) -> JSONResponse:
     logger.debug(f"Search_Endpoint.get_top_search_queries")
 
+    if limit <= 0:
+        raise HTTPException(status_code=400, detail="Limit should be greater than 0")
+
     cache = Redis()
-    last_x_keys = await cache.get_sorted_set("searched_queries", 0, 10)
+    last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
 
     logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
 
