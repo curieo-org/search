@@ -1,5 +1,9 @@
 .DS_Store
 .idea/
 .venv/
-backend/prompt_experimentation/wandb/*
-api/.env
+.vscode/
+
+
+.wandb/
+.pytest_cache/
+.ruff_cache/

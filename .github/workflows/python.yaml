@@ -1,33 +1,28 @@
-name: Tests
+name: Python tests
 
 on:
   push:
+
+defaults:
+  run:
+    working-directory: backend
 
 jobs:
   tests:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: db_test
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
+      - run: ls -la
       - name: Install poetry
         run: pipx install poetry
       - uses: actions/setup-python@v5
         with:
           cache: "poetry"
+          python-version-file: "backend/.python-version"
 
       - name: Install dependencies
-        run: cd backend && poetry install
+        run: poetry install
 
       - name: Run tests
         env:
