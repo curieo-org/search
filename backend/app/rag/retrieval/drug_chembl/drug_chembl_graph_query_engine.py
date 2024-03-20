@@ -17,6 +17,8 @@ from app.database.nebula_graph import NebulaGraph
 
 from app.config import OPENAPI_KEY, DRUG_CHEMBL_TABLE_INFO_DIR, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
 from app.services.search_utility import setup_logger
+from app.services.tracing import SentryTracer
+import opentelemetry
 
 logger = setup_logger('DrugChEMBLText2CypherEngine')
 
@@ -192,17 +194,24 @@ class DrugChEMBLText2CypherEngine:
 
         return qp
 
-    def call_text2cypher(self, search_text:str):
-        try:
-            logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}")
+    async def call_text2cypher(self, search_text:str, parent_trace_span: opentelemetry.trace.Span) -> str:
+        trace_span = await SentryTracer().create_child_span(parent_trace_span, 'DrugChEMBLText2CypherEngine.call_text2cypher')
 
-            response = self.qp.run(query=search_text)
+        with trace_span:
+            trace_span.set_attribute('description', 'DrugChEMBLText2CypherEngine.call_text2cypher')
 
-            logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}")
+            try:
+                logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}")
 
-        except Exception as ex:
-            logger.exception("DrugChEMBLText2CypherEngine.call_text2cypher Exception -", exc_info = ex, stack_info=True)
+                response = self.qp.run(query=search_text)
+
+                logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}")
+
+            except Exception as ex:
+                logger.exception("DrugChEMBLText2CypherEngine.call_text2cypher Exception -", exc_info = ex, stack_info=True)
+                
+                raise ex
             
-            raise ex
+            trace_span.set_attribute('result', response)
 
         return response

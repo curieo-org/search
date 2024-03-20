@@ -19,10 +19,14 @@ authx = "1.0.1b1"
 itsdangerous = "^2.1.2"
 llama-index-embeddings-text-embeddings-inference = "^0.1.2"
 psycopg2-binary = "^2.9.9"
-dspy = {git = "git@github.com:curieo-org/dspy.git"}
 matplotlib = "^3.8.3"
 python-multipart = "^0.0.9"
 redis = "^5.0.3"
+sentry-sdk = {extras = ["opentelemetry"], version = "^1.42.0"}
+dspy = "^0.0.7"
+opentelemetry-distro = {extras = ["otlp"], version = "^0.44b0"}
+opentelemetry-sdk-extension-aws = "^2.0.1"
+opentelemetry-propagator-aws-xray = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

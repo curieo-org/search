@@ -22,6 +22,8 @@ from pyvis.network import Network
 
 from app.config import OPENAPI_KEY, CLINICAL_TRIALS_TABLE_INFO_DIR, POSTGRES_ENGINE, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
 from app.services.search_utility import setup_logger
+from app.services.tracing import SentryTracer
+import opentelemetry
 
 logger = setup_logger('ClinicalTrialText2SQLEngine')
 
@@ -167,15 +169,26 @@ class ClinicalTrialText2SQLEngine:
 
         return qp
 
-    def call_text2sql(self, search_text:str):
-        try:
-            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
-            response = self.qp.run(query=search_text)
-            logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
+    async def call_text2sql(
+        self,
+        search_text:str,
+        parent_trace_span: opentelemetry.trace.Span
+    ) -> dict[str, str]:
+        trace_span = await SentryTracer().create_child_span(parent_trace_span, 'call_text2sql')
 
-        except Exception as ex:
-            logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
-            raise ex
+        with trace_span:
+            trace_span.set_attribute('description', f"Call Text2SQL. search_text: {search_text}")
+
+            try:
+                logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
+                response = self.qp.run(query=search_text)
+                logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
+
+            except Exception as ex:
+                logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
+                raise ex
+            
+            trace_span.set_attribute('result', str(response))
 
         return {
             "result" : str(response)

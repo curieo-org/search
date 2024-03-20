@@ -1,4 +1,4 @@
-from fastapi import (APIRouter, Depends, HTTPException)
+from fastapi import (APIRouter, Depends, HTTPException, Header)
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger
 from fastapi_versioning import version
@@ -9,6 +9,7 @@ from app.api.router.gzip import GzipRoute
 from app.router.orchestrator import Orchestrator
 from app.config import config, JWT_SECRET_KEY, JWT_ALGORITHM
 from app.services.search_utility import setup_logger
+from app.services.tracing import SentryTracer
 
 router = APIRouter()
 router.route_class = GzipRoute
@@ -32,23 +33,29 @@ logger = setup_logger('Search_Endpoint')
 )
 @version(1, 0)
 async def get_search_results(
-    query: str = ""
+    query: str = "",
+    traceparent: str = Header(None)
 ) -> JSONResponse:
-    logger.debug(f"Search_Endpoint.get_search_results. query: {query}")
+    trace_span = await SentryTracer().create_span(traceparent, 'api_get_search_results')
 
-    query = query.strip()
-    cache = Redis()
-    search_result = await cache.get_value(query)
+    with trace_span:
+        trace_span.set_attribute('description', 'Get Search Results')
+        logger.debug(f"Search_Endpoint.get_search_results. query: {query}")
 
-    if search_result:
-        logger.debug(f"Search_Endpoint.get_search_results. cached_result: {search_result}")
-    else:
-        search_result = await orchestrator.query_and_get_answer(search_text=query)
-        await cache.set_value(query, search_result)
+        query = query.strip()
+        cache = Redis()
+        search_result = await cache.get_value(query, trace_span)
 
-    await cache.add_to_sorted_set("searched_queries", query)
+        if search_result:
+            logger.debug(f"Search_Endpoint.get_search_results. cached_result: {search_result}")
+        else:
+            search_result = await orchestrator.query_and_get_answer(search_text=query, parent_trace_span=trace_span)
+            await cache.set_value(query, search_result, trace_span)
 
-    logger.debug(f"Search_Endpoint.get_search_results. result: {search_result}")
+        await cache.add_to_sorted_set("searched_queries", query, trace_span)
+
+        trace_span.set_attribute('result', search_result)
+        logger.debug(f"Search_Endpoint.get_search_results. result: {search_result}")
 
     return JSONResponse(status_code=200, content=search_result)
 
@@ -62,15 +69,23 @@ async def get_search_results(
     response_model=list[str]
 )
 @version(1, 0)
-async def get_top_search_queries(limit: int) -> JSONResponse:
-    logger.debug(f"Search_Endpoint.get_top_search_queries")
+async def get_top_search_queries(
+    limit: int,
+    traceparent: str = Header(None)
+) -> JSONResponse:
+    trace_span = await SentryTracer().create_span(traceparent, 'api_get_top_search_queries')
 
-    if limit <= 0:
-        raise HTTPException(status_code=400, detail="Limit should be greater than 0")
+    with trace_span:
+        trace_span.set_attribute('description', 'Get Top Search Queries')
+        logger.debug(f"Search_Endpoint.get_top_search_queries")
 
-    cache = Redis()
-    last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
+        if limit <= 0:
+            raise HTTPException(status_code=400, detail="Limit should be greater than 0")
 
-    logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
+        cache = Redis()
+        last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1, trace_span)
+
+        trace_span.set_attribute('result', last_x_keys)
+        logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
 
     return JSONResponse(status_code=200, content=last_x_keys)

@@ -10,6 +10,8 @@ from app.rag.generation.response_synthesis import ResponseSynthesisEngine
 from app.config import config, OPENAPI_KEY, RERANK_TOP_COUNT
 
 from app.services.search_utility import setup_logger
+from app.services.tracing import SentryTracer
+import opentelemetry
 
 logger = setup_logger('Orchestrator')
 
@@ -38,71 +40,82 @@ class Orchestrator:
         self.selector = LLMSingleSelector.from_defaults(llm=OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY)), prompt_template_str=self.ROUTER_PROMPT)
 
 
-    async def query_and_get_answer(self, search_text) -> str:
+    async def query_and_get_answer(
+        self,
+        search_text: str,
+        parent_trace_span: opentelemetry.trace.Span
+    ) -> str:
+        trace_span = await SentryTracer().create_child_span(parent_trace_span, 'query_and_get_answer')
 
-        # search router call
-        logger.debug(f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}")
-        selector_result = self.selector.select(self.choices, query=search_text)
-        router_id = selector_result.selections[0].index
-        logger.debug(f"Orchestrator.query_and_get_answer.router_id router_id: {router_id}")
+        with trace_span:
+            # search router call
+            logger.debug(f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}")
+            selector_result = self.selector.select(self.choices, query=search_text)
+            router_id = selector_result.selections[0].index
+            logger.debug(f"Orchestrator.query_and_get_answer.router_id router_id: {router_id}")
 
-        breaks_sql = False
+            trace_span.set_attribute('router_id', router_id)
 
-        if router_id == 0:
-            result = []
-            breaks_sql = True
-            pass
-            # retriever call
-            # clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
-            # try:
-            #     sqlResponse = clinicalTrialSearch.call_text2sql(search_text=search_text)
-            #     result = str(sqlResponse)
-            #     logger.debug(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
-            # except Exception as e:
-            #     breaks_sql = True
-            #     logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
-            #     pass
+            breaks_sql = False
 
-        elif router_id == 1:
-            # drug information call
-            logger.debug(f"Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
+            if router_id == 0:
+                # retriever call
+                clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
+                try:
+                    sqlResponse = await clinicalTrialSearch.call_text2sql(search_text=search_text, parent_trace_span=trace_span)
+                    result = sqlResponse.get('result', '')
+                    logger.debug(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+                except Exception as e:
+                    breaks_sql = True
+                    logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
 
-            drugChemblSearch = DrugChEMBLText2CypherEngine(config)
-            result = []
+                print()
 
-            try:
-                cypherResponse = drugChemblSearch.call_text2cypher(search_text=search_text)
-                result = str(cypherResponse)
+            elif router_id == 1:
+                # drug information call
+                logger.debug(f"Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
 
-                logger.debug(f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}")
-            except Exception as e:
-                breaks_sql = True
-                logger.exception("Orchestrator.query_and_get_answer.cypherResponse Exception -", exc_info = e, stack_info=True)
+                drugChemblSearch = DrugChEMBLText2CypherEngine(config)
+                result = []
 
-            print()
+                try:
+                    cypherResponse = await drugChemblSearch.call_text2cypher(search_text=search_text, parent_trace_span=trace_span)
+                    result = str(cypherResponse)
+
+                    logger.debug(f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}")
+                except Exception as e:
+                    breaks_sql = True
+                    logger.exception("Orchestrator.query_and_get_answer.cypherResponse Exception -", exc_info = e, stack_info=True)
+
+                print()
         
-        if router_id == 2 or breaks_sql == True:
-            logger.debug(f"Orchestrator.query_and_get_answer.router_id Fallback Entered.")
-            bravesearch = BraveSearchQueryEngine(config)
-            extracted_retrieved_results = bravesearch.call_brave_search_api(search_text=search_text)
-            logger.debug(f"Orchestrator.query_and_get_answer.extracted_retrieved_results: {extracted_retrieved_results}")
+            if router_id == 2 or breaks_sql == True:
+                logger.debug(f"Orchestrator.query_and_get_answer.router_id Fallback Entered.")
+                bravesearch = BraveSearchQueryEngine(config)
+                extracted_retrieved_results = await bravesearch.call_brave_search_api(search_text=search_text, parent_trace_span=trace_span)
+                logger.debug(f"Orchestrator.query_and_get_answer.extracted_retrieved_results: {extracted_retrieved_results}")
 
-            #rerank call
-            rerank = ReRankEngine(config)
-            rerankResponse = rerank.call_embedding_api(
-                search_text=search_text,
-                retrieval_results=extracted_retrieved_results
+                #rerank call
+                rerank = ReRankEngine(config)
+                rerankResponse = await rerank.call_embedding_api(
+                    search_text=search_text,
+                    retrieval_results=extracted_retrieved_results,
+                    parent_trace_span=trace_span
                 )
-            rerankResponse_sliced = rerankResponse[:RERANK_TOP_COUNT]
-            logger.debug(f"Orchestrator.query_and_get_answer.rerankResponse_sliced: {rerankResponse_sliced}")
+                rerankResponse_sliced = rerankResponse[:RERANK_TOP_COUNT]
+                logger.debug(f"Orchestrator.query_and_get_answer.rerankResponse_sliced: {rerankResponse_sliced}")
 
-            #generation call
-            response_synthesis = ResponseSynthesisEngine(config)
-            result = response_synthesis.call_llm_service_api(
-                search_text=search_text,
-                reranked_results=rerankResponse_sliced
-            )
-            result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
-            logger.debug(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
+                #generation call
+                response_synthesis = ResponseSynthesisEngine(config)
+                result = await response_synthesis.call_llm_service_api(
+                    search_text=search_text,
+                    reranked_results=rerankResponse_sliced,
+                    parent_trace_span=trace_span
+                )
+                result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
+                logger.debug(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
+
+            trace_span.set_attribute('result', result)
+            logger.debug(f"Orchestrator.query_and_get_answer. result: {result}")
 
         return result

@@ -107,3 +107,6 @@ WANDB_NOTE: str = config("WANDB_NOTE", default="Curieo Search")
 
 # GROQ 
 GROQ_API_KEY: Secret = config("GROQ_API_KEY", cast=Secret)
+
+# Sentry
+SENTRY_DSN: Secret = config("SENTRY_DSN", cast=Secret)
