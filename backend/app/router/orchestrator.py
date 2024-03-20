@@ -48,7 +48,7 @@ class Orchestrator:
             prompt_template_str=self.ROUTER_PROMPT,
         )
 
-    async def query_and_get_answer(self, search_text):
+    async def query_and_get_answer(self, search_text) -> str:
         # search router call
         logger.debug(
             f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
@@ -134,5 +134,7 @@ class Orchestrator:
             logger.debug(
                 f"Orchestrator.query_and_get_answer.response_synthesis: {result}"
             )
+            result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
+            logger.debug(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
 
         return result

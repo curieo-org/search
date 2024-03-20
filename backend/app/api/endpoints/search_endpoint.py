@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_versioning import version
 from authx import AuthX, AuthXConfig
@@ -53,18 +53,21 @@ async def get_search_results(query: str = "") -> JSONResponse:
 
 
 @router.get(
-    "/top-search-queries",
+    "/topqueries",
     summary="List all top search queries",
     description="List all Top Search Queries",
     dependencies=[Depends(security.access_token_required)],
     response_model=list[str],
 )
 @version(1, 0)
-async def get_top_search_queries() -> JSONResponse:
+async def get_top_search_queries(limit: int) -> JSONResponse:
     logger.debug("Search_Endpoint.get_top_search_queries")
 
+    if limit <= 0:
+        raise HTTPException(status_code=400, detail="Limit should be greater than 0")
+
     cache = Redis()
-    last_x_keys = await cache.get_sorted_set("searched_queries", 0, 10)
+    last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
 
     logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
 
