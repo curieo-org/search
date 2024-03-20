@@ -13,7 +13,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - run: ls -la
       - name: Install poetry
         run: pipx install poetry
       - uses: actions/setup-python@v5
@@ -25,10 +24,4 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USER: postgres
-          DB_PASS: postgres
-          DB_BASE: db_test
         run: poetry run pytest
