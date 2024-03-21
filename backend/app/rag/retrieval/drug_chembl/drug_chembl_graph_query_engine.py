@@ -22,7 +22,7 @@ from typing import List
 from app.database.nebula_graph import NebulaGraph
 
 from app.config import (
-    OPENAPI_KEY,
+    OPENAI_API_KEY,
     DRUG_CHEMBL_TABLE_INFO_DIR,
     EMBEDDING_MODEL_API,
     EMBEDDING_MODEL_NAME,
@@ -42,7 +42,7 @@ class DrugChEMBLText2CypherEngine:
         self.config = config
         self.graph_storage = NebulaGraph()
 
-        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY))
+        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
 
         self.table_schema_objs = self.get_all_table_info()
         self.embed_model = TextEmbeddingsInference(
