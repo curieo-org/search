@@ -1,6 +1,5 @@
 from fastapi import (APIRouter, Depends, HTTPException, Header)
 from fastapi.responses import JSONResponse
-from fastapi.logger import logger
 from fastapi_versioning import version
 from authx import AuthX, AuthXConfig
 from app.database.redis import Redis
@@ -21,7 +20,7 @@ auth_config.JWT_SECRET_KEY = str(JWT_SECRET_KEY)
 security = AuthX(config=auth_config)
 orchestrator = Orchestrator(config)
 
-logger = setup_logger('Search_Endpoint')
+logger = setup_logger("Search_Endpoint")
 
 
 @router.get(
@@ -29,7 +28,7 @@ logger = setup_logger('Search_Endpoint')
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)],
-    response_model=str
+    response_model=str,
 )
 @version(1, 0)
 async def get_search_results(
@@ -60,13 +59,12 @@ async def get_search_results(
     return JSONResponse(status_code=200, content=search_result)
 
 
-
 @router.get(
     "/topqueries",
     summary="List all top search queries",
     description="List all Top Search Queries",
     dependencies=[Depends(security.access_token_required)],
-    response_model=list[str]
+    response_model=list[str],
 )
 @version(1, 0)
 async def get_top_search_queries(

@@ -1,5 +1,4 @@
 import collections
-import os
 import requests
 import opentelemetry
 
@@ -7,7 +6,7 @@ from app.services.search_utility import setup_logger, get_project_root, storage_
 from app.services.tracing import SentryTracer
 from app.config import BRAVE_RESULT_COUNT, BRAVE_SEARCH_API, BRAVE_SUBSCRIPTION_KEY
 
-logger = setup_logger('BraveSearchQueryEngine')
+logger = setup_logger("BraveSearchQueryEngine")
 
 
 class BraveSearchQueryEngine:
@@ -15,6 +14,7 @@ class BraveSearchQueryEngine:
     This class implements the logic brave search api and returns the results.
     It calls the brave api and processes the data and returns the result.
     """
+
     def __init__(self, config):
         self.config = config
 

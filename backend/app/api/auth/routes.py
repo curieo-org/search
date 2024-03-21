@@ -17,7 +17,7 @@ auth_config.JWT_SECRET_KEY = str(JWT_SECRET_KEY)
 
 security = AuthX(config=auth_config)
 
-logger = setup_logger('auth')
+logger = setup_logger("auth")
 
 
 @router.post("/token", response_model=Token)
@@ -46,7 +46,7 @@ async def authenticate_user(username: str, password: str) -> User | None:
     if not user:
         return None
 
-    #if not verify_password(password, user.hashed_password):
+    # if not verify_password(password, user.hashed_password):
     #    return None
 
     return user

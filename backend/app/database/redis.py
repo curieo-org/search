@@ -1,5 +1,4 @@
 import redis.asyncio as aioredis
-import os
 import random
 import opentelemetry
 from app.config import REDIS_URL, CACHE_MAX_AGE, CACHE_MAX_SORTED_SET
@@ -7,16 +6,16 @@ from app.services.tracing import SentryTracer
 
 connection = None
 
+
 class Redis:
     def __init__(self):
         pass
-    
+
     async def connect(self):
         global connection
 
         if not connection:
             connection = await aioredis.Redis.from_url(str(REDIS_URL))
-    
 
     async def disconnect(self):
         global connection

@@ -8,8 +8,6 @@ from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 from app.config import TOGETHER_API, TOGETHER_KEY, TOGETHER_MODEL, TOGETHER_PROMPT_CONFIG, PROMPT_LANGUAGE
 
-logger = setup_logger('ResponseSynthesisEngine')
-    
 
 class ResponseSynthesisEngine:
     """
@@ -17,32 +15,36 @@ class ResponseSynthesisEngine:
     It uses the preprocessed service and prompt template.
     It returns the output in list format.
     """
+
     def __init__(self, config):
         self.config = config
 
-
     def clean_response_text(self, response_text: str):
         return response_text.replace("\n", "")
-    
-    def get_prompt_v3(self, search_text: str, reranked_results: collections.defaultdict[list]):
-        
+
+    def get_prompt_v3(
+        self, search_text: str, reranked_results: collections.defaultdict[list]
+    ):
         language = PROMPT_LANGUAGE
-        logger.info(f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}")
-        
+        logger.info(
+            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}"
+        )
+
         context_str = ""
         urls = []
         for result in reranked_results:
-            domain = urlparse(result['url']).netloc.replace('www.', '')
-            urls.append(result['url'])
+            domain = urlparse(result["url"]).netloc.replace("www.", "")
+            urls.append(result["url"])
             context_str += f"Source {domain}\n"
 
             context_str += f"{result['text']}\n"
             context_str += "\n\n"
-        
-        prompt_length_limit = TOGETHER_PROMPT_CONFIG.get('prompt').get('prompt_token_limit')
+
+        prompt_length_limit = TOGETHER_PROMPT_CONFIG.get("prompt").get(
+            "prompt_token_limit"
+        )
         context_str = context_str[:prompt_length_limit]
-        prompt = \
-            f"""
+        prompt = f"""
         Web search result:
         {context_str}
 
@@ -106,7 +108,6 @@ class ResponseSynthesisEngine:
             logger.info("ResponseSynthesisEngine.call_llm_service_api. response: " + response.text)
 
         return {
-            "result" : self.clean_response_text(response.json()['choices'][0]['text']),
-            "source" : list(urls)
+            "result": self.clean_response_text(response.json()["choices"][0]["text"]),
+            "source": list(urls),
         }
-                

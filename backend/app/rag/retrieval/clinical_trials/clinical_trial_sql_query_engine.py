@@ -1,9 +1,13 @@
-from llama_index.core.query_pipeline import (QueryPipeline as QP, InputComponent, FnComponent)
+from llama_index.core.query_pipeline import (
+    QueryPipeline as QP,
+    InputComponent,
+    FnComponent,
+)
 from llama_index.core.llms import ChatResponse
 from llama_index.llms.openai import OpenAI
 
 from llama_index.core.prompts import PromptTemplate
-from llama_index.core import VectorStoreIndex, load_index_from_storage, SQLDatabase
+from llama_index.core import VectorStoreIndex, SQLDatabase
 from llama_index.core.prompts.default_prompts import DEFAULT_TEXT_TO_SQL_PROMPT
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.objects import (
@@ -20,17 +24,25 @@ from typing import List
 from sqlalchemy import create_engine
 from pyvis.network import Network
 
-from app.config import OPENAPI_KEY, CLINICAL_TRIALS_TABLE_INFO_DIR, POSTGRES_ENGINE, EMBEDDING_MODEL_API, EMBEDDING_MODEL_NAME
+from app.config import (
+    OPENAI_API_KEY,
+    CLINICAL_TRIALS_TABLE_INFO_DIR,
+    POSTGRES_ENGINE,
+    EMBEDDING_MODEL_API,
+    EMBEDDING_MODEL_NAME,
+)
 from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 import opentelemetry
 
-logger = setup_logger('ClinicalTrialText2SQLEngine')
+logger = setup_logger("ClinicalTrialText2SQLEngine")
+
 
 class TableInfo(BaseModel):
     """
     Information regarding a structured table.
     """
+
     table_name: str = Field(
         ..., description="table name (must be underscores and NO spaces)"
     )
@@ -44,22 +56,35 @@ class ClinicalTrialText2SQLEngine:
     This class implements the logic to convert the user prompt to sql query.
     Then it executes the sql query in the database and return the result.
     """
+
     def __init__(self, config):
         self.config = config
 
-        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY))
+        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
         self.engine = create_engine(str(POSTGRES_ENGINE))
 
-        self.text2sql_prompt = DEFAULT_TEXT_TO_SQL_PROMPT.partial_format(dialect=self.engine.dialect.name)
+        self.text2sql_prompt = DEFAULT_TEXT_TO_SQL_PROMPT.partial_format(
+            dialect=self.engine.dialect.name
+        )
 
         self.sql_database = SQLDatabase(self.engine)
         self.table_node_mapping = SQLTableNodeMapping(self.sql_database)
         self.sql_retriever = SQLRetriever(self.sql_database)
 
-        self.table_schema_objs = [SQLTableSchema(table_name=t.table_name, context_str=t.table_summary) for t in self.get_all_table_info()]
-        self.embed_model = TextEmbeddingsInference(base_url=EMBEDDING_MODEL_API, model_name=EMBEDDING_MODEL_NAME)
+        self.table_schema_objs = [
+            SQLTableSchema(table_name=t.table_name, context_str=t.table_summary)
+            for t in self.get_all_table_info()
+        ]
+        self.embed_model = TextEmbeddingsInference(
+            base_url=EMBEDDING_MODEL_API, model_name=EMBEDDING_MODEL_NAME
+        )
 
-        self.obj_index = ObjectIndex.from_objects(objects=self.table_schema_objs, object_mapping=self.table_node_mapping, index_cls=VectorStoreIndex, embed_model=self.embed_model)
+        self.obj_index = ObjectIndex.from_objects(
+            objects=self.table_schema_objs,
+            object_mapping=self.table_node_mapping,
+            index_cls=VectorStoreIndex,
+            embed_model=self.embed_model,
+        )
         self.obj_retriever = self.obj_index.as_retriever(similarity_top_k=3)
 
         self.response_synthesis_prompt = PromptTemplate(
@@ -81,9 +106,7 @@ class ClinicalTrialText2SQLEngine:
             path = results_list[0]
             return TableInfo.parse_file(path)
         else:
-            raise ValueError(
-                f"More than one file matching index: {list(results_gen)}"
-            )
+            raise ValueError(f"More than one file matching index: {list(results_gen)}")
 
     def get_all_table_info(self):
         file_counts = len(os.listdir(CLINICAL_TRIALS_TABLE_INFO_DIR))
@@ -92,14 +115,18 @@ class ClinicalTrialText2SQLEngine:
         for i in range(file_counts):
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
-        logger.debug(f"ClinicalTrialText2SQLEngine.get_all_table_info table_infos: {len(table_infos)}")
+        logger.debug(
+            f"ClinicalTrialText2SQLEngine.get_all_table_info table_infos: {len(table_infos)}"
+        )
         return table_infos
 
     def get_table_context_str(self, table_schema_objs: List[SQLTableSchema]):
         """Get table context string."""
         context_strs = []
         for table_schema_obj in table_schema_objs:
-            table_info = self.sql_database.get_single_table_info(table_schema_obj.table_name)
+            table_info = self.sql_database.get_single_table_info(
+                table_schema_obj.table_name
+            )
             if table_schema_obj.context_str:
                 table_opt_context = " The table description is: "
                 table_opt_context += table_schema_obj.context_str
@@ -119,10 +146,14 @@ class ClinicalTrialText2SQLEngine:
         sql_result_start = response.find("SQLResult:")
         if sql_result_start != -1:
             response = response[:sql_result_start]
-        logger.debug(f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}")
+        logger.debug(
+            f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}"
+        )
         return response.strip().strip("```").strip()
 
-    def get_response_synthesis_prompt(self, query_str, sql_query, context_str) -> PromptTemplate:
+    def get_response_synthesis_prompt(
+        self, query_str, sql_query, context_str
+    ) -> PromptTemplate:
         response_synthesis_prompt_str = (
             "Given an input question, synthesize a response from the query results.\n"
             "Query: {query_str}\n"
@@ -134,18 +165,18 @@ class ClinicalTrialText2SQLEngine:
 
     def build_query_pipeline(self):
         qp = QP(
-        modules={
-            "input": InputComponent(),
-            "table_retriever": self.obj_retriever, 
-            "table_output_parser": FnComponent(fn=self.get_table_context_str), 
-            "text2sql_prompt": self.text2sql_prompt,
-            "text2sql_llm": self.llm,
-            "sql_output_parser": FnComponent(fn=self.parse_response_to_sql), 
-            "sql_retriever": self.sql_retriever,
-            "response_synthesis_prompt": self.response_synthesis_prompt,
-            "response_synthesis_llm": self.llm, 
+            modules={
+                "input": InputComponent(),
+                "table_retriever": self.obj_retriever,
+                "table_output_parser": FnComponent(fn=self.get_table_context_str),
+                "text2sql_prompt": self.text2sql_prompt,
+                "text2sql_llm": self.llm,
+                "sql_output_parser": FnComponent(fn=self.parse_response_to_sql),
+                "sql_retriever": self.sql_retriever,
+                "response_synthesis_prompt": self.response_synthesis_prompt,
+                "response_synthesis_llm": self.llm,
             },
-        verbose=True,
+            verbose=True,
         )
 
         qp.add_chain(["input", "table_retriever", "table_output_parser"])
@@ -190,6 +221,4 @@ class ClinicalTrialText2SQLEngine:
             
             trace_span.set_attribute('result', str(response))
 
-        return {
-            "result" : str(response)
-        }
+        return {"result": str(response)}

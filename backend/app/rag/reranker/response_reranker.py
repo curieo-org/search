@@ -7,8 +7,6 @@ from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 from app.config import  EMBEDDING_RERANK_API, EMBEDDING_CHUNK_SIZE
 
-logger = setup_logger('Reranking')
-TAG_RE = re.compile(r'<[^>]+>')
 
 class ReRankEngine:
     """
@@ -16,6 +14,7 @@ class ReRankEngine:
     It uses the embedding api that process the query and responses from the retrieval layer.
     It returns the output in list format.
     """
+
     def __init__(self, config):
         self.config = config
 
