@@ -2,3 +2,4 @@
 .idea/
 .venv/
 backend/prompt_experimentation/wandb/
+server/target

@@ -1,0 +1,21 @@
+{
+  "generate_answer": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "question": "Where did the study Exposure, Dose, Body Burden and Health Effects of Lead take place",
+        "sql": "SELECT tbl_studies_info.title, tbl_studies_info.study_details->>'source' AS source\nFROM tbl_studies_info\nWHERE tbl_studies_info.title = 'Exposure, Dose, Body Burden and Health Effects of Lead';",
+        "database_output": "Exposure, Dose, Body Burden and Health Effects of Lead National Institute of Environmental Health Sciences (NIEHS)",
+        "rationale": "The study Exposure, Dose, Body Burden and Health Effects of Lead took place at the National Institute of Environmental Health Sciences (NIEHS). This is based on the database output which shows that the study was conducted by the NIEHS.",
+        "answer": "The study Exposure, Dose, Body Burden and Health Effects of Lead took place at the National Institute of Environmental Health Sciences (NIEHS). This is based on the database output which shows that the study was conducted by the NIEHS."
+      }
+    ],
+    "signature_instructions": "given the input question synthesizes the response from query results",
+    "signature_prefix": "Response:",
+    "extended_signature_instructions": "given the input question synthesizes the response from query results",
+    "extended_signature_prefix": "Response:"
+  }
+}

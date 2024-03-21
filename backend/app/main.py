@@ -28,12 +28,12 @@ def get_application() -> FastAPI:
     async def startup():    # pylint: disable=W0612
         print()
         redis_cache = FastApiRedisCache()
-        redis_cache.init(
-            host_url=config.REDIS_URL,
-            prefix="curieo-search-cache",
-            response_header="X-curieo-Cache",
-            ignore_arg_types=[Request]
-        )
+        # redis_cache.init(
+        #     host_url=config.REDIS_URL,
+        #     prefix="curieo-search-cache",
+        #     response_header="X-curieo-Cache",
+        #     ignore_arg_types=[Request]
+        # )
         #db connection
         #embedding connection
         #redis connection

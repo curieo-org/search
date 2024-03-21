@@ -254,6 +254,10 @@ class ClinicalTrialText2SQLEngine:
             "SQL Response: {context_str}\n"
             "Response: "
         )
+
+        self.logging_dict['response_synthesis_prompt'] = response_synthesis_prompt_str.format(query_str=query_str,
+                                                                                               sql_query=sql_query, 
+                                                                                               context_str=context_str)
         return PromptTemplate(response_synthesis_prompt_str)
 
     def build_query_pipeline(self):
@@ -300,12 +304,18 @@ class ClinicalTrialText2SQLEngine:
             # self.append_to_file("********************************************")   
             # logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
             response = self.qp.run(query=search_text)
+
+            self.logging_dict['response']  = str(response)
             # logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
 
         except Exception as ex:
             logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
             raise ex
         self.append_to_file(self.logging_dict)
+
+        print("----------------------------------------------------------------")
+        print(self.logging_dict)
+        print("----------------------------------------------------------------")
         return {
             "result" : str(response)
         }
