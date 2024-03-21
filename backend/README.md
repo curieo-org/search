@@ -17,7 +17,7 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
 
 - Install Cureio backend
   - Make sure `pyenv` is installed.
-  - Create a new virtual environment `python3.11 -m venv .venv`
+  - Create a new virtual environment `python -m venv .venv`
   - Activate the env `source .venv/bin/activate`
   - Install poetry and uvicorn `pip install poetry uvicorn`
   - Install dependencies `poetry install`
