@@ -2,7 +2,7 @@ import collections
 import requests
 import opentelemetry
 
-from app.services.search_utility import setup_logger, get_project_root, storage_cached
+from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 from app.config import BRAVE_RESULT_COUNT, BRAVE_SEARCH_API, BRAVE_SUBSCRIPTION_KEY
 

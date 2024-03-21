@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, HTTPException, status, Header
+from fastapi import Depends, APIRouter, HTTPException, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from authx import AuthX, AuthXConfig
 

@@ -75,7 +75,7 @@ async def get_top_search_queries(
 
     with trace_span:
         trace_span.set_attribute('description', 'Get Top Search Queries')
-        logger.debug(f"Search_Endpoint.get_top_search_queries")
+        logger.debug("Search_Endpoint.get_top_search_queries")
 
         if limit <= 0:
             raise HTTPException(status_code=400, detail="Limit should be greater than 0")

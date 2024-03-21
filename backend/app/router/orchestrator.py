@@ -82,7 +82,7 @@ class Orchestrator:
 
             elif router_id == 1:
                 # drug information call
-                logger.debug(f"Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
+                logger.debug("Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
 
                 drugChemblSearch = DrugChEMBLText2CypherEngine(config)
                 result = []
@@ -98,8 +98,8 @@ class Orchestrator:
 
                 print()
         
-            if router_id == 2 or breaks_sql == True:
-                logger.debug(f"Orchestrator.query_and_get_answer.router_id Fallback Entered.")
+            if router_id == 2 or breaks_sql:
+                logger.debug("Orchestrator.query_and_get_answer.router_id Fallback Entered.")
                 bravesearch = BraveSearchQueryEngine(config)
                 extracted_retrieved_results = await bravesearch.call_brave_search_api(search_text=search_text, parent_trace_span=trace_span)
                 logger.debug(f"Orchestrator.query_and_get_answer.extracted_retrieved_results: {extracted_retrieved_results}")
