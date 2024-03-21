@@ -24,6 +24,7 @@ python-multipart = "^0.0.9"
 redis = "^5.0.3"
 ruff = "^0.3.3"
 dspy = { git = "https://git@github.com/curieo-org/dspy.git" }
+nebula3-python = "^3.5.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

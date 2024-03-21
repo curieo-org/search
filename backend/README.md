@@ -17,7 +17,7 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
 
 - Install Cureio backend
   - Make sure `pyenv` is installed.
-  - Create a new virtual environment `python -m venv .venv`
+  - Create a new virtual environment `python3.11 -m venv .venv`
   - Activate the env `source .venv/bin/activate`
   - Install poetry and uvicorn `pip install poetry uvicorn`
   - Install dependencies `poetry install`
@@ -85,8 +85,10 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
     text-embeddings-router --model-id $model --revision $revision --port 8081
     ```
 
-    -   Add postgresql database and create the engine.
-    -   Add local redis engine and change in the config.py file
+    -   Clone the [Data Digger](https://github.com/curieo-org/data-digger) repository and follow the instructions to setup the aact postgresql database and chembl nebula graph database.
+    -   Add local redis engine
+    -   Alternatively, you can use the existing deployed databases for all of the above if they are available.
+    -   Copy the `.env.template` file to `.env` and update the required values.
 
 ## Running the App
 

@@ -25,7 +25,7 @@ from sqlalchemy import create_engine
 from pyvis.network import Network
 
 from app.config import (
-    OPENAPI_KEY,
+    OPENAI_API_KEY,
     CLINICAL_TRIALS_TABLE_INFO_DIR,
     POSTGRES_ENGINE,
     EMBEDDING_MODEL_API,
@@ -58,7 +58,7 @@ class ClinicalTrialText2SQLEngine:
     def __init__(self, config):
         self.config = config
 
-        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAPI_KEY))
+        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
         self.engine = create_engine(str(POSTGRES_ENGINE))
 
         self.text2sql_prompt = DEFAULT_TEXT_TO_SQL_PROMPT.partial_format(
