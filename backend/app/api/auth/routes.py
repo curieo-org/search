@@ -1,5 +1,5 @@
 from fastapi import Depends, APIRouter, HTTPException, status, Header
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from authx import AuthX, AuthXConfig
 
 from .models import Token, User
@@ -36,7 +36,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             )
 
         token = security.create_access_token(uid=user.username)
-        trace_span.set_attribute('result', token)
+        trace_span.set_attribute('result', str(token))
 
     return Token(access_token=token, token_type="bearer")
 

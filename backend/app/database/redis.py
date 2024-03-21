@@ -31,7 +31,7 @@ class Redis:
         with tracer_span:
             tracer_span.set_attribute('description', f"Get Value from Redis. key: {key}")
             value = await connection.get(key)
-            tracer_span.set_attribute('result', value)
+            tracer_span.set_attribute('result', f"Key: {key}, Value: {value}")
 
         return str(value, 'utf-8') if value else None
     
@@ -71,6 +71,6 @@ class Redis:
                 await connection.zremrangebyrank(space, 0, -CACHE_MAX_SORTED_SET-1)
                 
             values = await connection.zrevrange(space, start, stop, withscores=False)
-            tracer_span.set_attribute('result', values)
+            tracer_span.set_attribute('result', str(values))
 
         return [str(value, 'utf-8') for value in values]

@@ -45,7 +45,7 @@ class BraveSearchQueryEngine:
 
             try:
                 trace_span.set_attribute('brave_endpoint', endpoint)
-                trace_span.set_attribute('brave_headers', headers)
+                trace_span.set_attribute('brave_headers', str(headers))
 
                 response = requests.get(endpoint, headers=headers)
                 response.raise_for_status()
@@ -64,6 +64,6 @@ class BraveSearchQueryEngine:
             except Exception as ex:
                 raise ex
             
-            trace_span.set_attribute('result', results)
+            trace_span.set_attribute('result', str(results))
             logger.info("BraveSearchQueryEngine.call_brave_search_api. result: " + str(results))
         return results

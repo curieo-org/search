@@ -250,6 +250,6 @@ class DrugChEMBLText2CypherEngine:
                 
                 raise ex
             
-            trace_span.set_attribute('result', response)
+            trace_span.set_attribute('result', str(response))
 
         return response

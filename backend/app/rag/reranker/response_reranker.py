@@ -7,6 +7,9 @@ from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 from app.config import  EMBEDDING_RERANK_API, EMBEDDING_CHUNK_SIZE
 
+logger = setup_logger('Reranking')
+TAG_RE = re.compile(r'<[^>]+>')
+
 
 class ReRankEngine:
     """
@@ -56,8 +59,8 @@ class ReRankEngine:
 
             try:
                 trace_span.set_attribute('rerank_endpoint', endpoint)
-                trace_span.set_attribute('rerank_headers', headers)
-                trace_span.set_attribute('rerank_request_data', request_data)
+                trace_span.set_attribute('rerank_headers', str(headers))
+                trace_span.set_attribute('rerank_request_data', str(request_data))
                 response = requests.request("POST", endpoint, headers=headers, json=request_data)
                 response.raise_for_status()
 
@@ -67,6 +70,6 @@ class ReRankEngine:
                 logger.exception("ReRankEngine.call_embedding_api Exception -", exc_info = ex, stack_info=True)
                 raise ex
             
-            trace_span.set_attribute('result', results)
+            trace_span.set_attribute('result', str(results))
 
         return results

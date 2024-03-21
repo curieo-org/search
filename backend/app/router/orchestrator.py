@@ -3,9 +3,8 @@ from llama_index.core.selectors import LLMSingleSelector
 from llama_index.llms.openai import OpenAI
 
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
-from app.rag.retrieval.drug_chembl.drug_chembl_graph_query_engine import (
-    DrugChEMBLText2CypherEngine,
-)
+from app.rag.retrieval.clinical_trials.clinical_trial_sql_query_engine import ClinicalTrialText2SQLEngine
+from app.rag.retrieval.drug_chembl.drug_chembl_graph_query_engine import DrugChEMBLText2CypherEngine
 from app.rag.reranker.response_reranker import ReRankEngine
 from app.rag.generation.response_synthesis import ResponseSynthesisEngine
 from app.config import config, OPENAI_API_KEY, RERANK_TOP_COUNT
@@ -14,7 +13,7 @@ from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 import opentelemetry
 
-logger = setup_logger("Orchestrator")
+logger = setup_logger('Orchestrator')
 
 
 class Orchestrator:
@@ -64,7 +63,7 @@ class Orchestrator:
             router_id = selector_result.selections[0].index
             logger.debug(f"Orchestrator.query_and_get_answer.router_id router_id: {router_id}")
 
-            trace_span.set_attribute('router_id', router_id)
+            trace_span.set_attribute('router_id', str(router_id))
 
             breaks_sql = False
 
@@ -125,7 +124,7 @@ class Orchestrator:
                 result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
                 logger.debug(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
 
-            trace_span.set_attribute('result', result)
+            trace_span.set_attribute('result', str(result))
             logger.debug(f"Orchestrator.query_and_get_answer. result: {result}")
 
         return result

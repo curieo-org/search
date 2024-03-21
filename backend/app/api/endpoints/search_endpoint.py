@@ -83,7 +83,7 @@ async def get_top_search_queries(
         cache = Redis()
         last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1, trace_span)
 
-        trace_span.set_attribute('result', last_x_keys)
+        trace_span.set_attribute('result', str(last_x_keys))
         logger.debug(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
 
     return JSONResponse(status_code=200, content=last_x_keys)

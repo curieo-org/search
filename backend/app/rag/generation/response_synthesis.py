@@ -8,6 +8,8 @@ from app.services.search_utility import setup_logger
 from app.services.tracing import SentryTracer
 from app.config import TOGETHER_API, TOGETHER_KEY, TOGETHER_MODEL, TOGETHER_PROMPT_CONFIG, PROMPT_LANGUAGE
 
+logger = setup_logger('ResponseSynthesisEngine')
+
 
 class ResponseSynthesisEngine:
     """
@@ -96,7 +98,7 @@ class ResponseSynthesisEngine:
                     })
                 
                 trace_span.set_attribute('llm_payload', payload)
-                trace_span.set_attribute('llm_headers', headers)
+                trace_span.set_attribute('llm_headers', str(headers))
 
                 response = requests.request("POST", TOGETHER_API, headers=headers, data=payload)
             
