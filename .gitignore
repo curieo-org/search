@@ -7,3 +7,4 @@
 .wandb/
 .pytest_cache/
 .ruff_cache/
+backend/prompt_experimentation/wandb/
