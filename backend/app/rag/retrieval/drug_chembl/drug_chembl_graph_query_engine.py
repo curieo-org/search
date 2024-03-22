@@ -77,7 +77,7 @@ class DrugChEMBLText2CypherEngine:
 
     def execute_graph_query(self, queries):
         logger.info(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query queries: {queries}"
+            f"execute_graph_query queries: {queries}"
         )
         queries = str(queries).strip()
         query_list = []
@@ -98,7 +98,7 @@ class DrugChEMBLText2CypherEngine:
                 start_index = queries.find("```", end_index + 3)
 
         logger.info(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query query_list: {query_list}"
+            f"execute_graph_query query_list: {query_list}"
         )
         results = []
 
@@ -112,7 +112,7 @@ class DrugChEMBLText2CypherEngine:
             results.append(result_dict)
 
         logger.info(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query results: {results}"
+            f"execute_graph_query results: {results}"
         )
 
         return results
@@ -141,7 +141,7 @@ class DrugChEMBLText2CypherEngine:
             table_infos.append(table_info)
 
         logger.info(
-            f"DrugChEMBLText2CypherEngine.get_all_table_info table_infos: {len(table_infos)}"
+            f"get_all_table_info table_infos: {len(table_infos)}"
         )
         return table_infos
 
@@ -182,7 +182,7 @@ class DrugChEMBLText2CypherEngine:
             response_str += " ## ".join(record_in_list) + "\n"
 
         logger.info(
-            f"DrugChEMBLText2CypherEngine.cypher_output_parser response_str: {response_str}"
+            f"cypher_output_parser response_str: {response_str}"
         )
         return response_str
 
@@ -232,14 +232,14 @@ class DrugChEMBLText2CypherEngine:
 
     async def call_text2cypher(self, search_text:str) -> str:
         try:
-            logger.info(f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}")
+            logger.info(f"call_text2cypher search_text: {search_text}")
 
             response = self.qp.run(query=search_text)
 
-            logger.info(f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}")
+            logger.info(f"call_text2cypher response: {str(response)}")
 
         except Exception as ex:
-            logger.exception("DrugChEMBLText2CypherEngine.call_text2cypher Exception -", exc_info = ex, stack_info=True)
+            logger.exception("call_text2cypher Exception -", exc_info = ex, stack_info=True)
             
             raise ex
 

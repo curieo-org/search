@@ -63,8 +63,8 @@ class ResponseSynthesisEngine:
         search_text: str,
         reranked_results: collections.defaultdict[list]
     ) -> collections.defaultdict[list]:
-        logger.info("ResponseSynthesisEngine.call_llm_service_api. search_text: " + search_text)
-        logger.info("ResponseSynthesisEngine.call_llm_service_api. reranked_results length: " + str(len(reranked_results)))
+        logger.info("call_llm_service_api. search_text: " + search_text)
+        logger.info("call_llm_service_api. reranked_results length: " + str(len(reranked_results)))
     
         try:
             headers = {
@@ -93,10 +93,10 @@ class ResponseSynthesisEngine:
             response = requests.request("POST", TOGETHER_API, headers=headers, data=payload)
         
         except Exception as ex:
-            logger.exception("ResponseSynthesisEngine.call_llm_service_api Exception -", exc_info = ex, stack_info=True)
+            logger.exception("call_llm_service_api Exception -", exc_info = ex, stack_info=True)
             raise ex
         
-        logger.info("ResponseSynthesisEngine.call_llm_service_api. response: " + response.text)
+        logger.info("call_llm_service_api. response: " + response.text)
 
         return {
             "result": self.clean_response_text(response.json()["choices"][0]["text"]),

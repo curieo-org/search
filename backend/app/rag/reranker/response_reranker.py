@@ -24,8 +24,8 @@ class ReRankEngine:
         search_text: str,
         retrieval_results: collections.defaultdict[list]
     ) -> collections.defaultdict[list]:
-        logger.info("ReRankEngine.call_embedding_api. search_text: " + search_text)
-        logger.info("ReRankEngine.call_embedding_api. retrieval_results length: " + str(len(retrieval_results)))
+        logger.info("call_embedding_api. search_text: " + search_text)
+        logger.info("call_embedding_api. retrieval_results length: " + str(len(retrieval_results)))
 
         endpoint = "{url_address}".format(
             url_address=EMBEDDING_RERANK_API
@@ -51,9 +51,9 @@ class ReRankEngine:
         }
 
         try:
-            logger.info("ReRankEngine.call_embedding_api. endpoint: " + endpoint)
-            logger.info("ReRankEngine.call_embedding_api. headers: " + str(headers))
-            logger.info("ReRankEngine.call_embedding_api. request_data: " + str(request_data))
+            logger.info("call_embedding_api. endpoint: " + endpoint)
+            logger.info("call_embedding_api. headers: " + str(headers))
+            logger.info("call_embedding_api. request_data: " + str(request_data))
 
             response = requests.request("POST", endpoint, headers=headers, json=request_data)
             response.raise_for_status()
@@ -61,9 +61,9 @@ class ReRankEngine:
             rerank_orders = response.json()
             results = [retrieval_results[order.get('index')] for order in rerank_orders]
         except Exception as ex:
-            logger.exception("ReRankEngine.call_embedding_api Exception -", exc_info = ex, stack_info=True)
+            logger.exception("call_embedding_api Exception -", exc_info = ex, stack_info=True)
             raise ex
         
-        logger.info(f"ReRankEngine.call_embedding_api. results: {results}")
+        logger.info(f"call_embedding_api. results: {results}")
 
         return results

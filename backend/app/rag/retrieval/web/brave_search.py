@@ -21,7 +21,7 @@ class BraveSearchQueryEngine:
         self,
         search_text: str
     ) -> collections.defaultdict[list]:
-        logger.info("BraveSearchQueryEngine.call_brave_search_api. query: " + search_text)
+        logger.info("call_brave_search_api. query: " + search_text)
 
         endpoint = "{url_address}?count={count}&q={search_text}&search_lang=en&extra_snippets=True".format(
             url_address=BRAVE_SEARCH_API,
@@ -37,8 +37,8 @@ class BraveSearchQueryEngine:
         results = collections.defaultdict(list)
 
         try:
-            logger.info("BraveSearchQueryEngine.call_brave_search_api. endpoint: " + endpoint)
-            logger.info("BraveSearchQueryEngine.call_brave_search_api. headers: " + str(headers))
+            logger.info("call_brave_search_api. endpoint: " + endpoint)
+            logger.info("call_brave_search_api. headers: " + str(headers))
 
             response = requests.get(endpoint, headers=headers)
             response.raise_for_status()
@@ -55,8 +55,8 @@ class BraveSearchQueryEngine:
                     i = i + 1
 
         except Exception as ex:
-            logger.exception("BraveSearchQueryEngine.call_brave_search_api Exception -", exc_info=ex, stack_info=True)
+            logger.exception("call_brave_search_api Exception -", exc_info=ex, stack_info=True)
             raise ex
         
-        logger.info("BraveSearchQueryEngine.call_brave_search_api. result: " + str(results))
+        logger.info("call_brave_search_api. result: " + str(results))
         return results

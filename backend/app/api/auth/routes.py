@@ -22,12 +22,10 @@ logger = setup_logger("auth")
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    trace_transaction = sentry_sdk.Hub.current.scope.transaction
-
-    if trace_transaction is not None:
+    if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_login_for_access_token')
 
-    logger.info(f"auth.login_for_access_token. username: {form_data.username}")
+    logger.info(f"login_for_access_token. username: {form_data.username}")
 
     user = await authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -39,7 +37,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
     token = security.create_access_token(uid=user.username)
 
-    logger.info(f"auth.login_for_access_token. token: {token}")
+    logger.info(f"login_for_access_token. token: {token}")
 
     return Token(access_token=token, token_type="bearer")
 

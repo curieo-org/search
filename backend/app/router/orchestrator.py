@@ -52,10 +52,10 @@ class Orchestrator:
         search_text: str
     ) -> str:
         # search router call
-        logger.info(f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}")
+        logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
         selector_result = self.selector.select(self.choices, query=search_text)
         router_id = selector_result.selections[0].index
-        logger.info(f"Orchestrator.query_and_get_answer.router_id router_id: {router_id}")
+        logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
 
         breaks_sql = False
 
@@ -65,16 +65,16 @@ class Orchestrator:
             try:
                 sqlResponse = await clinicalTrialSearch.call_text2sql(search_text=search_text)
                 result = sqlResponse.get('result', '')
-                logger.info(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+                logger.info(f"query_and_get_answer.sqlResponse sqlResponse: {result}")
             except Exception as e:
                 breaks_sql = True
-                logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
+                logger.exception("query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
 
             print()
 
         elif router_id == 1:
             # drug information call
-            logger.info("Orchestrator.query_and_get_answer.router_id drug_information_choice Entered.")
+            logger.info("query_and_get_answer.router_id drug_information_choice Entered.")
 
             drugChemblSearch = DrugChEMBLText2CypherEngine(config)
             result = []
@@ -83,20 +83,20 @@ class Orchestrator:
                 cypherResponse = await drugChemblSearch.call_text2cypher(search_text=search_text)
                 result = str(cypherResponse)
 
-                logger.info(f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}")
+                logger.info(f"query_and_get_answer.cypherResponse cypherResponse: {result}")
             except Exception as e:
                 breaks_sql = True
-                logger.exception("Orchestrator.query_and_get_answer.cypherResponse Exception -", exc_info = e, stack_info=True)
+                logger.exception("query_and_get_answer.cypherResponse Exception -", exc_info = e, stack_info=True)
 
             print()
     
         if router_id == 2 or breaks_sql:
-            logger.info("Orchestrator.query_and_get_answer.router_id Fallback Entered.")
+            logger.info("query_and_get_answer.router_id Fallback Entered.")
             
             bravesearch = BraveSearchQueryEngine(config)
             extracted_retrieved_results = await bravesearch.call_brave_search_api(search_text=search_text)
             
-            logger.info(f"Orchestrator.query_and_get_answer.extracted_retrieved_results: {extracted_retrieved_results}")
+            logger.info(f"query_and_get_answer.extracted_retrieved_results: {extracted_retrieved_results}")
 
             
             #rerank call
@@ -106,7 +106,7 @@ class Orchestrator:
                 retrieval_results=extracted_retrieved_results
             )
             rerankResponse_sliced = rerankResponse[:RERANK_TOP_COUNT]
-            logger.info(f"Orchestrator.query_and_get_answer.rerankResponse_sliced: {rerankResponse_sliced}")
+            logger.info(f"query_and_get_answer.rerankResponse_sliced: {rerankResponse_sliced}")
 
             #generation call
             response_synthesis = ResponseSynthesisEngine(config)
@@ -115,8 +115,8 @@ class Orchestrator:
                 reranked_results=rerankResponse_sliced
             )
             result = result.get('result', '') + "\n\n" + "Source: " + ', '.join(result.get('source', []))
-            logger.info(f"Orchestrator.query_and_get_answer.response_synthesis: {result}")
+            logger.info(f"query_and_get_answer.response_synthesis: {result}")
             
-        logger.info(f"Orchestrator.query_and_get_answer. result: {result}")
+        logger.info(f"query_and_get_answer. result: {result}")
 
         return result

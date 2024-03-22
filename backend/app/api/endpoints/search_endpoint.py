@@ -35,26 +35,24 @@ logger = setup_logger("Search_Endpoint")
 async def get_search_results(
     query: str = ""
 ) -> JSONResponse:
-    trace_transaction = sentry_sdk.Hub.current.scope.transaction
-
-    if trace_transaction is not None:
+    if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_search_results')
 
-    logger.info(f"Search_Endpoint.get_search_results. query: {query}")
+    logger.info(f"get_search_results. query: {query}")
 
     query = query.strip()
     cache = Redis()
     search_result = await cache.get_value(query)
 
     if search_result:
-        logger.info(f"Search_Endpoint.get_search_results. cached_result: {search_result}")
+        logger.info(f"get_search_results. cached_result: {search_result}")
     else:
         search_result = await orchestrator.query_and_get_answer(search_text=query)
     await cache.set_value(query, search_result)
 
     await cache.add_to_sorted_set("searched_queries", query)
     
-    logger.info(f"Search_Endpoint.get_search_results. result: {search_result}")
+    logger.info(f"get_search_results. result: {search_result}")
 
     return JSONResponse(status_code=200, content=search_result)
 
@@ -70,12 +68,10 @@ async def get_search_results(
 async def get_top_search_queries(
     limit: int
 ) -> JSONResponse:
-    trace_transaction = sentry_sdk.Hub.current.scope.transaction
-
-    if trace_transaction is not None:
+    if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_top_search_queries')
 
-    logger.info("Search_Endpoint.get_top_search_queries")
+    logger.info("get_top_search_queries")
 
     if limit <= 0:
         raise HTTPException(status_code=400, detail="Limit should be greater than 0")
@@ -83,6 +79,6 @@ async def get_top_search_queries(
     cache = Redis()
     last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
     
-    logger.info(f"Search_Endpoint.get_top_search_queries. result: {last_x_keys}")
+    logger.info(f"get_top_search_queries. result: {last_x_keys}")
 
     return JSONResponse(status_code=200, content=last_x_keys)
