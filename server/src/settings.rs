@@ -28,8 +28,8 @@ impl<'de> Deserialize<'de> for LogFmt {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Log {
-    pub format: LogFmt,
     pub level: String,
+    pub format: LogFmt,
 }
 
 #[derive(Debug, Clone)]
@@ -75,6 +75,7 @@ pub struct Settings {
     pub log: Log,
     pub host: String,
     pub port: u16,
+    pub db: String,
 }
 
 impl Settings {

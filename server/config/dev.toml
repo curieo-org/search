@@ -1,3 +1,6 @@
+
+db = "postgresql://postgres:postgres@localhost/curieo"
+
 [log]
 level = "info"
 format = "json"

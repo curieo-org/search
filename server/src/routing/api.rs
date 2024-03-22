@@ -7,7 +7,7 @@ use tracing::Level;
 
 use crate::startup::AppState;
 
-pub fn router(with_state: AppState) -> Router {
+pub fn router(state: AppState) -> Router {
     let api_routes = Router::new();
     //.nest("/auth", auth::routes())
     //.nest("/search", search::routes())
@@ -18,7 +18,7 @@ pub fn router(with_state: AppState) -> Router {
     Router::new()
         .route("/", get(|| async { "Hello, server!" }))
         .nest("/api", api_routes)
-        .with_state(with_state.clone())
+        .with_state(state.clone())
         // TODO: Add middleware for session management
         // TODO: CORS should be configurable via settings
         .layer(CorsLayer::new().allow_methods(Any).allow_origin(Any))
