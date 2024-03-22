@@ -89,6 +89,12 @@ POSTGRES_ENGINE: Secret = config("POSTGRES_ENGINE", cast=Secret)
 ## table info dir
 DRUG_CHEMBL_TABLE_INFO_DIR: str = "app/rag/retrieval/drug_chembl/ChEMBLTableQuestions_TableInfo"
 
+
+#Dspy programs 
+CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_trials_sql_generation.json"
+CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
+ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
+
 ## NEBULA GRAPH Configuration
 NEBULA_GRAPH_HOST: str = config("NEBULA_GRAPH_HOST", default="http://127.0.0.1")
 NEBULA_GRAPH_PORT: str = config("NEBULA_GRAPH_PORT", default="9669")

@@ -30,6 +30,7 @@ from app.config import (
     POSTGRES_ENGINE,
     EMBEDDING_MODEL_API,
     EMBEDDING_MODEL_NAME,
+    
 )
 from app.services.search_utility import setup_logger
 
