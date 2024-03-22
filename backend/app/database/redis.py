@@ -20,20 +20,23 @@ class Redis:
 
         await connection.close()
 
+
     async def get_value(self, key: str) -> str:
         global connection
-
+            
         value = await connection.get(key)
-        return str(value, "utf-8") if value else None
 
-    async def set_value(self, key: str, value: str, expire=CACHE_MAX_AGE):
+        return str(value, 'utf-8') if value else None
+    
+
+    async def set_value(self, key: str, value: str, expire: int = CACHE_MAX_AGE) -> None:
         global connection
-
+        
         await connection.set(key, value, ex=expire)
 
-    async def add_to_sorted_set(self, space: str, key: str):
+    async def add_to_sorted_set(self, space: str, key: str) -> None:
         global connection
-
+   
         await connection.zincrby(space, 1, key)
 
     async def get_sorted_set(self, space: str, start: int, stop: int) -> list[str]:
@@ -41,7 +44,8 @@ class Redis:
 
         random_number = random.random()
         if random_number < 0.1:
-            await connection.zremrangebyrank(space, 0, -CACHE_MAX_SORTED_SET - 1)
-
+            await connection.zremrangebyrank(space, 0, -CACHE_MAX_SORTED_SET-1)
+            
         values = await connection.zrevrange(space, start, stop, withscores=False)
-        return [str(value, "utf-8") for value in values]
+
+        return [str(value, 'utf-8') for value in values]

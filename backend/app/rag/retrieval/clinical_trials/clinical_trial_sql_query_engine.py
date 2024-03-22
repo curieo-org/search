@@ -113,8 +113,8 @@ class ClinicalTrialText2SQLEngine:
         for i in range(file_counts):
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
-        logger.debug(
-            f"ClinicalTrialText2SQLEngine.get_all_table_info table_infos: {len(table_infos)}"
+        logger.info(
+            f"get_all_table_info table_infos: {len(table_infos)}"
         )
         return table_infos
 
@@ -144,8 +144,8 @@ class ClinicalTrialText2SQLEngine:
         sql_result_start = response.find("SQLResult:")
         if sql_result_start != -1:
             response = response[:sql_result_start]
-        logger.debug(
-            f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}"
+        logger.info(
+            f"parse_response_to_sql sql: {response}"
         )
         return response.strip().strip("```").strip()
 
@@ -198,22 +198,19 @@ class ClinicalTrialText2SQLEngine:
 
         return qp
 
-    def call_text2sql(self, search_text: str):
+    async def call_text2sql(
+        self,
+        search_text:str
+    ) -> dict[str, str]:
         try:
-            logger.debug(
-                f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}"
-            )
+            logger.info(f"call_text2sql search_text: {search_text}")
+            
             response = self.qp.run(query=search_text)
-            logger.debug(
-                f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}"
-            )
+            
+            logger.info(f"call_text2sql response: {str(response)}")
 
         except Exception as ex:
-            logger.exception(
-                "ClinicalTrialText2SQLEngine.call_text2sql Exception -",
-                exc_info=ex,
-                stack_info=True,
-            )
+            logger.exception("call_text2sql Exception -", exc_info = ex, stack_info=True)
             raise ex
 
         return {"result": str(response)}

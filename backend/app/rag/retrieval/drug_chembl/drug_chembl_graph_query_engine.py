@@ -76,8 +76,8 @@ class DrugChEMBLText2CypherEngine:
         self.qp = self.build_query_pipeline()
 
     def execute_graph_query(self, queries):
-        logger.debug(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query queries: {queries}"
+        logger.info(
+            f"execute_graph_query queries: {queries}"
         )
         queries = str(queries).strip()
         query_list = []
@@ -97,8 +97,8 @@ class DrugChEMBLText2CypherEngine:
 
                 start_index = queries.find("```", end_index + 3)
 
-        logger.debug(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query query_list: {query_list}"
+        logger.info(
+            f"execute_graph_query query_list: {query_list}"
         )
         results = []
 
@@ -111,8 +111,8 @@ class DrugChEMBLText2CypherEngine:
             result_dict = self.graph_storage.execute_query(query)
             results.append(result_dict)
 
-        logger.debug(
-            f"DrugChEMBLText2CypherEngine.execute_graph_query results: {results}"
+        logger.info(
+            f"execute_graph_query results: {results}"
         )
 
         return results
@@ -140,8 +140,8 @@ class DrugChEMBLText2CypherEngine:
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
 
-        logger.debug(
-            f"DrugChEMBLText2CypherEngine.get_all_table_info table_infos: {len(table_infos)}"
+        logger.info(
+            f"get_all_table_info table_infos: {len(table_infos)}"
         )
         return table_infos
 
@@ -181,8 +181,8 @@ class DrugChEMBLText2CypherEngine:
 
             response_str += " ## ".join(record_in_list) + "\n"
 
-        logger.debug(
-            f"DrugChEMBLText2CypherEngine.cypher_output_parser response_str: {response_str}"
+        logger.info(
+            f"cypher_output_parser response_str: {response_str}"
         )
         return response_str
 
@@ -230,25 +230,17 @@ class DrugChEMBLText2CypherEngine:
 
         return qp
 
-    def call_text2cypher(self, search_text: str):
+    async def call_text2cypher(self, search_text:str) -> str:
         try:
-            logger.debug(
-                f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}"
-            )
+            logger.info(f"call_text2cypher search_text: {search_text}")
 
             response = self.qp.run(query=search_text)
 
-            logger.debug(
-                f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}"
-            )
+            logger.info(f"call_text2cypher response: {str(response)}")
 
         except Exception as ex:
-            logger.exception(
-                "DrugChEMBLText2CypherEngine.call_text2cypher Exception -",
-                exc_info=ex,
-                stack_info=True,
-            )
-
+            logger.exception("call_text2cypher Exception -", exc_info = ex, stack_info=True)
+            
             raise ex
 
         return response
