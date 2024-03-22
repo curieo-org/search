@@ -11,7 +11,7 @@ from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
 
 from app.middleware.process_time import ProcessTimeHeaderMiddleware
 
-import app.services.tracing as _ 
+from app.services.tracing import setup_tracing
 
 
 def get_application() -> FastAPI:
@@ -26,6 +26,9 @@ def get_application() -> FastAPI:
     @application.on_event("startup")
     async def startup():  # pylint: disable=W0612
         print()
+
+        # setup tracing
+        setup_tracing()
 
         # connect to redis
         cache = Redis()

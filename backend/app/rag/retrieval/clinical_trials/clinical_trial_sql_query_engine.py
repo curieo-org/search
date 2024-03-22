@@ -19,7 +19,6 @@ from llama_index.core.retrievers import SQLRetriever
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
 import os
-import sentry_sdk
 from pathlib import Path
 from typing import List
 from sqlalchemy import create_engine

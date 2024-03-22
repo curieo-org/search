@@ -17,7 +17,6 @@ from llama_index.core.objects import (
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
 import os
-import sentry_sdk
 from pathlib import Path
 from typing import List
 from app.database.nebula_graph import NebulaGraph
