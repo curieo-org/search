@@ -1,12 +1,12 @@
-from fastapi import Depends, APIRouter, HTTPException, Header
+from fastapi import Depends, APIRouter, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from authx import AuthX, AuthXConfig
+import sentry_sdk
 
 from .models import Token, User
 from app.api.router.gzip import GzipRoute
 from app.config import JWT_SECRET_KEY, JWT_ALGORITHM
 from app.services.search_utility import setup_logger
-from app.services.tracing import SentryTracer
 
 router = APIRouter()
 router.route_class = GzipRoute
@@ -21,22 +21,25 @@ logger = setup_logger("auth")
 
 
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), traceparent: str = Header(None)):
-    trace_span = await SentryTracer().create_span(traceparent, 'api_token')
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    trace_transaction = sentry_sdk.Hub.current.scope.transaction
 
-    with trace_span:
-        trace_span.set_attribute('description', f"Login for Access Token. username: {form_data.username}")
+    if trace_transaction is not None:
+        trace_transaction.set_tag("title", 'api_login_for_access_token')
 
-        user = await authenticate_user(form_data.username, form_data.password)
-        if not user:
-            raise HTTPException(
-                status_code=401,
-                detail="Bad credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+    logger.info(f"auth.login_for_access_token. username: {form_data.username}")
 
-        token = security.create_access_token(uid=user.username)
-        trace_span.set_attribute('result', str(token))
+    user = await authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Bad credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = security.create_access_token(uid=user.username)
+
+    logger.info(f"auth.login_for_access_token. token: {token}")
 
     return Token(access_token=token, token_type="bearer")
 

@@ -19,6 +19,7 @@ from llama_index.core.retrievers import SQLRetriever
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
 import os
+import sentry_sdk
 from pathlib import Path
 from typing import List
 from sqlalchemy import create_engine
@@ -32,8 +33,6 @@ from app.config import (
     EMBEDDING_MODEL_NAME,
 )
 from app.services.search_utility import setup_logger
-from app.services.tracing import SentryTracer
-import opentelemetry
 
 logger = setup_logger("ClinicalTrialText2SQLEngine")
 
@@ -115,7 +114,7 @@ class ClinicalTrialText2SQLEngine:
         for i in range(file_counts):
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
-        logger.debug(
+        logger.info(
             f"ClinicalTrialText2SQLEngine.get_all_table_info table_infos: {len(table_infos)}"
         )
         return table_infos
@@ -146,7 +145,7 @@ class ClinicalTrialText2SQLEngine:
         sql_result_start = response.find("SQLResult:")
         if sql_result_start != -1:
             response = response[:sql_result_start]
-        logger.debug(
+        logger.info(
             f"ClinicalTrialText2SQLEngine.parse_response_to_sql sql: {response}"
         )
         return response.strip().strip("```").strip()
@@ -202,23 +201,17 @@ class ClinicalTrialText2SQLEngine:
 
     async def call_text2sql(
         self,
-        search_text:str,
-        parent_trace_span: opentelemetry.trace.Span
+        search_text:str
     ) -> dict[str, str]:
-        trace_span = await SentryTracer().create_child_span(parent_trace_span, 'call_text2sql')
-
-        with trace_span:
-            trace_span.set_attribute('description', f"Call Text2SQL. search_text: {search_text}")
-
-            try:
-                logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
-                response = self.qp.run(query=search_text)
-                logger.debug(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
-
-            except Exception as ex:
-                logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
-                raise ex
+        try:
+            logger.info(f"ClinicalTrialText2SQLEngine.call_text2sql search_text: {search_text}")
             
-            trace_span.set_attribute('result', str(response))
+            response = self.qp.run(query=search_text)
+            
+            logger.info(f"ClinicalTrialText2SQLEngine.call_text2sql response: {str(response)}")
+
+        except Exception as ex:
+            logger.exception("ClinicalTrialText2SQLEngine.call_text2sql Exception -", exc_info = ex, stack_info=True)
+            raise ex
 
         return {"result": str(response)}

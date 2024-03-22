@@ -11,6 +11,8 @@ from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
 
 from app.middleware.process_time import ProcessTimeHeaderMiddleware
 
+import app.services.tracing as _ 
+
 
 def get_application() -> FastAPI:
     application = FastAPI(

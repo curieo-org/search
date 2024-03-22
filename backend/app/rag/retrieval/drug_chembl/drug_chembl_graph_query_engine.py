@@ -17,6 +17,7 @@ from llama_index.core.objects import (
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
 import os
+import sentry_sdk
 from pathlib import Path
 from typing import List
 from app.database.nebula_graph import NebulaGraph
@@ -28,8 +29,6 @@ from app.config import (
     EMBEDDING_MODEL_NAME,
 )
 from app.services.search_utility import setup_logger
-from app.services.tracing import SentryTracer
-import opentelemetry
 
 logger = setup_logger("DrugChEMBLText2CypherEngine")
 
@@ -78,7 +77,7 @@ class DrugChEMBLText2CypherEngine:
         self.qp = self.build_query_pipeline()
 
     def execute_graph_query(self, queries):
-        logger.debug(
+        logger.info(
             f"DrugChEMBLText2CypherEngine.execute_graph_query queries: {queries}"
         )
         queries = str(queries).strip()
@@ -99,7 +98,7 @@ class DrugChEMBLText2CypherEngine:
 
                 start_index = queries.find("```", end_index + 3)
 
-        logger.debug(
+        logger.info(
             f"DrugChEMBLText2CypherEngine.execute_graph_query query_list: {query_list}"
         )
         results = []
@@ -113,7 +112,7 @@ class DrugChEMBLText2CypherEngine:
             result_dict = self.graph_storage.execute_query(query)
             results.append(result_dict)
 
-        logger.debug(
+        logger.info(
             f"DrugChEMBLText2CypherEngine.execute_graph_query results: {results}"
         )
 
@@ -142,7 +141,7 @@ class DrugChEMBLText2CypherEngine:
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
 
-        logger.debug(
+        logger.info(
             f"DrugChEMBLText2CypherEngine.get_all_table_info table_infos: {len(table_infos)}"
         )
         return table_infos
@@ -183,7 +182,7 @@ class DrugChEMBLText2CypherEngine:
 
             response_str += " ## ".join(record_in_list) + "\n"
 
-        logger.debug(
+        logger.info(
             f"DrugChEMBLText2CypherEngine.cypher_output_parser response_str: {response_str}"
         )
         return response_str
@@ -232,24 +231,17 @@ class DrugChEMBLText2CypherEngine:
 
         return qp
 
-    async def call_text2cypher(self, search_text:str, parent_trace_span: opentelemetry.trace.Span) -> str:
-        trace_span = await SentryTracer().create_child_span(parent_trace_span, 'DrugChEMBLText2CypherEngine.call_text2cypher')
+    async def call_text2cypher(self, search_text:str) -> str:
+        try:
+            logger.info(f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}")
 
-        with trace_span:
-            trace_span.set_attribute('description', 'DrugChEMBLText2CypherEngine.call_text2cypher')
+            response = self.qp.run(query=search_text)
 
-            try:
-                logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher search_text: {search_text}")
+            logger.info(f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}")
 
-                response = self.qp.run(query=search_text)
-
-                logger.debug(f"DrugChEMBLText2CypherEngine.call_text2cypher response: {str(response)}")
-
-            except Exception as ex:
-                logger.exception("DrugChEMBLText2CypherEngine.call_text2cypher Exception -", exc_info = ex, stack_info=True)
-                
-                raise ex
+        except Exception as ex:
+            logger.exception("DrugChEMBLText2CypherEngine.call_text2cypher Exception -", exc_info = ex, stack_info=True)
             
-            trace_span.set_attribute('result', str(response))
+            raise ex
 
         return response

@@ -38,7 +38,7 @@ class NebulaGraph:
         global current_session
 
         current_session = connection_pool.get_session(
-            NEBULA_GRAPH_USER, NEBULA_GRAPH_PASSWORD
+            str(NEBULA_GRAPH_USER), str(NEBULA_GRAPH_PASSWORD)
         )
         current_session.execute(f"USE {NEBULA_GRAPH_SPACE}")
 
