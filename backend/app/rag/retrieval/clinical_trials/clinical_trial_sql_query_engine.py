@@ -3,12 +3,7 @@ from llama_index.core.query_pipeline import (
     InputComponent,
     FnComponent,
 )
-from llama_index.core.llms import ChatResponse
-from llama_index.llms.openai import OpenAI
-
-from llama_index.core.prompts import PromptTemplate
 from llama_index.core import VectorStoreIndex, SQLDatabase
-from llama_index.core.prompts.default_prompts import DEFAULT_TEXT_TO_SQL_PROMPT
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.objects import (
     SQLTableNodeMapping,
@@ -25,13 +20,22 @@ from sqlalchemy import create_engine
 from pyvis.network import Network
 
 from app.config import (
-    OPENAI_API_KEY,
     CLINICAL_TRIALS_TABLE_INFO_DIR,
     POSTGRES_ENGINE,
     EMBEDDING_MODEL_API,
     EMBEDDING_MODEL_NAME,
-)
+    CLINICAL_TRIAL_SQL_PROGRAM, 
+    CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM, 
+    TOGETHER_KEY
+    )
+
 from app.services.search_utility import setup_logger
+
+from app.dspy_integration.clinical_trials_response_refinement import ResponseSynthesizerModule
+from app.dspy_integration.clinical_trials_sql import SQL_module
+import dspy 
+import re
+
 
 logger = setup_logger("ClinicalTrialText2SQLEngine")
 
@@ -58,12 +62,15 @@ class ClinicalTrialText2SQLEngine:
     def __init__(self, config):
         self.config = config
 
-        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
+        self.nous =dspy.Together(model = "NousResearch/Nous-Hermes-llama-2-7b", api_key=str(TOGETHER_KEY))
+        self.llm = dspy.Together(model =  "codellama/CodeLlama-13b-Instruct-hf", api_key=str(TOGETHER_KEY))
+        dspy.settings.configure(lm = self.llm)
+        
+        self.sql_module = SQL_module()
+        self.sql_module.load(CLINICAL_TRIAL_SQL_PROGRAM)
+        self.response_synthesizer = ResponseSynthesizerModule()
+        self.response_synthesizer.load(CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM)
         self.engine = create_engine(str(POSTGRES_ENGINE))
-
-        self.text2sql_prompt = DEFAULT_TEXT_TO_SQL_PROMPT.partial_format(
-            dialect=self.engine.dialect.name
-        )
 
         self.sql_database = SQLDatabase(self.engine)
         self.table_node_mapping = SQLTableNodeMapping(self.sql_database)
@@ -84,15 +91,6 @@ class ClinicalTrialText2SQLEngine:
             embed_model=self.embed_model,
         )
         self.obj_retriever = self.obj_index.as_retriever(similarity_top_k=3)
-
-        self.response_synthesis_prompt = PromptTemplate(
-            "Given an input question, synthesize a response from the query results.\n"
-            "Query: {query_str}\n"
-            "SQL: {sql_query}\n"
-            "SQL Response: {context_str}\n"
-            "Response: "
-        )
-
         self.qp = self.build_query_pipeline()
 
     def _get_table_info_with_index(self, idx: int) -> str:
@@ -132,34 +130,35 @@ class ClinicalTrialText2SQLEngine:
             context_strs.append(table_info)
         return "\n\n".join(context_strs)
 
-    def parse_response_to_sql(self, response: ChatResponse) -> str:
-        """Parse response to SQL."""
-        response = response.message.content
-        sql_query_start = response.find("SQLQuery:")
-        if sql_query_start != -1:
-            response = response[sql_query_start:]
-            # TODO: move to removeprefix after Python 3.9+
-            if response.startswith("SQLQuery:"):
-                response = response[len("SQLQuery:") :]
-        sql_result_start = response.find("SQLResult:")
-        if sql_result_start != -1:
-            response = response[:sql_result_start]
-        logger.info(
-            f"parse_response_to_sql sql: {response}"
-        )
-        return response.strip().strip("```").strip()
 
-    def get_response_synthesis_prompt(
-        self, query_str, sql_query, context_str
-    ) -> PromptTemplate:
-        response_synthesis_prompt_str = (
-            "Given an input question, synthesize a response from the query results.\n"
-            "Query: {query_str}\n"
-            "SQL: {sql_query}\n"
-            "SQL Response: {context_str}\n"
-            "Response: "
-        )
-        return PromptTemplate(response_synthesis_prompt_str)
+    def extract_sql(self, llm_response: str) -> str:
+        # First try to extract SQL code blocks enclosed in triple backticks
+        sql = re.search(r"```(?:sql\n)?(.*?)```", llm_response, re.DOTALL | re.IGNORECASE)
+        if sql:
+            extracted_sql = sql.group(1).strip()
+            logger.info(f"Output from LLM: {llm_response} \nExtracted SQL: {extracted_sql}")
+            return extracted_sql
+
+        # If not found, try to extract a plain SQL query
+        sql = re.search(r"(select.*?;)", llm_response, re.DOTALL | re.IGNORECASE)
+        if sql:
+            extracted_sql = sql.group(1).strip()
+            logger.info(f"Output from LLM: {llm_response} \nExtracted SQL: {extracted_sql}")
+            return extracted_sql
+        return llm_response
+
+
+
+    def get_sql_query(self, question, context): 
+        sql_query = self.sql_module(question = question, context = context).answer
+        return sql_query
+    
+    def get_synthesized_response(self, question, sql, database_output): 
+        if len(database_output) > 0:
+            database_output = database_output[0].text
+        with dspy.context(lm=self.nous):
+            response = self.response_synthesizer(question = question, sql = sql, database_output = database_output).answer
+        return response
 
     def build_query_pipeline(self):
         qp = QP(
@@ -167,46 +166,37 @@ class ClinicalTrialText2SQLEngine:
                 "input": InputComponent(),
                 "table_retriever": self.obj_retriever,
                 "table_output_parser": FnComponent(fn=self.get_table_context_str),
-                "text2sql_prompt": self.text2sql_prompt,
-                "text2sql_llm": self.llm,
-                "sql_output_parser": FnComponent(fn=self.parse_response_to_sql),
+                "text2sql_llm": FnComponent(self.get_sql_query),
+                "sql_output_parser": FnComponent(self.extract_sql),
                 "sql_retriever": self.sql_retriever,
-                "response_synthesis_prompt": self.response_synthesis_prompt,
-                "response_synthesis_llm": self.llm,
+                "response_synthesis_llm": FnComponent(self.get_synthesized_response),
             },
             verbose=True,
         )
 
         qp.add_chain(["input", "table_retriever", "table_output_parser"])
-        qp.add_link("input", "text2sql_prompt", dest_key="query_str")
-        qp.add_link("table_output_parser", "text2sql_prompt", dest_key="schema")
+        qp.add_link("input", "text2sql_llm", dest_key="question") # FIX
+        qp.add_link("table_output_parser", "text2sql_llm", dest_key= "context") #FIX
         qp.add_chain(
-            ["text2sql_prompt", "text2sql_llm", "sql_output_parser", "sql_retriever"]
+            ["text2sql_llm", "sql_output_parser", "sql_retriever"]
         )
-        qp.add_link(
-            "sql_output_parser", "response_synthesis_prompt", dest_key="sql_query"
-        )
-        qp.add_link(
-            "sql_retriever", "response_synthesis_prompt", dest_key="context_str"
-        )
-        qp.add_link("input", "response_synthesis_prompt", dest_key="query_str")
-        qp.add_link("response_synthesis_prompt", "response_synthesis_llm")
-
+        qp.add_link("text2sql_llm", "sql_output_parser", dest_key = "llm_response")
+        qp.add_link("input", "response_synthesis_llm", dest_key = "question")
+        qp.add_link("text2sql_llm", "response_synthesis_llm", dest_key = "sql")
+        qp.add_link("sql_retriever", "response_synthesis_llm", dest_key = "database_output")
         net = Network(notebook=True, cdn_resources="in_line", directed=True)
         net.from_nx(qp.dag)
         net.show("text2sql_dag.html")
-
         return qp
+
 
     async def call_text2sql(
         self,
         search_text:str
     ) -> dict[str, str]:
         try:
-            logger.info(f"call_text2sql search_text: {search_text}")
-            
+            logger.info(f"call_text2sql search_text: {search_text}") 
             response = self.qp.run(query=search_text)
-            
             logger.info(f"call_text2sql response: {str(response)}")
 
         except Exception as ex:
