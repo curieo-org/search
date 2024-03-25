@@ -1,6 +1,5 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use secrecy::ExposeSecret;
 use tower::ServiceExt;
 
 use server::routing::router;
@@ -11,7 +10,7 @@ use server::startup::{db_connect, AppState};
 async fn health_check_works() {
     let settings = Settings::new();
 
-    let db = db_connect(settings.db.expose_secret())
+    let db = db_connect(settings.db.expose())
         .await
         .expect("Failed to connect to Postgres.");
 

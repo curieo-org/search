@@ -1,7 +1,6 @@
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use color_eyre::Result;
-use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -53,7 +52,7 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
 
 async fn run(listener: TcpListener) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let settings = Settings::new();
-    let db = db_connect(settings.db.expose_secret()).await?;
+    let db = db_connect(settings.db.expose()).await?;
 
     let state = AppState { db, settings };
 

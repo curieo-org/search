@@ -7,7 +7,7 @@ use crate::users::{CreateUser, User};
 async fn create_user(pool: PgPool, create_user: CreateUser) -> color_eyre::Result<Option<User>> {
     let mut conn = pool.acquire().await?;
 
-    if let Some(password_hash) = create_user.password_hash.as_ref() {
+    if let Some(password_hash) = create_user.password_hash.expose() {
         let user = sqlx::query_as!(
             User,
             "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING *",
@@ -19,7 +19,7 @@ async fn create_user(pool: PgPool, create_user: CreateUser) -> color_eyre::Resul
         .await?;
 
         return Ok(user);
-    } else if let Some(access_token) = create_user.access_token.as_ref() {
+    } else if let Some(access_token) = create_user.access_token.expose() {
         let user = sqlx::query_as!(
             User,
             "INSERT INTO users (email, username, access_token) VALUES ($1, $2, $3) RETURNING *",

@@ -2,17 +2,17 @@ use std::fmt::Debug;
 
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
-use axum_login::{AuthnBackend, AuthUser, UserId};
+use axum_login::{AuthUser, AuthnBackend, UserId};
 use oauth2::{
-    AuthorizationCode,
     basic::{BasicClient, BasicRequestTokenError},
-    CsrfToken,
-    reqwest::{async_http_client, AsyncHttpClientError}, TokenResponse, url::Url,
+    reqwest::{async_http_client, AsyncHttpClientError},
+    url::Url,
+    AuthorizationCode, CsrfToken, TokenResponse,
 };
 use password_auth::verify_password;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
 use sqlx::types::time;
+use sqlx::{FromRow, PgPool};
 use tokio::task;
 
 use crate::secrets::Secret;
@@ -55,11 +55,11 @@ impl AuthUser for User {
     }
 
     fn session_auth_hash(&self) -> &[u8] {
-        if let Some(access_token) = &self.access_token.as_ref() {
+        if let Some(access_token) = &self.access_token.expose() {
             return access_token.as_bytes();
         }
 
-        if let Some(password) = &self.password_hash.as_ref() {
+        if let Some(password) = &self.password_hash.expose() {
             return password.as_bytes();
         }
 
@@ -151,10 +151,10 @@ impl AuthnBackend for PostgresBackend {
                     // We're using password-based authentication: this works by comparing our form
                     // input with an argon2 password hash.
                     Ok(user.filter(|user| {
-                        let Some(password) = user.password_hash.as_ref() else {
+                        let Some(password) = user.password_hash.expose() else {
                             return false;
                         };
-                        verify_password(password_cred.password.as_ref(), password.as_ref()).is_ok()
+                        verify_password(password_cred.password.expose(), password.as_ref()).is_ok()
                     }))
                 })
                 .await?

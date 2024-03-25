@@ -3,8 +3,9 @@ use std::{env, fmt::Display};
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
 use once_cell::sync::Lazy;
-use secrecy::SecretString;
 use serde::{Deserialize, Deserializer};
+
+use crate::secrets::Secret;
 
 #[derive(Debug, Clone)]
 pub enum LogFmt {
@@ -76,7 +77,7 @@ pub struct Settings {
     pub log: Log,
     pub host: String,
     pub port: u16,
-    pub db: SecretString,
+    pub db: Secret<String>,
 }
 
 impl Settings {

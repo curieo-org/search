@@ -1,5 +1,5 @@
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 use crate::health_check::selectors::health_check;
 use crate::startup::AppState;

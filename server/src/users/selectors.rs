@@ -1,6 +1,6 @@
 use axum::extract::State;
-use sqlx::{Acquire, PgPool};
 use sqlx::types::uuid;
+use sqlx::{Acquire, PgPool};
 
 use crate::users::User;
 

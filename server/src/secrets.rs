@@ -2,17 +2,29 @@ use std::error::Error;
 use std::fmt::{Debug, Display};
 
 use serde::{Deserialize, Deserializer};
-use sqlx::{Decode, Postgres};
 use sqlx::database::HasValueRef;
+use sqlx::{Decode, Postgres};
 
 /// A wrapper around a value that should be kept secret
 /// when displayed. This is useful for fields like passwords
 /// and access tokens. The value is redacted when displayed
 /// or debugged.
 #[derive(Default, Clone)]
-pub struct Secret<T>(pub T)
+pub struct Secret<T>(T)
 where
     T: Default + Clone;
+
+impl<T> Secret<T>
+where
+    T: Default + Clone,
+{
+    pub fn expose(&self) -> &T {
+        &self.0
+    }
+    pub fn expose_owned(self) -> T {
+        self.0
+    }
+}
 
 impl<T> Display for Secret<T>
 where
@@ -62,15 +74,6 @@ where
         D: Deserializer<'de>,
     {
         T::deserialize(deserializer).map(Secret)
-    }
-}
-
-impl<T> AsRef<T> for Secret<T>
-where
-    T: Default + Clone,
-{
-    fn as_ref(&self) -> &T {
-        &self.0
     }
 }
 
