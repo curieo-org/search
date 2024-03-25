@@ -4,6 +4,7 @@ use startup::Application;
 mod err;
 mod health_check;
 pub mod routing;
+pub mod secrets;
 pub mod settings;
 pub mod startup;
 pub mod users;

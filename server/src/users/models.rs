@@ -1,39 +1,44 @@
+use std::fmt::Debug;
+
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
-use axum_login::{AuthUser, AuthnBackend, UserId};
+use axum_login::{AuthnBackend, AuthUser, UserId};
 use oauth2::{
+    AuthorizationCode,
     basic::{BasicClient, BasicRequestTokenError},
-    reqwest::{async_http_client, AsyncHttpClientError},
-    url::Url,
-    AuthorizationCode, CsrfToken, TokenResponse,
+    CsrfToken,
+    reqwest::{async_http_client, AsyncHttpClientError}, TokenResponse, url::Url,
 };
 use password_auth::verify_password;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
+use sqlx::types::time;
 use tokio::task;
 
-#[derive(sqlx::Type, Deserialize, Clone)]
-#[sqlx(transparent)]
-pub struct SecretString(String);
+use crate::secrets::Secret;
 
-impl AsRef<str> for SecretString {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl std::fmt::Debug for SecretString {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.pad("[redacted]")
-    }
-}
-
-#[derive(Clone, Deserialize, Debug, FromRow)]
+#[derive(sqlx::FromRow, Clone, Deserialize, Debug)]
 pub struct User {
-    id: i64,
+    pub user_id: uuid::Uuid,
+    pub email: String,
     pub username: String,
-    pub password: Option<SecretString>,
-    pub access_token: Option<SecretString>,
+    #[sqlx(default)]
+    pub password_hash: Secret<Option<String>>,
+    #[sqlx(default)]
+    pub access_token: Secret<Option<String>>,
+
+    pub created_at: time::OffsetDateTime,
+    pub updated_at: Option<time::OffsetDateTime>,
+}
+
+#[derive(sqlx::Encode, Clone, Deserialize, Debug)]
+pub struct CreateUser {
+    pub email: String,
+    pub username: String,
+    #[sqlx(default)]
+    pub password_hash: Secret<Option<String>>,
+    #[sqlx(default)]
+    pub access_token: Secret<Option<String>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, FromRow)]
@@ -43,19 +48,19 @@ pub struct UserOut {
 }
 
 impl AuthUser for User {
-    type Id = i64;
+    type Id = uuid::Uuid;
 
     fn id(&self) -> Self::Id {
-        self.id
+        self.user_id
     }
 
     fn session_auth_hash(&self) -> &[u8] {
-        if let Some(access_token) = &self.access_token {
-            return access_token.as_ref().as_bytes();
+        if let Some(access_token) = &self.access_token.as_ref() {
+            return access_token.as_bytes();
         }
 
-        if let Some(password) = &self.password {
-            return password.as_ref().as_bytes();
+        if let Some(password) = &self.password_hash.as_ref() {
+            return password.as_bytes();
         }
 
         &[]
@@ -71,7 +76,7 @@ pub enum Credentials {
 #[derive(Debug, Clone, Deserialize)]
 pub struct PasswordCreds {
     pub username: String,
-    pub password: SecretString,
+    pub password: Secret<String>,
     pub next: Option<String>,
 }
 
@@ -146,7 +151,7 @@ impl AuthnBackend for PostgresBackend {
                     // We're using password-based authentication: this works by comparing our form
                     // input with an argon2 password hash.
                     Ok(user.filter(|user| {
-                        let Some(ref password) = user.password else {
+                        let Some(password) = user.password_hash.as_ref() else {
                             return false;
                         };
                         verify_password(password_cred.password.as_ref(), password.as_ref()).is_ok()
