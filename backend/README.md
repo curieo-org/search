@@ -78,11 +78,11 @@ Welcome to Curieo Search, the search engine on a mission to revolutionize how yo
 
     model=BAAI/bge-large-en-v1.5
     revision=refs/pr/5
-    text-embeddings-router --model-id $model --revision $revision --port 8080
+    text-embeddings-router --model-id $model --revision $revision --port 8081
 
     model=BAAI/bge-reranker-large
     revision=refs/pr/4
-    text-embeddings-router --model-id $model --revision $revision --port 8081
+    text-embeddings-router --model-id $model --revision $revision --port 8080
     ```
 
     -   Clone the [Data Digger](https://github.com/curieo-org/data-digger) repository and follow the instructions to setup the aact postgresql database and chembl nebula graph database.
