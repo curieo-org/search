@@ -3,6 +3,7 @@ use std::{env, fmt::Display};
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
 use once_cell::sync::Lazy;
+use secrecy::SecretString;
 use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Clone)]
@@ -75,7 +76,7 @@ pub struct Settings {
     pub log: Log,
     pub host: String,
     pub port: u16,
-    pub db: String,
+    pub db: SecretString,
 }
 
 impl Settings {

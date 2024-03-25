@@ -1,11 +1,13 @@
-use crate::routing::router;
-use crate::settings::Settings;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+
+use crate::routing::router;
+use crate::settings::Settings;
 
 pub struct Application {
     port: u16,
@@ -27,8 +29,8 @@ impl Application {
         self.port
     }
 
-    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        self.server.await
+    pub async fn run_until_stopped(self) -> Result<()> {
+        Ok(self.server.await?)
     }
 }
 
@@ -38,9 +40,9 @@ pub struct AppState {
     pub settings: Settings,
 }
 
-async fn db_connect(database_url: &str) -> Result<PgPool> {
+pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     match PgPoolOptions::new()
-        .max_connections(10)
+        .max_connections(5)
         .connect(database_url)
         .await
     {
@@ -51,12 +53,11 @@ async fn db_connect(database_url: &str) -> Result<PgPool> {
 
 async fn run(listener: TcpListener) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let settings = Settings::new();
-    let state = AppState {
-        db: db_connect(&settings.db).await?,
-        settings,
-    };
+    let db = db_connect(settings.db.expose_secret()).await?;
 
-    let app = router(state);
+    let state = AppState { db, settings };
+
+    let app = router(state)?;
 
     let server = axum::serve(listener, app.into_make_service());
 
