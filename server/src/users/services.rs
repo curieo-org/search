@@ -4,7 +4,10 @@ use sqlx::{Acquire, PgPool};
 use crate::users::{CreateUser, User};
 
 #[tracing::instrument(level = "debug", ret, err)]
-async fn create_user(pool: PgPool, create_user: CreateUser) -> color_eyre::Result<Option<User>> {
+pub async fn create_user(
+    pool: PgPool,
+    create_user: CreateUser,
+) -> color_eyre::Result<Option<User>> {
     let mut conn = pool.acquire().await?;
 
     if let Some(password_hash) = create_user.password_hash.expose() {
