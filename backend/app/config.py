@@ -127,6 +127,7 @@ WANDB_NOTE: str = config("WANDB_NOTE", default="Curieo Search")
 
 # Sentry Configuration
 SENTRY_DSN: Secret = config("SENTRY_DSN", cast=Secret)
+SENTRY_ENABLE_TRACING: bool = config("SENTRY_ENABLE_TRACING", cast=bool, default=False)
 
 
 # GROQ API Configuration

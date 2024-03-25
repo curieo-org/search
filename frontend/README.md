@@ -10,6 +10,14 @@ Install `yarn`
 
 ## Getting Started
 
+Create a `.env.local` file in the root of the project and add the following environment variables:
+
+```bash
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_API_HOST=
+NEXT_PUBLIC_POSTHOG_UI_HOST=
+```
+
 Run the development server:
 
 ```bash

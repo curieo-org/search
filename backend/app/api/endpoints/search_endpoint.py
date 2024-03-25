@@ -29,7 +29,7 @@ logger = setup_logger("Search_Endpoint")
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)],
-    response_model=str,
+    response_model=dict[str, str]
 )
 @version(1, 0)
 async def get_search_results(
@@ -54,7 +54,7 @@ async def get_search_results(
     
     logger.info(f"get_search_results. result: {search_result}")
 
-    return JSONResponse(status_code=200, content=search_result)
+    return JSONResponse(status_code=200, content={"result": search_result})
 
 
 @router.get(
