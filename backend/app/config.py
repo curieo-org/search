@@ -136,3 +136,6 @@ PUBMED_RELEVANCE_CRITERIA: float = config("PUBMED_RELEVANCE_CRITERIA", default=0
 CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_trials_sql_generation.json"
 CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
 ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
+
+# Phoenix Configuration
+PHOENIX_API_ENDPOINT: str = config("PHOENIX_API_ENDPOINT", default="http://127.0.0.1:6007/v1/traces")
