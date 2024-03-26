@@ -73,7 +73,7 @@ class Orchestrator:
                 "Orchestrator.query_and_get_answer.router_id clinical trial Entered."
             )
             try:
-                sqlResponse = self.clinicalTrialSearch.call_text2sql(search_text=search_text)
+                sqlResponse = await self.clinicalTrialSearch.call_text2sql(search_text=search_text)
                 result = str(sqlResponse)
                 sources = result
 
@@ -93,7 +93,7 @@ class Orchestrator:
                 "Orchestrator.query_and_get_answer.router_id drug_information_choice Entered."
             )
             try:
-                cypherResponse = self.drugChemblSearch.call_text2cypher(
+                cypherResponse = await self.drugChemblSearch.call_text2cypher(
                     search_text=search_text
                 )
                 result = str(cypherResponse)
