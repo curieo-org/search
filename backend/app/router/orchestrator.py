@@ -1,9 +1,6 @@
 import asyncio
 import re
 
-from llama_index.core.tools import ToolMetadata
-from llama_index.core.selectors import LLMSingleSelector
-from llama_index.llms.openai import OpenAI
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 from llama_index.core.response_synthesizers import SimpleSummarize
@@ -48,11 +45,12 @@ class Orchestrator:
         self.bravesearch = BraveSearchQueryEngine(config)
 
     async def query_and_get_answer(
-            self,
-            routecategory: RouteCategory = RouteCategory.PBW,
-            search_text: str = "") -> str:
+        self,
+        search_text: str,
+        routecategory: RouteCategory = RouteCategory.NS
+    ) -> dict[str, str]:
         # search router call
-        logger.debug(
+        logger.info(
             f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
         )
 
@@ -68,12 +66,10 @@ class Orchestrator:
                 logger.exception("query_and_get_answer.router_id Exception -", exc_info = e, stack_info=True)
             logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
 
-            breaks_sql = False
-
         #routing
         if router_id == 0 or routecategory == RouteCategory.CT:
             # clinical trial call
-            logger.debug(
+            logger.info(
                 "Orchestrator.query_and_get_answer.router_id clinical trial Entered."
             )
             try:
@@ -81,15 +77,19 @@ class Orchestrator:
                 result = str(sqlResponse)
                 sources = result
 
-                logger.debug(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+                logger.info(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+
+                return {
+                    "result" : result,
+                    "sources": sources
+                }
             except Exception as e:
-                breaks_sql = True
                 logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
                 pass
 
         elif router_id == 1 or routecategory == RouteCategory.DRUG:
             # drug information call
-            logger.debug(
+            logger.info(
                 "Orchestrator.query_and_get_answer.router_id drug_information_choice Entered."
             )
             try:
@@ -98,38 +98,43 @@ class Orchestrator:
                 )
                 result = str(cypherResponse)
                 sources = result
-                logger.debug(
+                logger.info(
                     f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}"
                 )
+
+                return {
+                    "result" : result,
+                    "sources": sources
+                }
             except Exception as e:
-                breaks_sql = True
                 logger.exception(
                     "Orchestrator.query_and_get_answer.cypherResponse Exception -",
                     exc_info=e,
                     stack_info=True,
                 )
 
-        if router_id == 2 or routecategory == RouteCategory.PBW or routecategory == RouteCategory.NS or breaks_sql:
-            logger.debug(
-                "Orchestrator.query_and_get_answer.router_id Fallback Entered."
-            )
 
-            extracted_pubmed_results, extracted_web_results = await asyncio.gather(
-                self.pubmedsearch.call_pubmed_vectors(search_text=search_text), self.bravesearch.call_brave_search_api(search_text=search_text)
-            )
-            extracted_results = extracted_pubmed_results + extracted_web_results
-            logger.debug(
-                f"Orchestrator.query_and_get_answer.extracted_results count: {len(extracted_pubmed_results), len(extracted_web_results)}"
-            )
+        # if routing fails, sql and cypher calls fail, routing to pubmed or brave
+        logger.info(
+            "Orchestrator.query_and_get_answer.router_id Fallback Entered."
+        )
 
-            # rerank call
-            reranked_results = TextEmbeddingInferenceRerankEngine(top_n=2)._postprocess_nodes(
-                nodes = extracted_results,
-                query_bundle=QueryBundle(query_str=search_text))
+        extracted_pubmed_results, extracted_web_results = await asyncio.gather(
+            self.pubmedsearch.call_pubmed_vectors(search_text=search_text), self.bravesearch.call_brave_search_api(search_text=search_text)
+        )
+        extracted_results = extracted_pubmed_results + extracted_web_results
+        logger.info(
+            f"Orchestrator.query_and_get_answer.extracted_results count: {len(extracted_pubmed_results), len(extracted_web_results)}"
+        )
 
-            summarizer = SimpleSummarize(llm=TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=str(TOGETHER_KEY)))
-            result = summarizer.get_response(query_str=search_text, text_chunks=[TAG_RE.sub('', node.get_content()) for node in reranked_results])
-            sources = [node.node.metadata for node in reranked_results ]
+        # rerank call
+        reranked_results = TextEmbeddingInferenceRerankEngine(top_n=2)._postprocess_nodes(
+            nodes = extracted_results,
+            query_bundle=QueryBundle(query_str=search_text))
+
+        summarizer = SimpleSummarize(llm=TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=str(TOGETHER_KEY)))
+        result = summarizer.get_response(query_str=search_text, text_chunks=[TAG_RE.sub('', node.get_content()) for node in reranked_results])
+        sources = [node.node.metadata for node in reranked_results ]
 
         return {
             "result" : result,
