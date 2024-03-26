@@ -11,7 +11,7 @@ from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.api.common.util import RouteCategory
-from app.config import config, OPENAI_API_KEY, TOGETHER_KEY, ORCHESRATOR_ROUTER_PROMPT_PROGRAM
+from app.config import OPENAI_API_KEY, TOGETHER_KEY, ORCHESRATOR_ROUTER_PROMPT_PROGRAM
 from app.services.search_utility import setup_logger
 
 import dspy
