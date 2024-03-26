@@ -112,6 +112,7 @@ WANDB_NOTE: str = config("WANDB_NOTE", default="Curieo Search")
 
 # Sentry Configuration
 SENTRY_DSN: Secret = config("SENTRY_DSN", cast=Secret)
+SENTRY_ENABLE_TRACING: bool = config("SENTRY_ENABLE_TRACING", cast=bool, default=False)
 
 # GROQ API Configuration
 GROQ_API_KEY: Secret = config("GROQ_API_KEY", cast=Secret)
@@ -130,3 +131,8 @@ QDRANT_SPARSE_TOP_K: int = config("QDRANT_SPARSE_TOP_K", default=3)
 # LLAMA_INDEX Configuration
 CHAT_ENABLED: bool = config("CHAT_ENABLED", default=False)
 PUBMED_RELEVANCE_CRITERIA: float = config("PUBMED_RELEVANCE_CRITERIA", default=0.7)
+
+# Dspy Integration Configuration
+CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_trials_sql_generation.json"
+CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
+ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"

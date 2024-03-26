@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi_versioning import version
 from authx import AuthX, AuthXConfig
 import sentry_sdk
+import json
 
 from app.api.common.util import RouteCategory
 from app.database.redis import Redis
@@ -25,16 +26,16 @@ logger = setup_logger("Search_Endpoint")
 
 
 @router.get(
-    "/search/{routecategory}",
+    "/search",
     summary="List all Search Results",
     description="List all Search Results",
     dependencies=[Depends(security.access_token_required)],
-    response_model=str,
+    response_model=dict[str, str],
 )
 @version(1, 0)
 async def get_search_results(
     query: str = "",
-    routecategory: RouteCategory = RouteCategory.PBW
+    routecategory: RouteCategory = RouteCategory.NS
 ) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_search_results')
@@ -43,13 +44,15 @@ async def get_search_results(
 
     query = query.strip()
     cache = Redis()
-    search_result = await cache.get_value(query)
+    cache_key = f"{query}##{routecategory}"
+    search_result = await cache.get_value(cache_key)
 
     if search_result:
+        search_result = json.loads(search_result)
         logger.info(f"get_search_results. cached_result: {search_result}")
     else:
-        search_result = await orchestrator.query_and_get_answer(routecategory, search_text=query)
-    await cache.set_value(query, search_result['result'])
+        search_result = await orchestrator.query_and_get_answer(search_text=query, routecategory=routecategory)
+    await cache.set_value(cache_key, json.dumps(search_result))
 
     await cache.add_to_sorted_set("searched_queries", query)
     

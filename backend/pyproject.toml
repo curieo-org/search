@@ -29,6 +29,8 @@ dspy = { git = "https://git@github.com/curieo-org/dspy.git" }
 setuptools = "^69.2.0"
 llama-index-llms-together = "^0.1.3"
 llama-index-postprocessor-cohere-rerank = "^0.1.2"
+together = "^0.2.11"
+llama-index-vector-stores-qdrant = "^0.1.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
