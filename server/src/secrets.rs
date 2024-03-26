@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::{Debug, Display};
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sqlx::database::HasValueRef;
 use sqlx::{Decode, Postgres};
 
@@ -74,6 +74,20 @@ where
         D: Deserializer<'de>,
     {
         T::deserialize(deserializer).map(Secret)
+    }
+}
+
+impl<T> Serialize for Secret<T>
+where
+    T: Serialize + Default + Clone + Debug,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // We want to skip serializing the secret value
+        // when serializing to JSON
+        serializer.serialize_unit()
     }
 }
 

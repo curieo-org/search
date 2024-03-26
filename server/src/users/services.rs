@@ -1,12 +1,12 @@
 use color_eyre::eyre::eyre;
 use sqlx::{Acquire, PgPool};
 
-use crate::users::{CreateUser, User};
+use crate::users::{CreateUserRequest, User};
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn create_user(
     pool: PgPool,
-    create_user: CreateUser,
+    create_user: CreateUserRequest,
 ) -> color_eyre::Result<Option<User>> {
     let mut conn = pool.acquire().await?;
 

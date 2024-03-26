@@ -10,41 +10,51 @@ use oauth2::{
     AuthorizationCode, CsrfToken, TokenResponse,
 };
 use password_auth::verify_password;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use sqlx::types::time;
 use sqlx::{FromRow, PgPool};
 use tokio::task;
 
 use crate::secrets::Secret;
 
-#[derive(sqlx::FromRow, Clone, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, FromRow)]
+pub struct UserOut {
+    pub user_id: uuid::Uuid,
+    pub username: String,
+}
+
+#[derive(sqlx::FromRow, Clone, Deserialize, Serialize, Debug)]
 pub struct User {
     pub user_id: uuid::Uuid,
     pub email: String,
     pub username: String,
-    #[sqlx(default)]
     pub password_hash: Secret<Option<String>>,
-    #[sqlx(default)]
     pub access_token: Secret<Option<String>>,
 
     pub created_at: time::OffsetDateTime,
     pub updated_at: Option<time::OffsetDateTime>,
 }
 
-#[derive(sqlx::Encode, Clone, Deserialize, Debug)]
-pub struct CreateUser {
+#[derive(Clone, Debug, Deserialize)]
+#[serde(remote = "Self")]
+pub struct CreateUserRequest {
     pub email: String,
     pub username: String,
-    #[sqlx(default)]
     pub password_hash: Secret<Option<String>>,
-    #[sqlx(default)]
     pub access_token: Secret<Option<String>>,
 }
 
-#[derive(Clone, Serialize, Deserialize, FromRow)]
-pub struct UserOut {
-    pub id: i64,
-    pub username: String,
+impl<'de> Deserialize<'de> for CreateUserRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s = Self::deserialize(deserializer)?;
+        if s.password_hash.expose().is_some() && s.access_token.expose().is_some() {
+            return Err(serde::de::Error::custom(
+                "should only have password or access token",
+            ));
+        }
+
+        Ok(s)
+    }
 }
 
 impl AuthUser for User {
@@ -145,21 +155,35 @@ impl AuthnBackend for PostgresBackend {
                 .await
                 .map_err(Self::Error::Sqlx)?;
 
-                // Verifying the password is blocking and potentially slow, so we'll do so via
+                // Verifying the password is blocking and potentially slow, so we have to do it via
                 // `spawn_blocking`.
                 task::spawn_blocking(move || {
-                    // We're using password-based authentication: this works by comparing our form
-                    // input with an argon2 password hash.
-                    Ok(user.filter(|user| {
-                        let Some(password) = user.password_hash.expose() else {
-                            return false;
-                        };
-                        verify_password(password_cred.password.expose(), password.as_ref()).is_ok()
-                    }))
+                    // password-based authentication. Compare our form  input with an argon2
+                    // password hash.
+                    // To prevent timed side-channel attacks, so we always compare the password
+                    // hash, even if the user doesn't exist.
+                    return match user {
+                        // If there is no user with this username we dummy verify the password.
+                        None => dummy_verify_password(password_cred.password.expose()),
+                        Some(user) => {
+                            // If the user exists, but has no password, we dummy verify the password.
+                            let Some(password) = user.password_hash.expose() else {
+                                return dummy_verify_password(password_cred.password.expose());
+                            };
+
+                            // If the user exists and has a password, we verify the password.
+                            match verify_password(
+                                password_cred.password.expose(),
+                                password.as_ref(),
+                            ) {
+                                Ok(_) => Ok(Some(user)),
+                                _ => Ok(None),
+                            }
+                        }
+                    };
                 })
                 .await?
             }
-
             Credentials::OAuth(oauth_creds) => {
                 // Ensure the CSRF state has not been tampered with.
                 if oauth_creds.old_state.secret() != oauth_creds.new_state.secret() {
@@ -218,6 +242,16 @@ impl AuthnBackend for PostgresBackend {
             .await
             .map_err(Self::Error::Sqlx)
     }
+}
+
+// This is a dummy function to prevent timing attacks.
+fn dummy_verify_password(pw: &str) -> Result<Option<User>, BackendError> {
+    let _ = verify_password(
+        pw,
+        "smop-flurp-fjoing-Idoubtsomeonewouldeverusethispassword!",
+    );
+    // Even if the password is correct we still return `Ok(None)`.
+    Ok(None)
 }
 
 // We use a type alias for convenience.
