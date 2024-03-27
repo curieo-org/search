@@ -1,6 +1,4 @@
-# setup tracing
-from app.services.tracing import setup_tracing
-setup_tracing()
+import app.services.tracing # noqa
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
