@@ -47,7 +47,7 @@ class Orchestrator:
     async def query_and_get_answer(
         self,
         search_text: str,
-        routecategory: RouteCategory = RouteCategory.NS
+        routecategory: RouteCategory = RouteCategory.PBW
     ) -> dict[str, str]:
         # search router call
         logger.info(
