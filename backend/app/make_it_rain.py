@@ -7,9 +7,8 @@ import json
 df = pd.read_csv("chebml_eval_data.csv")
 
 #%%
-df_filter = df[df['Source'] == "Clicnical Trials"].sample(n = 10)
 chembl_data_debug = pd.DataFrame()
-for i in tqdm(df_filter.iterrows()): 
+for i in tqdm(df.iterrows()): 
     url = f"http://127.0.0.1:8000/search?query={i[1]['Question']}"
     data_store = {
         "question": i[1]['Question'],
