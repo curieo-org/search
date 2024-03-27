@@ -40,9 +40,9 @@ class Orchestrator:
         self.router.load(ORCHESRATOR_ROUTER_PROMPT_PROGRAM)
 
         self.clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
-        # self.drugChemblSearch = DrugChEMBLText2CypherEngine(config)
-        # self.pubmedsearch = PubmedSearchQueryEngine(config)
-        # self.bravesearch = BraveSearchQueryEngine(config)
+        self.drugChemblSearch = DrugChEMBLText2CypherEngine(config)
+        self.pubmedsearch = PubmedSearchQueryEngine(config)
+        self.bravesearch = BraveSearchQueryEngine(config)
 
     async def query_and_get_answer(
         self,
@@ -87,31 +87,31 @@ class Orchestrator:
                 logger.exception("Orchestrator.query_and_get_answer.sqlResponse Exception -", exc_info = e, stack_info=True)
                 pass
 
-        # elif router_id == 1 or routecategory == RouteCategory.DRUG:
-        #     # drug information call
-        #     logger.info(
-        #         "Orchestrator.query_and_get_answer.router_id drug_information_choice Entered."
-        #     )
-        #     try:
-        #         cypherResponse = await self.drugChemblSearch.call_text2cypher(
-        #             search_text=search_text
-        #         )
-        #         result = str(cypherResponse)
-        #         sources = result
-        #         logger.info(
-        #             f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}"
-        #         )
+        elif router_id == 1 or routecategory == RouteCategory.DRUG:
+            # drug information call
+            logger.info(
+                "Orchestrator.query_and_get_answer.router_id drug_information_choice Entered."
+            )
+            try:
+                cypherResponse = await self.drugChemblSearch.call_text2cypher(
+                    search_text=search_text
+                )
+                result = str(cypherResponse)
+                sources = result
+                logger.info(
+                    f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}"
+                )
 
-        #         return {
-        #             "result" : result,
-        #             "sources": sources
-        #         }
-        #     except Exception as e:
-        #         logger.exception(
-        #             "Orchestrator.query_and_get_answer.cypherResponse Exception -",
-        #             exc_info=e,
-        #             stack_info=True,
-        #         )
+                return {
+                    "result" : result,
+                    "sources": sources
+                }
+            except Exception as e:
+                logger.exception(
+                    "Orchestrator.query_and_get_answer.cypherResponse Exception -",
+                    exc_info=e,
+                    stack_info=True,
+                )
 
 
         # if routing fails, sql and cypher calls fail, routing to pubmed or brave

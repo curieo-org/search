@@ -72,8 +72,8 @@ class DrugChEMBLText2CypherEngine:
             "Cypher Response: {context_str}\n"
             "Response: "
         )
-
         self.qp = self.build_query_pipeline()
+        self.debug_chembl = {}
 
     def execute_graph_query(self, queries):
         logger.info(
@@ -110,7 +110,8 @@ class DrugChEMBLText2CypherEngine:
 
             result_dict = self.graph_storage.execute_query(query)
             results.append(result_dict)
-
+        
+        self.debug_chembl['cypher_query'] = str(query_list)
         logger.info(
             f"execute_graph_query results: {results}"
         )
@@ -156,8 +157,14 @@ class DrugChEMBLText2CypherEngine:
                 table_context += f"{key}: {value}\n"
 
             context_strs.append(table_context)
+        self.debug_chembl['table_context_str'] = "\n\n".join(context_strs)
 
         return "\n\n".join(context_strs)
+
+
+    def store_debug(self): 
+        with open("debug_chembl.txt", "w") as f:
+            f.write(str(self.debug_chembl) + ",\n")
 
     def get_response_synthesis_prompt(
         self, query_str, sql_query, context_str
@@ -181,6 +188,7 @@ class DrugChEMBLText2CypherEngine:
 
             response_str += " ## ".join(record_in_list) + "\n"
 
+        self.debug_chembl['cypher_response'] = response_str
         logger.info(
             f"cypher_output_parser response_str: {response_str}"
         )
@@ -233,11 +241,13 @@ class DrugChEMBLText2CypherEngine:
     async def call_text2cypher(self, search_text:str) -> str:
         try:
             logger.info(f"call_text2cypher search_text: {search_text}")
-
+            self.debug_chembl['question'] = search_text
             response = self.qp.run(query=search_text)
 
-            logger.info(f"call_text2cypher response: {str(response)}")
+            self.debug_chembl['response'] = response
 
+            logger.info(f"call_text2cypher response: {str(response)}")
+            self.store_debug()
         except Exception as ex:
             logger.exception("call_text2cypher Exception -", exc_info = ex, stack_info=True)
             
