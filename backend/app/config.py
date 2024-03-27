@@ -137,6 +137,9 @@ CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_
 CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
 ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
 
+# Phoenix Configuration
+PHOENIX_API_ENDPOINT: str = config("PHOENIX_API_ENDPOINT", default="http://127.0.0.1:6007/v1/traces")
+
 #AI models
 ROUTER_MODEL: str = "gpt-3.5-turbo"
 SQL_GENERATION_MODEL: str =  "codellama/CodeLlama-13b-Instruct-hf"

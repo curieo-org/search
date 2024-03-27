@@ -60,7 +60,10 @@ class NebulaGraph:
         for col_num in range(result.col_size()):
             col_name = columns[col_num]
             col_list = result.column_values(col_name)
-            result_dict[col_name] = [x.cast() for x in col_list]
+            if len(col_list) > 0:
+                result_dict[col_name] = [x.cast() for x in col_list]
+
+        assert len(result_dict) > 0
 
         return result_dict
 

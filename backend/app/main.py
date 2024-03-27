@@ -1,7 +1,8 @@
+import app.services.tracing # noqa
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 
-# from authx import AuthX, AuthXConfig
 from app.database.redis import Redis
 
 from app import config
@@ -10,9 +11,6 @@ from app.api.errors.http_error import http_error_handler
 from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
 
 from app.middleware.process_time import ProcessTimeHeaderMiddleware
-
-from app.services.tracing import setup_tracing
-
 
 def get_application() -> FastAPI:
     application = FastAPI(
@@ -26,9 +24,6 @@ def get_application() -> FastAPI:
     @application.on_event("startup")
     async def startup():  # pylint: disable=W0612
         print()
-
-        # setup tracing
-        setup_tracing()
 
         # connect to redis
         cache = Redis()
