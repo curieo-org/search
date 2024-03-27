@@ -26,7 +26,9 @@ from app.config import (
     EMBEDDING_MODEL_NAME,
     CLINICAL_TRIAL_SQL_PROGRAM, 
     CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM, 
-    TOGETHER_KEY
+    TOGETHER_KEY, 
+    SQL_GENERATION_MODEL, 
+    RESPONSE_SYNTHESIZER_MODEL
     )
 
 from app.services.search_utility import setup_logger
@@ -62,8 +64,8 @@ class ClinicalTrialText2SQLEngine:
     def __init__(self, config):
         self.config = config
 
-        self.nous =dspy.Together(model = "NousResearch/Nous-Hermes-llama-2-7b", api_key=str(TOGETHER_KEY))
-        self.llm = dspy.Together(model =  "codellama/CodeLlama-13b-Instruct-hf", api_key=str(TOGETHER_KEY))
+        self.nous =dspy.Together(model = str(RESPONSE_SYNTHESIZER_MODEL), api_key=str(TOGETHER_KEY))
+        self.llm = dspy.Together(model = str(SQL_GENERATION_MODEL), api_key=str(TOGETHER_KEY))
         dspy.settings.configure(lm = self.llm)
         
         self.sql_module = SQL_module()

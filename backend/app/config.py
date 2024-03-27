@@ -136,3 +136,8 @@ PUBMED_RELEVANCE_CRITERIA: float = config("PUBMED_RELEVANCE_CRITERIA", default=0
 CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_trials_sql_generation.json"
 CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
 ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
+
+#AI models
+ROUTER_MODEL: str = "gpt-3.5-turbo"
+SQL_GENERATION_MODEL: str =  "codellama/CodeLlama-13b-Instruct-hf"
+RESPONSE_SYNTHESIZER_MODEL: str = "NousResearch/Nous-Hermes-llama-2-7b"
