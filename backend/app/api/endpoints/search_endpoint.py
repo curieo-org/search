@@ -29,13 +29,13 @@ logger = setup_logger("Search_Endpoint")
     "/search",
     summary="List all Search Results",
     description="List all Search Results",
-    dependencies=[Depends(security.access_token_required)],
+    # dependencies=[Depends(security.access_token_required)],
     response_model=dict[str, str],
 )
 @version(1, 0)
 async def get_search_results(
     query: str = "",
-    routecategory: RouteCategory = RouteCategory.NS
+    routecategory: RouteCategory =RouteCategory.CT# RouteCategory.NS
 ) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_search_results')
