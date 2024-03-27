@@ -11,7 +11,7 @@ from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.api.common.util import RouteCategory
-from app.config import OPENAI_API_KEY, TOGETHER_KEY, ORCHESRATOR_ROUTER_PROMPT_PROGRAM
+from app.config import OPENAI_API_KEY, TOGETHER_KEY, ORCHESRATOR_ROUTER_PROMPT_PROGRAM, ROUTER_MODEL
 from app.services.search_utility import setup_logger
 
 import dspy
@@ -34,7 +34,7 @@ class Orchestrator:
 
 
 
-        self.llm = dspy.OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
+        self.llm = dspy.OpenAI(model=str(ROUTER_MODEL), api_key=str(OPENAI_API_KEY))
         dspy.settings.configure(lm = self.llm)
         self.router = Router_module()
         self.router.load(ORCHESRATOR_ROUTER_PROMPT_PROGRAM)
