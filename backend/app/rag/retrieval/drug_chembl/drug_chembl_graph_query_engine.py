@@ -163,7 +163,7 @@ class DrugChEMBLText2CypherEngine:
 
 
     def store_debug(self): 
-        with open("debug_chembl.txt", "w") as f:
+        with open("debug_chembl.txt", "a") as f:
             f.write(str(self.debug_chembl) + ",\n")
 
     def get_response_synthesis_prompt(
