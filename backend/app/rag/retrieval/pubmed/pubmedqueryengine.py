@@ -42,7 +42,7 @@ class PubmedSearchQueryEngine:
             sparse_top_k=int(QDRANT_SPARSE_TOP_K),
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
             embed_model=TextEmbeddingsInference(base_url=EMBEDDING_MODEL_API, model_name="")
-        )
+        )z
 
     async def call_pubmed_vectors(self, search_text: str) -> List[BaseNode]:
         logger.info(

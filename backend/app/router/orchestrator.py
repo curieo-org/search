@@ -44,6 +44,13 @@ class Orchestrator:
         self.pubmedsearch = PubmedSearchQueryEngine(config)
         self.bravesearch = BraveSearchQueryEngine(config)
 
+        self.ragas_pubmed = {} 
+
+
+    def store_ragas_pubmed(self):
+        with open("ragas_pubmed_results.txt", "a") as f:
+            f.write(str(self.ragas_pubmed) + "\n")
+
     async def query_and_get_answer(
         self,
         search_text: str,
@@ -113,7 +120,7 @@ class Orchestrator:
                     stack_info=True,
                 )
 
-
+        self.ragas_pubmed['question'] = search_text
         # if routing fails, sql and cypher calls fail, routing to pubmed or brave
         logger.info(
             "Orchestrator.query_and_get_answer.router_id Fallback Entered."
@@ -122,7 +129,10 @@ class Orchestrator:
         extracted_pubmed_results, extracted_web_results = await asyncio.gather(
             self.pubmedsearch.call_pubmed_vectors(search_text=search_text), self.bravesearch.call_brave_search_api(search_text=search_text)
         )
+
         extracted_results = extracted_pubmed_results + extracted_web_results
+        self.ragas_pubmed['context_pubmed_results'] = extracted_pubmed_results
+        self.ragas_pubmed['context_web_results'] = extracted_pubmed_results
         logger.info(
             f"Orchestrator.query_and_get_answer.extracted_results count: {len(extracted_pubmed_results), len(extracted_web_results)}"
         )
@@ -131,11 +141,17 @@ class Orchestrator:
         reranked_results = TextEmbeddingInferenceRerankEngine(top_n=2)._postprocess_nodes(
             nodes = extracted_results,
             query_bundle=QueryBundle(query_str=search_text))
+        
+        self.ragas_pubmed['context_reranked_pubmed_web'] = str([TAG_RE.sub('', node.get_content()) for node in reranked_results])
+        self.ragas_pubmed['context_sources'] = str([node.node.metadata for node in reranked_results])
 
         summarizer = SimpleSummarize(llm=TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=str(TOGETHER_KEY)))
         result = summarizer.get_response(query_str=search_text, text_chunks=[TAG_RE.sub('', node.get_content()) for node in reranked_results])
         sources = [node.node.metadata for node in reranked_results ]
 
+        self.ragas_pubmed['answer'] = result
+
+        self.store_ragas_pubmed()
         return {
             "result" : result,
             "sources": sources

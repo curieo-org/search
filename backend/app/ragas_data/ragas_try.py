@@ -26,3 +26,4 @@ score_all.to_pandas().to_csv('ragas_score_all_chembl.csv', index = False )
 # %%
 
 # %%
+# %%
