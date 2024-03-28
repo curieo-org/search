@@ -12,7 +12,7 @@ from app import config
 parser = argparse.ArgumentParser(description='Set up WANDB project and LLM configurations.')
 parser.add_argument('--data_path', type=str, help='The path to the input data file.')
 parser.add_argument('--num_samples', type=int, default=50, help='Number of samples to use.')
-parser.add_argument('--llm', type=str, choices=['gpt-3.5-turbo', 'gemma-7b-it', 'mixtral-8x7b-32768', 'phi-2', 'nsql'], help='The Large Language Model to use.')
+parser.add_argument('--llm', type=str, choices=['gpt-3.5-turbo', 'gemma-7b-it', 'mixtral-8x7b-32768', 'phi-2', 'codellama'], help='The Large Language Model to use.')
 parser.add_argument('--project_name', type=str, default='pe_router', help='WANDB project name.')
 parser.add_argument('--run_name', type=str, default='pe_router_optimization', help='WANDB run name.')
 parser.add_argument('--entity', type=str, help='WANDB entity name.')
@@ -39,15 +39,15 @@ NUM_THREADS = 5
 DEV_NUM = args.num_samples
 
 if args.llm == "gpt-3.5-turbo":
-    turbo = dspy.OpenAI(model='gpt-3.5-turbo', api_key = config.OPENAI_API_KEY)
+    turbo = dspy.OpenAI(model='gpt-3.5-turbo', api_key = str(config.OPENAI_API_KEY))
 elif args.llm == "gemma-7b-it":
-    turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "gemma-7b-it",)
+    turbo = dspy.GROQ( api_key = str(config.GROQ_API_KEY), model = "gemma-7b-it",)
 elif args.llm == "mixtral-8x7b-32768":
-    turbo = dspy.GROQ( api_key = config.GROQ_API_KEY, model = "mixtral-8x7b-32768",)
+    turbo = dspy.GROQ( api_key = str(config.GROQ_API_KEY), model = "mixtral-8x7b-32768",)
 elif args.llm == "phi-2":
     turbo = dspy.Together(model = "microsoft/phi-2", api_key=os.environ["TOGETHER_KEY"])
-elif args.llm == "nsql":
-    turbo = dspy.Together(model = "meta-llama/Llama-2-13b-chat-hf", api_key=os.environ["TOGETHER_KEY"])
+elif args.llm == "codellama":
+    turbo = dspy.Together(model = "codellama/CodeLlama-13b-Instruct-hf", api_key=os.environ["TOGETHER_KEY"])
 
 
 # rm module is currently not available.
@@ -74,6 +74,8 @@ dev_example = total_data[0]
 # Call the predictor on a particular input.
 pred = generate_answer(question=dev_example.question , context = dev_example.context )
 print(f"predicted_ansewr for question: {dev_example.question} is: {pred.answer}")
+
+
 
 
 class SQL_module(dspy.Module):
