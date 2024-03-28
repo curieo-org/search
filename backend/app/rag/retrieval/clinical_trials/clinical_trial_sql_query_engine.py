@@ -18,7 +18,7 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 import os
 from pathlib import Path
 from typing import List
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from pyvis.network import Network
 from qdrant_client import QdrantClient
 
