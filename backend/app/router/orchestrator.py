@@ -22,18 +22,15 @@ from app.dspy_integration.router_prompt import Router_module
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r'<[^>]+>')
 
+
 class Orchestrator:
     """
     Orchestrator is responsible for routing the search engine query.
     It routes the query into three routes now.The first one is clinical trails, second one is drug related information,
     and third one is pubmed brave.
     """
-
     def __init__(self, config):
         self.config = config
-
-
-
         self.llm = dspy.OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
         dspy.settings.configure(lm = self.llm)
         self.router = Router_module()
@@ -43,18 +40,13 @@ class Orchestrator:
         self.drugChemblSearch = DrugChEMBLText2CypherEngine(config)
         self.pubmedsearch = PubmedSearchQueryEngine(config)
         self.bravesearch = BraveSearchQueryEngine(config)
-
         self.ragas_pubmed = {} 
-
-
-    def store_ragas_pubmed(self):
-        with open("ragas_pubmed_results.txt", "a") as f:
-            f.write(str(self.ragas_pubmed) + "\n")
 
     async def query_and_get_answer(
         self,
         search_text: str,
-        routecategory: RouteCategory = RouteCategory.NS
+        routecategory: RouteCategory = RouteCategory.NS, 
+        ragas_experimentation: bool = False
     ) -> dict[str, str]:
         # search router call
         logger.info(
@@ -120,7 +112,6 @@ class Orchestrator:
                     stack_info=True,
                 )
 
-        self.ragas_pubmed['question'] = search_text
         # if routing fails, sql and cypher calls fail, routing to pubmed or brave
         logger.info(
             "Orchestrator.query_and_get_answer.router_id Fallback Entered."
@@ -131,27 +122,28 @@ class Orchestrator:
         )
 
         extracted_results = extracted_pubmed_results + extracted_web_results
-        self.ragas_pubmed['context_pubmed_results'] = extracted_pubmed_results
-        self.ragas_pubmed['context_web_results'] = extracted_pubmed_results
         logger.info(
             f"Orchestrator.query_and_get_answer.extracted_results count: {len(extracted_pubmed_results), len(extracted_web_results)}"
         )
 
-        # rerank call
         reranked_results = TextEmbeddingInferenceRerankEngine(top_n=2)._postprocess_nodes(
             nodes = extracted_results,
             query_bundle=QueryBundle(query_str=search_text))
-        
-        self.ragas_pubmed['context_reranked_pubmed_web'] = str([TAG_RE.sub('', node.get_content()) for node in reranked_results])
-        self.ragas_pubmed['context_sources'] = str([node.node.metadata for node in reranked_results])
-
         summarizer = SimpleSummarize(llm=TogetherLLM(model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key=str(TOGETHER_KEY)))
         result = summarizer.get_response(query_str=search_text, text_chunks=[TAG_RE.sub('', node.get_content()) for node in reranked_results])
         sources = [node.node.metadata for node in reranked_results ]
 
-        self.ragas_pubmed['answer'] = result
-
-        self.store_ragas_pubmed()
+        if ragas_experimentation:
+            self.ragas_pubmed['question'] = search_text
+            self.ragas_pubmed['context_pubmed_results'] = extracted_pubmed_results
+            self.ragas_pubmed['context_web_results'] = extracted_web_results
+            self.ragas_pubmed['context_reranked_pubmed_web'] = str([TAG_RE.sub('', node.get_content()) for node in reranked_results])
+            self.ragas_pubmed['context_sources'] = str([node.node.metadata for node in reranked_results])
+            self.ragas_pubmed['answer'] = result
+            return {
+                "result" : self.ragas_pubmed,
+                "sources": {}
+            }
         return {
             "result" : result,
             "sources": sources

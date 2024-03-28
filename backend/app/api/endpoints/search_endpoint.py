@@ -35,7 +35,8 @@ logger = setup_logger("Search_Endpoint")
 @version(1, 0)
 async def get_search_results(
     query: str = "",
-    routecategory: RouteCategory =RouteCategory.PBW# RouteCategory.NS
+    routecategory: RouteCategory = RouteCategory.PBW, # RouteCategory.NS, 
+    ragas_experimentation: bool = True
 ) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_search_results')
@@ -51,7 +52,10 @@ async def get_search_results(
         search_result = json.loads(search_result)
         logger.info(f"get_search_results. cached_result: {search_result}")
     else:
-        search_result = await orchestrator.query_and_get_answer(search_text=query, routecategory=routecategory)
+        search_result = await orchestrator.query_and_get_answer(
+            search_text=query,
+            routecategory=routecategory,
+            ragas_experimentation=ragas_experimentation)
     await cache.set_value(cache_key, json.dumps(search_result))
 
     await cache.add_to_sorted_set("searched_queries", query)
