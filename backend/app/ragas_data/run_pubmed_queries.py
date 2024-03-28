@@ -13,6 +13,8 @@ for i in tqdm(df.iterrows()):
         "question": i[1]['Question'],
         "answer": i[1]['Answer'], 
         "study": i[1]['Study Title'],
+        "link": i[1]['Link'], 
+        "source": i[1]['Source']
     }
     payload = {}
     headers = {
