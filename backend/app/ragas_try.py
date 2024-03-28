@@ -9,3 +9,20 @@ score_all = evaluate(dataset)
 print(score_all)
 score_all.to_pandas().to_csv('ragas_score_all.csv', index = False )
 # %%
+# ragas try chembl
+from datasets import Dataset 
+import pandas as pd 
+from dotenv import load_dotenv
+load_dotenv()
+from ragas import evaluate
+df = pd.read_csv("ragas_data_chembl.csv")
+df['contexts'] = df['contexts'].apply(lambda x: eval(f'["""{x}"""]'))
+dataset = Dataset.from_pandas(df)
+score_all = evaluate(dataset)
+print(score_all)
+
+# %%
+score_all.to_pandas().to_csv('ragas_score_all_chembl.csv', index = False )
+# %%
+
+# %%

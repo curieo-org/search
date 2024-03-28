@@ -1,0 +1,21 @@
+question,contexts,answer,ground_truth
+What is the value of alogP for Paracetamol (Acetaminophen)?," ['MATCH (input:`molecule_name`)-[:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""paracetamol""\nRETURN drug.`compound_details`.`alogP`;'] drug.compound_details.alogP : []
+
+Response: ",The value of alogP for Paracetamol (Acetaminophen) is not available in the database.,The value of alogP for Paracetamol (Acetaminophen) is 2.11.
+What is the alogP value for Aspirin?," ['MATCH (input:`molecule_name`)-[edge_name:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""aspirin""\nRETURN drug.`compound_details`.`alogp`;'] drug.compound_details.alogp : ['1.31']
+
+Response:",The alogP value for Aspirin is 1.31.,The alogP value for Aspirin is 1.31.
+Has Aspirin received a black box warning from the FDA?," ['MATCH (input:`molecule_name`)-[edge_name:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""aspirin"" AND drug.`compound_details`.`fda_warning` == ""black box""\nRETURN drug'] drug : []
+
+Response: ","As of the current data, there are no records indicating that Aspirin has received a black box warning from the FDA.","No, Aspirin has not received a black box warning from the FDA."
+How many aromatic rings are present in the Aspirin molecule?," ['MATCH (input:`molecule_name`)-[:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""aspirin""\nRETURN drug.full_molecular_formula;'] drug.full_molecular_formula : [__NULL__]
+
+Response: ",The query did not return any information about the number of aromatic rings present in the Aspirin molecule. It is possible that the specific information about the aromatic rings in Aspirin is not available in the database queried.,The Aspirin molecule contains1  aromatic rings.
+What is the molecular type of Paracetamol (Acetaminophen)?," ['MATCH (input:`molecule_name`)-[edge_name:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""paracetamol""\nRETURN drug.`compound_details`.`molecule_type`;'] drug.compound_details.molecule_type : []
+
+Response: ",The query did not return any specific information about the molecular type of Paracetamol (Acetaminophen). It is possible that the database does not have this information available or that the query was not structured correctly to retrieve it. Additional research or a different query may be needed to find the molecular type of Paracetamol.,The molecular type of Paracetamol (Acetaminophen) is a 'Small molecule'.
+What is the chirality of Paracetamol (Acetaminophen)?," ['MATCH (input:`molecule_name`)-[edge_name:has_parent]->(drug:`compound_details`)\nWHERE id(input) == ""paracetamol""\nRETURN drug.`compound_details`.`chirality`;'] drug.compound_details.chirality : []
+
+Response: ",The chirality of Paracetamol (Acetaminophen) is not specified in the query results.,paracetamol does not have chirality
+How many aromatic rings are present in the structure of Paracetamol (Acetaminophen)?," [] 
+Response: ","The Cypher query did not specifically retrieve information about the number of aromatic rings present in the structure of Paracetamol (Acetaminophen). However, the query did return the molecule name and canonical SMILES notation for Paracetamol. To determine the number of aromatic rings in the structure, further analysis of the SMILES notation or a more specific query targeting the aromatic ring structure would be needed.",Paracetamol (Acetaminophen) has three aromatic rings in its structure.
