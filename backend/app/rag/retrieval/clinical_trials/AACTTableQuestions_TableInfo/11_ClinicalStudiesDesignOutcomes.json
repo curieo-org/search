@@ -1,0 +1,4 @@
+{
+    "table_name": "tbl_studies_design_outcomes",
+    "table_summary": "The table defines the Description of planned outcome measures and observations that will describe patterns of diseases and traits/associations with exposures, risk factors, or treatment. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document. 'title' is the title of the document. \n\n The column 'Design_Outcome_Measures' is a JSON column and it has the below information in a nested way. The 'OutcomeType' field holds information about the type of the design outcomes like 'other', 'primary', and 'secondary'. The 'Measure' holds the information about the measurement of the design groups. The 'Time' holds the information on the time frame of associated design groups. The 'Description' holds information about the description of the design groups."
+}

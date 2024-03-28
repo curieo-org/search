@@ -1,0 +1,4 @@
+{
+    "table_name": "tbl_studies_arms_details",
+    "table_summary": "The table defines the protocol-specified group, subgroup, or cohort of participants in a clinical trial assigned to receive the specific intervention(s) or observations according to a protocol. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document. 'title' is the title of the document. \n\n The column 'Arm_Details' is a JSON column and it has the below information in a nested way. The 'Title' field holds information about the design group. The 'Description' field holds the description of the result group. The 'type' field holds information about the type of the design_groups like 'Active Comparator', 'Experimental', 'No Intervention', 'Other', 'Placebo Comparator', and 'Sham Comparator"
+}

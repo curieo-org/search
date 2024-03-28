@@ -9,7 +9,16 @@ from llama_index.core.schema import BaseNode
 from qdrant_client import QdrantClient
 
 from app.services.search_utility import setup_logger
-from app.config import QDRANT_API_KEY, QDRANT_API_URL, QDRANT_API_PORT, QDRANT_COLLECTION_NAME, QDRANT_TOP_K, QDRANT_SPARSE_TOP_K, EMBEDDING_MODEL_API, PUBMED_RELEVANCE_CRITERIA
+from app.config import (
+    QDRANT_API_KEY,
+    QDRANT_API_URL, 
+    QDRANT_API_PORT, 
+    QDRANT_COLLECTION_NAME, 
+    QDRANT_TOP_K, 
+    QDRANT_SPARSE_TOP_K, 
+    EMBEDDING_MODEL_API, 
+    PUBMED_RELEVANCE_CRITERIA
+    )
 
 logger = setup_logger("PubmedSearchQueryEngine")
 

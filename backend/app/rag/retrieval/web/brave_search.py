@@ -4,7 +4,11 @@ import requests
 from llama_index.core.schema import TextNode
 
 from app.services.search_utility import setup_logger
-from app.config import BRAVE_RESULT_COUNT, BRAVE_SEARCH_API, BRAVE_SUBSCRIPTION_KEY
+from app.config import (
+    BRAVE_RESULT_COUNT, 
+    BRAVE_SEARCH_API, 
+    BRAVE_SUBSCRIPTION_KEY
+    )
 
 logger = setup_logger("BraveSearchQueryEngine")
 

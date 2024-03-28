@@ -125,8 +125,11 @@ if ENVIRONMENT == 'local':
 else:
     QDRANT_API_URL = config("QDRANT_API_URL", default="https://ff1f8e90-959e-4cff-9455-03914d8a7002.europe-west3-0.gcp.cloud.qdrant.io")
 QDRANT_COLLECTION_NAME: str = config("QDRANT_COLLECTION_NAME", default="pubmed_hybrid_vector_db")
+QDRANT_CLINICAL_TRIAL_COLLECTION_NAME: str = config("QDRANT_CLINICAL_TRIAL_COLLECTION_NAME", default="clinical_trials_vector_db")
 QDRANT_TOP_K: int = config("QDRANT_TOP_K", default=20)
 QDRANT_SPARSE_TOP_K: int = config("QDRANT_SPARSE_TOP_K", default=3)
+QDRANT_TOP_CLINICAL_TRAIL_K: int = config("QDRANT_TOP_CLINICAL_TRAIL_K", default=5)
+QDRANT_CLINICAL_TRIAL_METADATA_FIELD_NAME: str = config("QDRANT_CLINICAL_TRIAL_METADATA_FIELD_NAME", default="title")
 
 # LLAMA_INDEX Configuration
 CHAT_ENABLED: bool = config("CHAT_ENABLED", default=False)
@@ -135,12 +138,13 @@ PUBMED_RELEVANCE_CRITERIA: float = config("PUBMED_RELEVANCE_CRITERIA", default=0
 # Dspy Integration Configuration
 CLINICAL_TRIAL_SQL_PROGRAM: str  = "app/dspy_integration/dspy_programs/clinical_trials_sql_generation.json"
 CLINICAL_TRIALS_RESPONSE_REFINEMENT_PROGRAM: str = "app/dspy_integration/dspy_programs/clinical_trials_response_refinement.json"
-ORCHESRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
+ORCHESTRATOR_ROUTER_PROMPT_PROGRAM: str = "app/dspy_integration/dspy_programs/orchestrator_router_prompt.json"
 
 # Phoenix Configuration
 PHOENIX_API_ENDPOINT: str = config("PHOENIX_API_ENDPOINT", default="http://127.0.0.1:6007/v1/traces")
 
 #AI models
-ROUTER_MODEL: str = "gpt-3.5-turbo"
-SQL_GENERATION_MODEL: str =  "codellama/CodeLlama-13b-Instruct-hf"
-RESPONSE_SYNTHESIZER_MODEL: str = "NousResearch/Nous-Hermes-llama-2-7b"
+ROUTER_MODEL: str = config("ROUTER_MODEL", default="gpt-3.5-turbo")
+SQL_GENERATION_MODEL: str = config("ROUTER_MODEL", default="codellama/CodeLlama-13b-Instruct-hf") 
+CLINICAL_TRAIL_RESPONSE_SYNTHESIZER_MODEL: str = config("CLINICAL_TRAIL_RESPONSE_SYNTHESIZER_MODEL", default="NousResearch/Nous-Hermes-llama-2-7b")
+PUBMED_RESPONSE_SYNTHESIZER_MODEL: str = config("PUBMED_RESPONSE_SYNTHESIZER_MODEL", default="mistralai/Mixtral-8x7B-Instruct-v0.1")

@@ -11,12 +11,16 @@ from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.api.common.util import RouteCategory
-from app.config import OPENAI_API_KEY, TOGETHER_KEY, ORCHESRATOR_ROUTER_PROMPT_PROGRAM, ROUTER_MODEL
+from app.config import (
+    OPENAI_API_KEY,
+    TOGETHER_KEY,
+    ORCHESTRATOR_ROUTER_PROMPT_PROGRAM,
+    ROUTER_MODEL
+    )
 from app.services.search_utility import setup_logger
 
 import dspy
 from app.dspy_integration.router_prompt import Router_module
-
 
 
 logger = setup_logger("Orchestrator")
@@ -31,13 +35,10 @@ class Orchestrator:
 
     def __init__(self, config):
         self.config = config
-
-
-
         self.llm = dspy.OpenAI(model=str(ROUTER_MODEL), api_key=str(OPENAI_API_KEY))
         dspy.settings.configure(lm = self.llm)
         self.router = Router_module()
-        self.router.load(ORCHESRATOR_ROUTER_PROMPT_PROGRAM)
+        self.router.load(ORCHESTRATOR_ROUTER_PROMPT_PROGRAM)
 
         self.clinicalTrialSearch = ClinicalTrialText2SQLEngine(config)
         self.drugChemblSearch = DrugChEMBLText2CypherEngine(config)
@@ -75,9 +76,9 @@ class Orchestrator:
             try:
                 sqlResponse = await self.clinicalTrialSearch.call_text2sql(search_text=search_text)
                 result = str(sqlResponse)
-                sources = result
+                sources = result #TODO
 
-                logger.info(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result}")
+                logger.info(f"Orchestrator.query_and_get_answer.sqlResponse sqlResponse: {result} and {sources}")
 
                 return {
                     "result" : result,
@@ -139,5 +140,4 @@ class Orchestrator:
         return {
             "result" : result,
             "sources": sources
-        }
-    
+        } 

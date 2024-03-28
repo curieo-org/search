@@ -1,0 +1,4 @@
+{
+    "table_name": "tbl_studies_interventions",
+    "table_summary": "The table has the interventions or exposures (including drugs, medical devices, procedures, vaccines, and other products) of interest to the study, or associated with study arms/groups. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document. 'title' is the title of the document. \n\n The column 'Study_Intervention_Compressed_Details' is a JSON column and it has the below information in a nested way. The 'Type'  field holds the information about the intervention type like 'Behavioral', 'Biological', 'Combination Product', 'Device', 'Diagnostic Test', 'Dietary Supplement', 'Drug', 'Genetic', 'Other', 'Procedure', 'Radiation'.The 'Details' field is also a JSON field that holds information about the 'name' and 'description' of the interventions."
+}
