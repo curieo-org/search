@@ -168,7 +168,8 @@ class ClinicalTrialText2SQLEngine:
     
     def extract_sql(self, question:str, llm_response: str) -> str:
         # First try to extract SQL code blocks enclosed in triple backticks
-        pattern = r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
+        # old_pattern = r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
+        pattern = r'(?si)SELECT.*?;'
         sql_match = re.search(pattern, llm_response, re.DOTALL | re.IGNORECASE)
 
         if sql_match:
