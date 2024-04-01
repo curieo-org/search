@@ -5,6 +5,8 @@ use dotenvy::dotenv;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer};
 
+use crate::secrets::Secret;
+
 #[derive(Debug, Clone)]
 pub enum LogFmt {
     Json,
@@ -28,8 +30,8 @@ impl<'de> Deserialize<'de> for LogFmt {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Log {
-    pub format: LogFmt,
     pub level: String,
+    pub format: LogFmt,
 }
 
 #[derive(Debug, Clone)]
@@ -75,6 +77,7 @@ pub struct Settings {
     pub log: Log,
     pub host: String,
     pub port: u16,
+    pub db: Secret<String>,
 }
 
 impl Settings {

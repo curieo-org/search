@@ -1,14 +1,6 @@
-use color_eyre::Result;
-use server::settings::SETTINGS;
-use server::startup::Application;
+use server::{run, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    color_eyre::install()?;
-
-    let application = Application::build(SETTINGS.to_owned()).await?;
-
-    application.run_until_stopped().await?;
-
-    Ok(())
+    run().await?.run_until_stopped().await.map_err(Into::into)
 }

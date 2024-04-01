@@ -1,8 +1,12 @@
+use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
+use color_eyre::eyre::eyre;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use tokio::net::TcpListener;
+
 use crate::routing::router;
 use crate::settings::Settings;
-use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
-use color_eyre::Result;
-use tokio::net::TcpListener;
+use crate::Result;
 
 pub struct Application {
     port: u16,
@@ -13,9 +17,14 @@ impl Application {
     pub async fn build(settings: Settings) -> Result<Self> {
         let address = format!("{}:{}", settings.host, settings.port);
 
-        let listener = TcpListener::bind(address).await?;
-        let port = listener.local_addr()?.port();
-        let server = run(listener).await;
+        let listener = TcpListener::bind(address)
+            .await
+            .map_err(|e| eyre!("Failed to bind to address: {}", e))?;
+        let port = listener
+            .local_addr()
+            .map_err(|e| eyre!("Failed to get local address: {}", e))?
+            .port();
+        let server = run(listener, settings).await?;
 
         Ok(Self { port, server })
     }
@@ -24,24 +33,42 @@ impl Application {
         self.port
     }
 
-    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        self.server.await
+    pub async fn run_until_stopped(self) -> Result<()> {
+        Ok(self
+            .server
+            .await
+            .map_err(|e| eyre!("Server error: {}", e))?)
     }
 }
 
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
+    pub db: PgPool,
     pub settings: Settings,
 }
 
-async fn run(listener: TcpListener) -> Serve<IntoMakeService<Router>, Router> {
-    let state = AppState {
-        settings: Settings::new(),
-    };
+pub async fn db_connect(database_url: &str) -> Result<PgPool> {
+    match PgPoolOptions::new()
+        .max_connections(5)
+        .connect(database_url)
+        .await
+    {
+        Ok(pool) => Ok(pool),
+        Err(e) => Err(eyre!("Failed to connect to Postgres: {}", e).into()),
+    }
+}
 
-    let app = router(state);
+async fn run(
+    listener: TcpListener,
+    settings: Settings,
+) -> Result<Serve<IntoMakeService<Router>, Router>> {
+    let db = db_connect(settings.db.expose()).await?;
+
+    let state = AppState { db, settings };
+
+    let app = router(state)?;
 
     let server = axum::serve(listener, app.into_make_service());
 
-    server
+    Ok(server)
 }
