@@ -9,15 +9,30 @@ use sqlx::{Decode, Postgres};
 /// when displayed. This is useful for fields like passwords
 /// and access tokens. The value is redacted when displayed
 /// or debugged.
-#[derive(Default, Clone)]
-pub struct Secret<T>(T)
-where
-    T: Default + Clone;
+pub struct Secret<T>(T);
 
-impl<T> Secret<T>
+impl<T> Clone for Secret<T>
 where
-    T: Default + Clone,
+    T: Clone,
 {
+    fn clone(&self) -> Self {
+        Secret(self.0.clone())
+    }
+}
+
+impl<T> Default for Secret<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Secret(T::default())
+    }
+}
+
+impl<T> Secret<T> {
+    pub fn new(t: T) -> Secret<T> {
+        Secret(t)
+    }
     pub fn expose(&self) -> &T {
         &self.0
     }

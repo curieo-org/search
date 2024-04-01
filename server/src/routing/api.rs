@@ -1,19 +1,14 @@
-use axum::{routing::get, Router};
+use axum::Router;
 use axum_login::tower_sessions::cookie::time::Duration;
 use axum_login::tower_sessions::cookie::SameSite;
 use axum_login::tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
-use oauth2::basic::BasicClient;
-use oauth2::{AuthUrl, ClientId, ClientSecret, TokenUrl};
-use tower_http::{
-    cors::{Any, CorsLayer},
-    trace::{self, TraceLayer},
-};
+use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
-use crate::health_check;
+use crate::auth::models::{OAuth2Clients, PostgresBackend};
 use crate::startup::AppState;
-use crate::users::PostgresBackend;
+use crate::{auth, health_check, users};
 
 pub fn router(state: AppState) -> color_eyre::Result<Router> {
     // Session layer.
@@ -32,30 +27,26 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //
     // This combines the session layer with our backend to establish the auth
     // service which will provide the auth session as a request extension.
-    let client = BasicClient::new(
-        ClientId::new("client_id".to_string()),
-        Some(ClientSecret::new("client_secret".to_string())),
-        AuthUrl::new("http://authorize".to_string())?,
-        Some(TokenUrl::new("http://token".to_string())?),
-    );
-    let backend = PostgresBackend::new(state.db.clone(), client);
+    let oauth_clients = OAuth2Clients::default();
+    let backend = PostgresBackend::new(state.db.clone(), oauth_clients);
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
     let api_routes = Router::new()
-        //.nest("/auth", auth::routes())
         //.nest("/search", search::routes())
-        // Health check should be accessible regardless of session middleware
         //.layer(middleware::from_fn(some_auth_middleware))
-        .merge(health_check::routes());
+        .nest("/users", users::routes())
+        .route_layer(login_required!(
+            PostgresBackend,
+            login_url = "/api/auth/login"
+        ))
+        // Health check should be accessible regardless of session middleware
+        .merge(health_check::routes())
+        .nest("/auth", auth::routes());
 
     Ok(Router::new()
-        .route("/", get(|| async { "Hello, server!" }))
         .nest("/api", api_routes)
-        .route_layer(login_required!(PostgresBackend, login_url = "/login"))
-        .layer(auth_layer)
         .merge(health_check::routes())
         .with_state(state.clone())
-        // TODO: CORS should be configurable via settings
-        .layer(CorsLayer::new().allow_methods(Any).allow_origin(Any))
+        .layer(auth_layer)
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
