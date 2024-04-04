@@ -92,7 +92,7 @@ class ClinicalTrialText2SQLEngine:
         )
         self.obj_retriever = self.obj_index.as_retriever(similarity_top_k=3)
         self.qp = self.build_query_pipeline()
-        self.debug_log = {}
+        self.ragas_clinical_trial = {}
 
     def _get_table_info_with_index(self, idx: int) -> str:
         results_gen = Path(CLINICAL_TRIALS_TABLE_INFO_DIR).glob(f"{idx}_*")
@@ -148,15 +148,9 @@ class ClinicalTrialText2SQLEngine:
             return extracted_sql
         return llm_response
 
-    def debug_ragas(self): 
-        with open("debug_log_ragas.txt", "a") as f: 
-            f.write(str(self.debug_log)+ ",\n")
-
-        
-
     def get_sql_query(self, question, context): 
-        self.debug_log["question"] = question
-        self.debug_log["table_context"] = context
+        self.ragas_clinical_trial["question"] = question
+        self.ragas_clinical_trial["table_context"] = context
         sql_query = self.sql_module(question = question, context = context).answer
         return sql_query
     
@@ -164,11 +158,11 @@ class ClinicalTrialText2SQLEngine:
         if len(database_output) > 0:
             database_output = database_output[0].text
         # context provided is sql and database output
-        self.debug_log["sql"] = sql
-        self.debug_log["database_output"] = database_output
+        self.ragas_clinical_trial["sql"] = sql
+        self.ragas_clinical_trial["database_output"] = database_output
         with dspy.context(lm=self.nous):
             response = self.response_synthesizer(question = question, sql = sql, database_output = database_output).answer
-        self.debug_log["answer"] = response
+        self.ragas_clinical_trial["answer"] = response
         return response
 
     def build_query_pipeline(self):
@@ -203,13 +197,15 @@ class ClinicalTrialText2SQLEngine:
 
     async def call_text2sql(
         self,
-        search_text:str
+        search_text:str, 
+        ragas_experimentation: bool = False 
     ) -> dict[str, str]:
         try:
             logger.info(f"call_text2sql search_text: {search_text}") 
             response = self.qp.run(query=search_text)
             logger.info(f"call_text2sql response: {str(response)}")
-            self.debug_ragas()  
+            if ragas_experimentation: 
+                return {"result": str(self.ragas_clinical_trial)}
         except Exception as ex:
             logger.exception("call_text2sql Exception -", exc_info = ex, stack_info=True)
             raise ex
