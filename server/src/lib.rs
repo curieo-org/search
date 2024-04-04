@@ -6,6 +6,7 @@ pub mod auth;
 mod err;
 mod health_check;
 pub mod routing;
+pub mod search;
 pub mod secrets;
 pub mod settings;
 pub mod startup;

@@ -1,5 +1,6 @@
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
+use redis::Client as RedisClient;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -44,6 +45,7 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
+    pub cache: redis::Client,
     pub settings: Settings,
 }
 
@@ -58,13 +60,26 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     }
 }
 
+pub async fn cache_connect(cache_url: &str) -> Result<RedisClient> {
+    match RedisClient::open(cache_url) {
+        Ok(client) => Ok(client),
+        Err(e) => Err(eyre!("Failed to connect to Redis: {}", e).into()),
+    }
+}
+
 async fn run(
     listener: TcpListener,
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
 
-    let state = AppState { db, settings };
+    let cache = cache_connect(settings.cache.expose()).await?;
+
+    let state = AppState {
+        db,
+        cache,
+        settings,
+    };
 
     let app = router(state)?;
 

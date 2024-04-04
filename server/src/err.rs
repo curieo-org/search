@@ -14,6 +14,7 @@ pub enum AppError {
     UnprocessableEntity(ErrorMap),
     Sqlx(sqlx::Error),
     GenericError(color_eyre::eyre::Error),
+    Redis(redis::RedisError),
 }
 
 impl AppError {
@@ -22,6 +23,7 @@ impl AppError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Sqlx(_) | Self::GenericError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
     /// Convenient constructor for `Error::UnprocessableEntity`.
@@ -47,6 +49,12 @@ impl From<sqlx::Error> for AppError {
     }
 }
 
+impl From<redis::RedisError> for AppError {
+    fn from(inner: redis::RedisError) -> Self {
+        AppError::Redis(inner)
+    }
+}
+
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -54,6 +62,7 @@ impl Display for AppError {
             AppError::Sqlx(e) => write!(f, "{}", e),
             AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
             AppError::Unauthorized => write!(f, "Unauthorized"),
+            AppError::Redis(e) => write!(f, "{}", e),
         }
     }
 }
@@ -105,6 +114,7 @@ impl IntoResponse for AppError {
             }
             AppError::Sqlx(ref e) => error!("SQLx error: {:?}", e),
             AppError::GenericError(ref e) => error!("Generic error: {:?}", e),
+            AppError::Redis(ref e) => error!("Redis error: {:?}", e),
         };
 
         // Return a http status code and json body with error message.

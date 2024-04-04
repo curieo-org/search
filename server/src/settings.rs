@@ -78,6 +78,7 @@ pub struct Settings {
     pub host: String,
     pub port: u16,
     pub db: Secret<String>,
+    pub cache: Secret<String>,
 }
 
 impl Settings {

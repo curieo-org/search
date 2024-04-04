@@ -1,4 +1,5 @@
 db = "postgresql://postgres:postgres@localhost/curieo"
+cache = "redis://127.0.0.1/"
 
 [log]
 level = "info"
