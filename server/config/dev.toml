@@ -1,5 +1,8 @@
 db = "postgresql://postgres:postgres@localhost/curieo"
 cache = "redis://127.0.0.1/"
+rag_api = "http://127.0.0.1:8000"
+rag_api_username = "curieo"
+rag_api_password = "curieo"
 
 [log]
 level = "info"

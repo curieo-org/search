@@ -79,6 +79,9 @@ pub struct Settings {
     pub port: u16,
     pub db: Secret<String>,
     pub cache: Secret<String>,
+    pub rag_api: String,
+    pub rag_api_username: Secret<String>,
+    pub rag_api_password: Secret<String>,
 }
 
 impl Settings {

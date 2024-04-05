@@ -1,8 +1,10 @@
 use crate::err::AppError;
-use crate::search::{SearchHistory, SearchQueryRequest, SearchResponse};
+use crate::search::{RAGTokenResponse, SearchHistory, SearchQueryRequest, SearchResponse};
+use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
 use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
+use reqwest::Client as ReqwestClient;
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -10,31 +12,44 @@ pub async fn search(
     cache: &mut MultiplexedConnection,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
-    let cache_response: Option<String> = cache
+    let cache_response: Option<SearchResponse> = cache
         .get(search_query.query.clone())
         .await
+        .map(|response: Option<String>| {
+            response.and_then(|response| serde_json::from_str(&response).ok())
+        })
         .map_err(|e| AppError::from(e))?;
-
-    let cache_response = match cache_response {
-        Some(response) => response,
-        None => String::new(),
-    };
-
-    let cache_response: Option<SearchResponse> =
-        serde_json::from_str(&cache_response).unwrap_or(None);
 
     if let Some(response) = cache_response {
         return Ok(response);
     }
 
-    // sleep for 3 seconds to simulate a slow search
     // TODO: replace this with actual search logic using GRPC calls with backend services
-    tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+    let rag_api_url = SETTINGS.rag_api.clone() + "/token";
+    let form_data = [
+        ("username", &SETTINGS.rag_api_username.expose()),
+        ("password", &SETTINGS.rag_api_password.expose()),
+    ];
+    let token: RAGTokenResponse = ReqwestClient::new()
+        .post(rag_api_url)
+        .form(&form_data)
+        .send()
+        .await
+        .map_err(|_| eyre!("unable to send request to rag api"))?
+        .json()
+        .await
+        .map_err(|_| eyre!("unable to parse json response from rag api"))?;
 
-    let response = SearchResponse {
-        response_text: "sample response".to_string(),
-        response_sources: vec!["www.source1.com".to_string(), "www.source2.com".to_string()],
-    };
+    let rag_api_url = SETTINGS.rag_api.clone() + "/search?query=" + &search_query.query;
+    let response: SearchResponse = ReqwestClient::new()
+        .get(rag_api_url)
+        .header("Authorization", format!("Bearer {}", token.access_token))
+        .send()
+        .await
+        .map_err(|_| eyre!("unable to send request to rag api"))?
+        .json()
+        .await
+        .map_err(|_| eyre!("unable to parse json response from rag api"))?;
 
     return Ok(response);
 }
@@ -57,10 +72,10 @@ pub async fn insert_search_history(
 
     let search_history = sqlx::query_as!(
         SearchHistory,
-        "insert into search_history (search_text, response_text, response_sources) values ($1, $2, $3) returning *",
+        "insert into search_history (query, result, sources) values ($1, $2, $3) returning *",
         &search_query.query,
-        &search_response.response_text,
-        &search_response.response_sources
+        &search_response.result,
+        &search_response.sources
     )
     .fetch_one(pool)
     .await
