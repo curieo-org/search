@@ -4,14 +4,15 @@ use tower::ServiceExt;
 
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::{db_connect, AppState};
+use server::startup::{db_connect, cache_connect, AppState};
 
 #[tokio::test]
 async fn health_check_works() {
     let settings = Settings::new();
 
     let db = db_connect(settings.db.expose()).await.unwrap();
-    let state = AppState::from((db, settings));
+    let cache = cache_connect(settings.cache.expose()).await.unwrap();
+    let state = AppState::from((db, cache, settings));
 
     let router = router(state).unwrap();
     let request = Request::builder()
