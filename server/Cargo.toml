@@ -39,3 +39,6 @@ tracing-logfmt = "0.3.4"
 tracing-subscriber = { version = "0.3.18", features = ["json", "registry", "env-filter"] }
 uuid = { version = "1.8.0", features = ["serde"] }
 log = "0.4.21"
+futures = "0.3.30"
+axum-extra = { version = "0.9.3", features = ["typed-header"] }
+http = "1.1.0"

@@ -1,11 +1,11 @@
 use std::{env, fmt::Display};
 
+use crate::auth::oauth2::OAuth2Client;
+use crate::secrets::Secret;
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer};
-
-use crate::secrets::Secret;
 
 #[derive(Debug, Clone)]
 pub enum LogFmt {
@@ -78,6 +78,7 @@ pub struct Settings {
     pub host: String,
     pub port: u16,
     pub db: Secret<String>,
+    pub oauth2_clients: Vec<OAuth2Client>,
 }
 
 impl Settings {
