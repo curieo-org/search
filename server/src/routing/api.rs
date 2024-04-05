@@ -8,7 +8,7 @@ use tracing::Level;
 
 use crate::auth::models::PostgresBackend;
 use crate::startup::AppState;
-use crate::{auth, health_check, users};
+use crate::{auth, health_check, search, users};
 
 pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //sqlx::migrate!().run(&db).await?;
@@ -33,6 +33,8 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
 
     let api_routes = Router::new()
         //.nest("/search", search::routes())
+        //.layer(middleware::from_fn(some_auth_middleware))
+        .nest("/search", search::routes())
         .nest("/users", users::routes())
         .route_layer(login_required!(
             PostgresBackend,

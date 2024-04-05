@@ -4,6 +4,7 @@ use crate::settings::Settings;
 use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
+use redis::Client as RedisClient;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -44,14 +45,16 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
+    pub cache: RedisClient,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
 }
 
-impl From<(PgPool, Settings)> for AppState {
-    fn from((db, settings): (PgPool, Settings)) -> Self {
+impl From<(PgPool, RedisClient, Settings)> for AppState {
+    fn from((db, cache, settings): (PgPool, RedisClient, Settings)) -> Self {
         Self {
             db,
+            cache,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
         }
@@ -69,12 +72,22 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     }
 }
 
+pub async fn cache_connect(cache_url: &str) -> Result<RedisClient> {
+    match RedisClient::open(cache_url) {
+        Ok(client) => Ok(client),
+        Err(e) => Err(eyre!("Failed to connect to Redis: {}", e).into()),
+    }
+}
+
 async fn run(
     listener: TcpListener,
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
-    let state = AppState::from((db, settings));
+
+    let cache = cache_connect(settings.cache.expose()).await?;
+
+    let state = AppState::from((db, cache, settings));
 
     let app = router(state)?;
 

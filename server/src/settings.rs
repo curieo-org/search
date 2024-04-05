@@ -1,5 +1,4 @@
 use std::{env, fmt::Display};
-
 use crate::auth::oauth2::OAuth2Client;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};
@@ -78,6 +77,11 @@ pub struct Settings {
     pub host: String,
     pub port: u16,
     pub db: Secret<String>,
+    pub cache: Secret<String>,
+    pub rag_api: String,
+    pub rag_api_username: Secret<String>,
+    pub rag_api_password: Secret<String>,
+    pub cache_max_sorted_size: i64,
     pub oauth2_clients: Vec<OAuth2Client>,
 }
 

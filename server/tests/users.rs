@@ -10,6 +10,7 @@ use server::users::selectors::get_user;
 use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
+use server::startup::cache_connect;
 
 /// Helper function to create a GET request for a given URI.
 fn _send_get_request(uri: &str) -> Request<Body> {
@@ -47,7 +48,8 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
-    let state = AppState::from((pool, settings));
+    let cache = cache_connect(settings.cache.expose()).await.unwrap();
+    let state = AppState::from((pool, cache, settings));
     let router = router(state).unwrap();
 
     let form = &[
