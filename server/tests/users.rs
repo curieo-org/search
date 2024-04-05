@@ -1,25 +1,18 @@
 use axum::body::Body;
-use axum::extract::rejection::{
-    FailedToDeserializeForm, FailedToDeserializeFormBody, FormRejection, RawFormRejection,
-};
-use axum::extract::{FromRequest, RawForm};
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
-use axum::response::IntoResponse;
-use axum::RequestExt;
-use axum::{http, Form};
+use server::auth::models::RegisterUserRequest;
+use server::auth::register;
+use server::routing::router;
+use server::settings::Settings;
+use server::startup::AppState;
+use server::users::selectors::get_user;
+use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
 
-use server::auth::models::RegisterUserRequest;
-use server::routing::router;
-use server::secrets::Secret;
-use server::settings::Settings;
-use server::startup::{db_connect, AppState};
-use server::users::selectors::get_user;
-use server::users::services::register_user;
 /// Helper function to create a GET request for a given URI.
-fn send_get_request(uri: &str) -> Request<Body> {
+fn _send_get_request(uri: &str) -> Request<Body> {
     Request::builder()
         .uri(uri)
         .method("GET")
@@ -28,21 +21,20 @@ fn send_get_request(uri: &str) -> Request<Body> {
 }
 
 #[sqlx::test]
-async fn register_and_get_users_test(pool: PgPool) -> color_eyre::Result<()> {
+async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
     let user = get_user(pool.clone(), uuid::Uuid::nil()).await.unwrap();
     assert!(user.is_none());
 
-    let new_user = register_user(
+    let new_user = register(
         pool.clone(),
         RegisterUserRequest {
             email: "test-email".to_string(),
             username: "test-username".to_string(),
-            password_hash: Some("password".to_string()).into(),
+            password: Some("password".to_string().into()),
             access_token: Default::default(),
         },
     )
-    .await?
-    .unwrap();
+    .await?;
 
     let user = get_user(pool.clone(), new_user.user_id).await?.unwrap();
 
@@ -52,42 +44,41 @@ async fn register_and_get_users_test(pool: PgPool) -> color_eyre::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
-async fn register_users_works() {
+#[sqlx::test]
+async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
-
-    let db = db_connect(settings.db.expose())
-        .await
-        .expect("Failed to connect to Postgres.");
-
-    let state = AppState { db, settings };
+    let state = AppState::from((pool, settings));
     let router = router(state).unwrap();
 
     let form = &[
         ("email", "my-email@email.com"),
         ("username", "my-username"),
-        ("password_hash", "my-password"),
+        ("password", "my-password"),
     ];
-    let serialized_body = serde_urlencoded::to_string(&form).unwrap();
-    let request = Request::post("/api/users/register")
+    let serialized_body = serde_urlencoded::to_string(form).unwrap();
+    let request = Request::post("/api/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();
 
+    let response = router.clone().oneshot(request.clone()).await.unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+
+    // Doing the same thing again should return a 422 status code.
     let response = router.clone().oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 
     let form = &[
-        ("email", "my-email@email.com"),
-        ("username", "my-username"),
+        ("email", "another-email@email.com"),
+        ("username", "another-username"),
         ("access_token", "my-access-token"),
     ];
-    let serialized_body = serde_urlencoded::to_string(&form).unwrap();
-    let request = Request::post("/api/users/register")
+    let serialized_body = serde_urlencoded::to_string(form).unwrap();
+    let request = Request::post("/api/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();
 
     let response = router.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.status(), StatusCode::CREATED);
 }

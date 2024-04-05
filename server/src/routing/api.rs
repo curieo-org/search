@@ -6,11 +6,13 @@ use axum_login::{login_required, AuthManagerLayerBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
-use crate::auth::models::{OAuth2Clients, PostgresBackend};
+use crate::auth::models::PostgresBackend;
 use crate::startup::AppState;
 use crate::{auth, health_check, users};
 
 pub fn router(state: AppState) -> color_eyre::Result<Router> {
+    //sqlx::migrate!().run(&db).await?;
+
     // Session layer.
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
@@ -21,18 +23,16 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
         .with_same_site(SameSite::Lax) // Ensure we send the cookie from the OAuth redirect.
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 
-    //sqlx::migrate!().run(&db).await?;
-
     // Auth service.
     //
     // This combines the session layer with our backend to establish the auth
     // service which will provide the auth session as a request extension.
-    let oauth_clients = OAuth2Clients::default();
-    let backend = PostgresBackend::new(state.db.clone(), oauth_clients);
+
+    let backend = PostgresBackend::new(state.db.clone(), state.oauth2_clients.clone());
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
+
     let api_routes = Router::new()
         //.nest("/search", search::routes())
-        //.layer(middleware::from_fn(some_auth_middleware))
         .nest("/users", users::routes())
         .route_layer(login_required!(
             PostgresBackend,

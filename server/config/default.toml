@@ -4,3 +4,5 @@ port = 3030
 [log]
 level = "debug"
 format = "pretty"
+
+[[oauth2_clients]]

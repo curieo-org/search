@@ -10,11 +10,8 @@ use server::startup::{db_connect, AppState};
 async fn health_check_works() {
     let settings = Settings::new();
 
-    let db = db_connect(settings.db.expose())
-        .await
-        .expect("Failed to connect to Postgres.");
-
-    let state = AppState { db, settings };
+    let db = db_connect(settings.db.expose()).await.unwrap();
+    let state = AppState::from((db, settings));
 
     let router = router(state).unwrap();
     let request = Request::builder()

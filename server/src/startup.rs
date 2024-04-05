@@ -1,12 +1,12 @@
+use crate::auth::oauth2::OAuth2Client;
+use crate::routing::router;
+use crate::settings::Settings;
+use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-
-use crate::routing::router;
-use crate::settings::Settings;
-use crate::Result;
 
 pub struct Application {
     port: u16,
@@ -44,7 +44,18 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
+    pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
+}
+
+impl From<(PgPool, Settings)> for AppState {
+    fn from((db, settings): (PgPool, Settings)) -> Self {
+        Self {
+            db,
+            oauth2_clients: settings.oauth2_clients.clone(),
+            settings,
+        }
+    }
 }
 
 pub async fn db_connect(database_url: &str) -> Result<PgPool> {
@@ -63,8 +74,7 @@ async fn run(
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
-
-    let state = AppState { db, settings };
+    let state = AppState::from((db, settings));
 
     let app = router(state)?;
 

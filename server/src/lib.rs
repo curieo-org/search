@@ -11,6 +11,7 @@ pub mod settings;
 pub mod startup;
 mod telemetry;
 pub mod users;
+pub mod utils;
 
 pub type Result<T> = std::result::Result<T, err::AppError>;
 
