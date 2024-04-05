@@ -2,8 +2,7 @@ use crate::auth::BackendError;
 use crate::secrets::Secret;
 use crate::users::User;
 use password_auth::{generate_hash, verify_password};
-use sqlx::__rt::spawn_blocking;
-use tracing::debug;
+use tokio::task::spawn_blocking;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub fn verify_user_password(
@@ -22,18 +21,11 @@ pub fn verify_user_password(
             let Some(password_hash) = user.password_hash.expose() else {
                 return dummy_verify_password(password_candidate);
             };
-            debug!("password_hash: {:?}", password_hash);
 
             // If the user exists and has a password, we verify the password.
             match verify_password(password_candidate.expose(), password_hash.as_ref()) {
-                Ok(_) => {
-                    debug!("User authenticated: {:?}", user);
-                    Ok(Some(user))
-                }
-                _ => {
-                    debug!("User not authenticated");
-                    Ok(None)
-                }
+                Ok(_) => Ok(Some(user)),
+                _ => Ok(None),
             }
         }
     };
@@ -51,6 +43,6 @@ pub fn dummy_verify_password(pw: Secret<impl AsRef<[u8]>>) -> Result<Option<User
     Ok(None)
 }
 
-pub async fn hash_password(password: Secret<String>) -> Secret<String> {
-    spawn_blocking(move || Secret::new(generate_hash(password.expose().as_bytes()))).await
+pub async fn hash_password(password: Secret<String>) -> Result<Secret<String>, BackendError> {
+    Ok(spawn_blocking(move || Secret::new(generate_hash(password.expose().as_bytes()))).await?)
 }

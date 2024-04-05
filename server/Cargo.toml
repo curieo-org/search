@@ -54,3 +54,6 @@ uuid = { version = "1.8.0", features = ["serde", "v4"] }
 log = "0.4.21"
 redis = { version = "0.25.2", features = ["tokio-comp", "json"] }
 rand = "0.8.5"
+futures = "0.3.30"
+axum-extra = { version = "0.9.3", features = ["typed-header"] }
+http = "1.1.0"

@@ -1,9 +1,8 @@
-use std::error::Error;
-use std::fmt::{Debug, Display};
-
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sqlx::database::HasValueRef;
 use sqlx::{Decode, Postgres};
+use std::error::Error;
+use std::fmt::{Debug, Display};
 
 /// A wrapper around a value that should be kept secret
 /// when displayed. This is useful for fields like passwords
@@ -41,19 +40,13 @@ impl<T> Secret<T> {
     }
 }
 
-impl<T> Display for Secret<T>
-where
-    T: Default + Clone + Display,
-{
+impl<T> Display for Secret<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[redacted]")
     }
 }
 
-impl<T> Debug for Secret<T>
-where
-    T: Default + Clone + Debug,
-{
+impl<T> Debug for Secret<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[redacted]")
     }
@@ -61,7 +54,7 @@ where
 
 impl<T> sqlx::Type<Postgres> for Secret<T>
 where
-    T: Default + Clone + sqlx::Type<Postgres>,
+    T: sqlx::Type<Postgres>,
 {
     fn type_info() -> sqlx::postgres::PgTypeInfo {
         <T as sqlx::Type<Postgres>>::type_info()
@@ -70,7 +63,7 @@ where
 
 impl<T> sqlx::Decode<'_, Postgres> for Secret<T>
 where
-    for<'a> T: sqlx::Type<Postgres> + sqlx::Decode<'a, Postgres> + Default + Clone,
+    for<'a> T: sqlx::Type<Postgres> + sqlx::Decode<'a, Postgres>,
 {
     fn decode(
         value: <Postgres as HasValueRef<'_>>::ValueRef,
@@ -82,7 +75,7 @@ where
 
 impl<'de, T> Deserialize<'de> for Secret<T>
 where
-    T: Deserialize<'de> + Default + Clone + Debug,
+    T: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -94,7 +87,7 @@ where
 
 impl<T> Serialize for Secret<T>
 where
-    T: Serialize + Default + Clone + Debug,
+    T: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -106,10 +99,7 @@ where
     }
 }
 
-impl<T> From<T> for Secret<T>
-where
-    T: Default + Clone,
-{
+impl<T> From<T> for Secret<T> {
     fn from(s: T) -> Self {
         Self(s)
     }

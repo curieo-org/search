@@ -1,7 +1,9 @@
+use crate::auth::BackendError;
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use color_eyre::eyre::eyre;
 use sqlx::error::DatabaseError;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -52,6 +54,17 @@ impl From<sqlx::Error> for AppError {
 impl From<redis::RedisError> for AppError {
     fn from(inner: redis::RedisError) -> Self {
         AppError::Redis(inner)
+    }
+}
+
+impl From<BackendError> for AppError {
+    fn from(e: BackendError) -> Self {
+        match e {
+            BackendError::Sqlx(e) => AppError::Sqlx(e),
+            BackendError::Reqwest(e) => AppError::GenericError(eyre!(e)),
+            BackendError::OAuth2(e) => AppError::GenericError(eyre!(e)),
+            BackendError::TaskJoin(e) => AppError::GenericError(eyre!(e)),
+        }
     }
 }
 
