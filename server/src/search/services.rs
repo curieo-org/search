@@ -1,7 +1,10 @@
 use crate::err::AppError;
-use crate::search::{RAGTokenResponse, SearchHistory, SearchQueryRequest, SearchResponse};
+use crate::search::{
+    RAGTokenResponse, SearchHistory, SearchQueryRequest, SearchResponse, TopSearchRequest,
+};
 use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
+use rand::Rng;
 use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
 use reqwest::Client as ReqwestClient;
@@ -85,4 +88,34 @@ pub async fn insert_search_history(
     .map_err(|e| AppError::from(e))?;
 
     return Ok(search_history);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn get_top_searches(
+    cache: &mut MultiplexedConnection,
+    top_search_request: &TopSearchRequest,
+) -> crate::Result<Vec<String>> {
+    let random_number = rand::thread_rng().gen_range(0.0..1.0);
+    if random_number < 0.1 {
+        cache
+            .zremrangebyrank(
+                "search_history",
+                0,
+                -SETTINGS.cache_max_sorted_size as isize - 1,
+            )
+            .await
+            .map_err(|e| AppError::from(e))?;
+    }
+
+    let limit = top_search_request.limit.unwrap_or(10);
+    if limit < 1 || limit > 100 {
+        Err(eyre!("limit must be a number between 1 and 100"))?;
+    }
+
+    let top_searches: Vec<String> = cache
+        .zrevrange("search_queries", 0, limit as isize - 1)
+        .await
+        .map_err(|e| AppError::from(e))?;
+
+    return Ok(top_searches);
 }

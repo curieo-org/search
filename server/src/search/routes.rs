@@ -1,15 +1,12 @@
 use crate::err::AppError;
 use crate::search::services;
 use crate::search::{SearchHistory, SearchHistoryRequest, SearchQueryRequest, TopSearchRequest};
-use crate::settings::SETTINGS;
 use crate::startup::AppState;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
-use color_eyre::eyre::eyre;
-use rand::Rng;
 use redis::{AsyncCommands, Client as RedisClient};
 use sqlx::PgPool;
 
@@ -75,27 +72,7 @@ async fn get_top_searches_handler(
         .await
         .map_err(|e| AppError::from(e))?;
 
-    let random_number = rand::thread_rng().gen_range(0.0..1.0);
-    if random_number < 0.1 {
-        connection
-            .zremrangebyrank(
-                "search_history",
-                0,
-                -SETTINGS.cache_max_sorted_size as isize - 1,
-            )
-            .await
-            .map_err(|e| AppError::from(e))?;
-    }
-
-    let limit = query.limit.unwrap_or(10);
-    if limit < 1 || limit > 100 {
-        Err(eyre!("limit must be a number between 1 and 100"))?;
-    }
-
-    let top_searches: Vec<String> = connection
-        .zrevrange("search_queries", 0, limit as isize - 1)
-        .await
-        .map_err(|e| AppError::from(e))?;
+    let top_searches = services::get_top_searches(&mut connection, &query).await?;
 
     Ok((StatusCode::OK, Json(top_searches)))
 }
