@@ -82,6 +82,7 @@ pub struct Settings {
     pub rag_api: String,
     pub rag_api_username: Secret<String>,
     pub rag_api_password: Secret<String>,
+    pub cache_max_sorted_size: i64,
 }
 
 impl Settings {

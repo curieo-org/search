@@ -4,6 +4,11 @@ use sqlx::FromRow;
 use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct TopSearchRequest {
+    pub limit: Option<i64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RAGTokenResponse {
     pub access_token: String,
     pub token_type: String,

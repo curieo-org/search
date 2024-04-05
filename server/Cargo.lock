@@ -2111,6 +2111,7 @@ dependencies = [
  "oauth2",
  "once_cell",
  "password-auth",
+ "rand",
  "redis",
  "reqwest 0.12.1",
  "serde",

@@ -11,6 +11,8 @@ name = "server"
 path = "src/main.rs"
 
 [dependencies]
+
+
 anyhow = { version = "1.0.81", features = ["backtrace"] }
 async-trait = "0.1.78"
 axum = { version = "0.7.4", features = ["macros"] }
@@ -51,3 +53,4 @@ tracing-subscriber = { version = "0.3.18", features = [
 uuid = { version = "1.8.0", features = ["serde", "v4"] }
 log = "0.4.21"
 redis = { version = "0.25.2", features = ["tokio-comp", "json"] }
+rand = "0.8.5"
