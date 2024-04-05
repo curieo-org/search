@@ -1,6 +1,7 @@
 use crate::err::AppError;
 use crate::search::{
-    RAGTokenResponse, SearchHistory, SearchQueryRequest, SearchResponse, TopSearchRequest,
+    RAGTokenResponse, SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchResponse,
+    TopSearchRequest,
 };
 use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
@@ -84,6 +85,26 @@ pub async fn insert_search_history(
         &search_response.sources
     )
     .fetch_one(pool)
+    .await
+    .map_err(|e| AppError::from(e))?;
+
+    return Ok(search_history);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn get_search_history(
+    pool: &PgPool,
+    user_id: &Uuid,
+    search_history_request: &SearchHistoryRequest,
+) -> crate::Result<Vec<SearchHistory>> {
+    let search_history = sqlx::query_as!(
+        SearchHistory,
+        "select * from search_history where user_id = $1 order by created_at desc limit $2 offset $3",
+        user_id,
+        search_history_request.limit.unwrap_or(10) as i64,
+        search_history_request.offset.unwrap_or(0) as i64
+    )
+    .fetch_all(pool)
     .await
     .map_err(|e| AppError::from(e))?;
 

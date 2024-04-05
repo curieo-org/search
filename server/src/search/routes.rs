@@ -1,8 +1,8 @@
 use crate::err::AppError;
-use crate::users::User;
 use crate::search::services;
-use crate::search::{SearchHistory, SearchHistoryRequest, SearchQueryRequest, TopSearchRequest};
+use crate::search::{SearchHistoryRequest, SearchQueryRequest, TopSearchRequest};
 use crate::startup::AppState;
+use crate::users::User;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -51,16 +51,8 @@ async fn get_search_history_handler(
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_history = sqlx::query_as!(
-        SearchHistory,
-        "select * from search_history where user_id = $1 order by created_at desc limit $2 offset $3",
-        user_id,
-        search_history_request.limit.unwrap_or(10) as i64,
-        search_history_request.offset.unwrap_or(0) as i64
-    )
-    .fetch_all(&pool)
-    .await
-    .map_err(|e| AppError::from(e))?;
+    let search_history =
+        services::get_search_history(&pool, &user_id, &search_history_request).await?;
 
     Ok((StatusCode::OK, Json(search_history)))
 }
