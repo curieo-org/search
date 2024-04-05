@@ -1,5 +1,4 @@
 use std::{env, fmt::Display};
-
 use crate::auth::oauth2::OAuth2Client;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};

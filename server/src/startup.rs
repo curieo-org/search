@@ -45,15 +45,16 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
-    pub cache: redis::Client,
+    pub cache: RedisClient,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
 }
 
-impl From<(PgPool, Settings)> for AppState {
-    fn from((db, settings): (PgPool, Settings)) -> Self {
+impl From<(PgPool, RedisClient, Settings)> for AppState {
+    fn from((db, cache, settings): (PgPool, RedisClient, Settings)) -> Self {
         Self {
             db,
+            cache,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
         }
@@ -86,12 +87,7 @@ async fn run(
 
     let cache = cache_connect(settings.cache.expose()).await?;
 
-    let state = AppState {
-        db,
-        cache,
-        settings,
-    };
-    let state = AppState::from((db, settings));
+    let state = AppState::from((db, cache, settings));
 
     let app = router(state)?;
 
