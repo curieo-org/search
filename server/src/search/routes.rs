@@ -16,14 +16,22 @@ async fn get_search_handler(
     State(cache): State<RedisClient>,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
+    let user_id = uuid::Uuid::parse_str("78c4c766-f310-11ee-a6ee-5f4062fc15f2").unwrap();
+
     let mut connection = cache
         .get_multiplexed_async_connection()
         .await
         .map_err(|e| AppError::from(e))?;
 
     let search_response = services::search(&mut connection, &search_query).await?;
-    services::insert_search_history(&pool, &mut connection, &search_query, &search_response)
-        .await?;
+    services::insert_search_history(
+        &pool,
+        &mut connection,
+        &user_id,
+        &search_query,
+        &search_response,
+    )
+    .await?;
 
     Ok((StatusCode::OK, Json(search_response)))
 }
@@ -33,9 +41,12 @@ async fn get_search_history_handler(
     State(pool): State<PgPool>,
     Query(search_history_request): Query<SearchHistoryRequest>,
 ) -> crate::Result<impl IntoResponse> {
+    let user_id = uuid::Uuid::parse_str("78c4c766-f310-11ee-a6ee-5f4062fc15f2").unwrap();
+
     let search_history = sqlx::query_as!(
         SearchHistory,
-        "select * from search_history order by created_at desc limit $1 offset $2",
+        "select * from search_history where user_id = $1 order by created_at desc limit $2 offset $3",
+        user_id,
         search_history_request.limit.unwrap_or(10) as i64,
         search_history_request.offset.unwrap_or(0) as i64
     )

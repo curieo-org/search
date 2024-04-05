@@ -29,7 +29,7 @@ pub struct SearchResponse {
 #[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
 pub struct SearchHistory {
     pub search_history_id: uuid::Uuid,
-    // pub user_id: uuid::Uuid,
+    pub user_id: uuid::Uuid,
     pub query: String,
     pub result: String,
     pub sources: Vec<String>,

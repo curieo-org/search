@@ -6,6 +6,7 @@ use redis::aio::MultiplexedConnection;
 use redis::AsyncCommands;
 use reqwest::Client as ReqwestClient;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
@@ -58,6 +59,7 @@ pub async fn search(
 pub async fn insert_search_history(
     pool: &PgPool,
     cache: &mut MultiplexedConnection,
+    user_id: &Uuid,
     search_query: &SearchQueryRequest,
     search_response: &SearchResponse,
 ) -> crate::Result<SearchHistory> {
@@ -72,9 +74,10 @@ pub async fn insert_search_history(
 
     let search_history = sqlx::query_as!(
         SearchHistory,
-        "insert into search_history (query, result, sources) values ($1, $2, $3) returning *",
-        &search_query.query,
-        &search_response.result,
+        "insert into search_history (user_id, query, result, sources) values ($1, $2, $3, $4) returning *",
+        user_id,
+        search_query.query,
+        search_response.result,
         &search_response.sources
     )
     .fetch_one(pool)
