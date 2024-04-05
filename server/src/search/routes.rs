@@ -1,4 +1,5 @@
 use crate::err::AppError;
+use crate::users::User;
 use crate::search::services;
 use crate::search::{SearchHistory, SearchHistoryRequest, SearchQueryRequest, TopSearchRequest};
 use crate::startup::AppState;
@@ -14,9 +15,10 @@ use sqlx::PgPool;
 async fn get_search_handler(
     State(pool): State<PgPool>,
     State(cache): State<RedisClient>,
+    user: User,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    let user_id = uuid::Uuid::parse_str("78c4c766-f310-11ee-a6ee-5f4062fc15f2").unwrap();
+    let user_id = user.user_id;
 
     let mut connection = cache
         .get_multiplexed_async_connection()
@@ -44,9 +46,10 @@ async fn get_search_handler(
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_history_handler(
     State(pool): State<PgPool>,
+    user: User,
     Query(search_history_request): Query<SearchHistoryRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    let user_id = uuid::Uuid::parse_str("78c4c766-f310-11ee-a6ee-5f4062fc15f2").unwrap();
+    let user_id = user.user_id;
 
     let search_history = sqlx::query_as!(
         SearchHistory,
