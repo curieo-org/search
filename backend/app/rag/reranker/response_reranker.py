@@ -8,17 +8,17 @@ from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
 from app.services.search_utility import setup_logger
-from app.config import EMBEDDING_RERANK_API, RERANK_TOP_COUNT
+from app.settings import RerankSettings
 
 TAG_RE = re.compile(r'<[^>]+>')
 
-
 logger = setup_logger("TextEmbeddingInferenceRerankEngine")
+
 
 class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
     """
     The class extends the BaseNodePostprocessor class, aimed at reranking nodes (elements) based on text embedding inference.
-    This class is part of a larger framework, likely for processing and analyzing data within a specific domain, 
+    This class is part of a larger framework, likely for processing and analyzing data within a specific domain,
     such as document retrieval or search engine optimization. Here's an overview of the class and its components:
     """
     model: str = Field(
@@ -29,13 +29,15 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
 
     def __init__(
         self,
+        settings: RerankSettings,
         top_n: int = 2,
         model: str = "BAAI/bge-reranker-large"
     ):
         super().__init__(top_n=top_n, model=model)
+        self.api = settings.api
+        self.top_count = settings.top_count
         self.model = model
         self._session = requests.Session()
-        
 
     @classmethod
     def class_name(cls) -> str:
@@ -47,7 +49,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         query_bundle: Optional[QueryBundle] = None,
     ) -> List[NodeWithScore]:
         """
-        This method takes a list of nodes (each represented by a NodeWithScore object) and an optional QueryBundle object. 
+        This method takes a list of nodes (each represented by a NodeWithScore object) and an optional QueryBundle object.
         It performs the reranking operation by:
         -- Validating the input.
         -- Extracting text from each node, removing HTML tags.
@@ -63,17 +65,20 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         with self.callback_manager.event(
             CBEventType.RERANKING
         ) as event:
-            logger.info("TextEmbeddingInferenceRerankEngine.postprocess_nodes query: " + query_bundle.query_str)
+            logger.info(
+                "TextEmbeddingInferenceRerankEngine.postprocess_nodes query: "
+                + query_bundle.query_str
+            )
             texts = [TAG_RE.sub('', node.get_content()) for node in nodes]
             results = self._session.post(  # type: ignore
-                EMBEDDING_RERANK_API,
+                self.api,
                 json={
                     "query": query_bundle.query_str,
                     "truncate": True,
                     "texts": texts
                 },
             ).json()
-            
+
             if len(results) == 0:
                 raise RuntimeError(results["detail"])
 
@@ -85,4 +90,4 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
                 new_nodes.append(new_node_with_score)
             event.on_end(payload={EventPayload.NODES: new_nodes})
 
-        return new_nodes[:RERANK_TOP_COUNT]
+        return new_nodes[:self.top_count]

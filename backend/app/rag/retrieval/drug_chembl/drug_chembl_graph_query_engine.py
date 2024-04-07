@@ -1,10 +1,10 @@
+import json
 from llama_index.core.query_pipeline import (
     QueryPipeline as QP,
     InputComponent,
     FnComponent,
 )
 from llama_index.llms.openai import OpenAI
-
 from llama_index.core.prompts import PromptTemplate, PromptType
 from llama_index.core import VectorStoreIndex
 from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
@@ -15,19 +15,12 @@ from llama_index.core.objects import (
     ObjectIndex,
 )
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
-
 import os
 from pathlib import Path
 from typing import List
-from app.database.nebula_graph import NebulaGraph
-
-from app.config import (
-    OPENAI_API_KEY,
-    DRUG_CHEMBL_TABLE_INFO_DIR,
-    EMBEDDING_MODEL_API,
-    EMBEDDING_MODEL_NAME,
-)
+from app.database.nebula_graph import get_nebula_graph_client
 from app.services.search_utility import setup_logger
+from app.settings import Settings
 
 logger = setup_logger("DrugChEMBLText2CypherEngine")
 
@@ -38,15 +31,15 @@ class DrugChEMBLText2CypherEngine:
     Then it executes the cypher query in the graph database and return the result.
     """
 
-    def __init__(self, config):
-        self.config = config
-        self.graph_storage = NebulaGraph()
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.graph_storage = get_nebula_graph_client(settings.nebula_graph)
 
-        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(OPENAI_API_KEY))
+        self.llm = OpenAI(model="gpt-3.5-turbo", api_key=str(settings.openai.api_key))
 
         self.table_schema_objs = self.get_all_table_info()
         self.embed_model = TextEmbeddingsInference(
-            base_url=EMBEDDING_MODEL_API, model_name=EMBEDDING_MODEL_NAME
+            base_url=settings.embedding.api, model_name=settings.embedding.model
         )
         self.table_node_mapping = SimpleObjectNodeMapping.from_objects(
             self.table_schema_objs
@@ -93,7 +86,7 @@ class DrugChEMBLText2CypherEngine:
                 if end_index == -1:
                     break
 
-                query_list.append(queries[start_index + 3 : end_index])
+                query_list.append(queries[start_index + 3: end_index])
 
                 start_index = queries.find("```", end_index + 3)
 
@@ -117,23 +110,23 @@ class DrugChEMBLText2CypherEngine:
 
         return results
 
-    def _get_table_info_with_index(self, idx: int) -> dict:
-        results_gen = Path(DRUG_CHEMBL_TABLE_INFO_DIR).glob(f"{idx}_*")
+    def _get_table_info_with_index(self, idx: int) -> dict | None:
+        results_gen = Path(self.settings.table_info_dir.drug_chembl).glob(
+            f"{idx}_*")
         results_list = list(results_gen)
 
-        if len(results_list) == 0:
-            return None
+        if not results_list:
+            return
+
         elif len(results_list) == 1:
             path = results_list[0]
-            with open(path, "r") as f:
-                table_info = f.read()
-                table_dict = eval(table_info)
-                return table_dict
+            with open(path, "r") as source:
+                return json.load(source)
         else:
             raise ValueError(f"More than one file matching index: {list(results_gen)}")
 
     def get_all_table_info(self):
-        file_counts = len(os.listdir(DRUG_CHEMBL_TABLE_INFO_DIR))
+        file_counts = len(os.listdir(self.settings.table_info_dir.drug_chembl))
         table_infos = []
 
         for i in range(file_counts):
@@ -230,7 +223,7 @@ class DrugChEMBLText2CypherEngine:
 
         return qp
 
-    async def call_text2cypher(self, search_text:str) -> str:
+    async def call_text2cypher(self, search_text: str) -> str:
         try:
             logger.info(f"call_text2cypher search_text: {search_text}")
 
@@ -239,8 +232,9 @@ class DrugChEMBLText2CypherEngine:
             logger.info(f"call_text2cypher response: {str(response)}")
 
         except Exception as ex:
-            logger.exception("call_text2cypher Exception -", exc_info = ex, stack_info=True)
-            
+            logger.exception("call_text2cypher Exception -", exc_info=ex,
+                             stack_info=True)
+
             raise ex
 
         return response

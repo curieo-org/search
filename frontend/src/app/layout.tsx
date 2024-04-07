@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { Providers, PosthogProvider } from "./_components/providers"
-import Image from 'next/image';
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Providers, PosthogProvider } from "./_components/providers";
+import Image from "next/image";
 import "./globals.css";
-import dynamic from 'next/dynamic'
+import dynamic from "next/dynamic";
 
-const BODY_PADDING = "px-4 sm:px-6"
+const BODY_PADDING = "px-4 sm:px-6";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   description: "Next generation healthcare search engine",
 };
 
-const PostHogPageView = dynamic(() => import('./PostHogPageView'), {
+const PostHogPageView = dynamic(() => import("./PostHogPageView"), {
   ssr: false,
-})
+});
 
 export default function RootLayout({
   children,
@@ -28,16 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <PosthogProvider>
-        <body className={cn(inter.className, "antialiased bg-gray-100")}>
+        <body className={cn(inter.className, "bg-gray-100 antialiased")}>
           <header
             className={cn(
-              "top-0 sticky z-20 w-full py-3 bg-gray-100 flex flex-row flex-nowrap justify-between max-w-5xl mx-auto h-14 items-stretch animate-in fade-in slide-in-from-top-4 duration-1000 ease-in-out",
-              BODY_PADDING
+              "animate-in fade-in slide-in-from-top-4 sticky top-0 z-20 mx-auto flex h-14 w-full max-w-5xl flex-row flex-nowrap items-stretch justify-between bg-gray-100 py-3 duration-1000 ease-in-out",
+              BODY_PADDING,
             )}
           >
-
             <Link
-              className="text-black text-lg font-medium flex flex-row flex-nowrap items-center justify-center gap-x-1.5 pr-1.5 leading-none rounded-lg"
+              className="flex flex-row flex-nowrap items-center justify-center gap-x-1.5 rounded-lg pr-1.5 text-lg font-medium leading-none text-black"
               href="/"
             >
               <Image
@@ -49,7 +48,12 @@ export default function RootLayout({
               <span>Curieo</span>
             </Link>
           </header>
-          <main className={cn("min-h-screen flex items-stretch flex-col pb-28 max-w-5xl mx-auto", BODY_PADDING)}>
+          <main
+            className={cn(
+              "mx-auto flex min-h-screen max-w-5xl flex-col items-stretch pb-28",
+              BODY_PADDING,
+            )}
+          >
             <PostHogPageView />
             {children}
           </main>
@@ -57,5 +61,5 @@ export default function RootLayout({
         </body>
       </PosthogProvider>
     </html>
-  )
+  );
 }

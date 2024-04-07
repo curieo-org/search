@@ -1,26 +1,18 @@
-from fastapi import (APIRouter, Depends, HTTPException)
+from fastapi import (APIRouter, HTTPException)
 from fastapi.responses import JSONResponse
 from fastapi_versioning import version
-from authx import AuthX, AuthXConfig
 import sentry_sdk
 import json
-
 from app.api.common.util import RouteCategory
-from app.database.redis import Redis
 from app.api.router.gzip import GzipRoute
 from app.router.orchestrator import Orchestrator
-from app.config import config, JWT_SECRET_KEY, JWT_ALGORITHM
+from app.settings import Settings
 from app.services.search_utility import setup_logger
+from app.database.redis import get_redis_client
 
 router = APIRouter()
 router.route_class = GzipRoute
-
-auth_config = AuthXConfig()
-auth_config.JWT_ALGORITHM = JWT_ALGORITHM
-auth_config.JWT_SECRET_KEY = str(JWT_SECRET_KEY)
-
-security = AuthX(config=auth_config)
-orchestrator = Orchestrator(config)
+orchestrator = Orchestrator(settings=Settings())
 
 logger = setup_logger("Search_Endpoint")
 
@@ -29,13 +21,12 @@ logger = setup_logger("Search_Endpoint")
     "/search",
     summary="List all Search Results",
     description="List all Search Results",
-    dependencies=[Depends(security.access_token_required)],
     response_model=dict[str, str],
 )
 @version(1, 0)
 async def get_search_results(
     query: str = "",
-    routecategory: RouteCategory = RouteCategory.PBW
+    route_category: RouteCategory = RouteCategory.PBW
 ) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
         trace_transaction.set_tag("title", 'api_get_search_results')
@@ -43,19 +34,22 @@ async def get_search_results(
     logger.info(f"get_search_results. query: {query}")
 
     query = query.strip()
-    cache = Redis()
-    cache_key = f"{query}##{routecategory}"
+    cache = get_redis_client()
+    cache_key = f"{query}##{route_category}"
     search_result = await cache.get_value(cache_key)
 
     if search_result:
         search_result = json.loads(search_result)
         logger.info(f"get_search_results. cached_result: {search_result}")
     else:
-        search_result = await orchestrator.query_and_get_answer(search_text=query, routecategory=routecategory)
+        search_result = await orchestrator.query_and_get_answer(
+            search_text=query,
+            routecategory=route_category
+        )
     await cache.set_value(cache_key, json.dumps(search_result))
 
     await cache.add_to_sorted_set("searched_queries", query)
-    
+
     logger.info(f"get_search_results. result: {search_result}")
 
     return JSONResponse(status_code=200, content=search_result)
@@ -65,7 +59,6 @@ async def get_search_results(
     "/topqueries",
     summary="List all top search queries",
     description="List all Top Search Queries",
-    dependencies=[Depends(security.access_token_required)],
     response_model=list[str],
 )
 @version(1, 0)
@@ -80,9 +73,9 @@ async def get_top_search_queries(
     if limit <= 0:
         raise HTTPException(status_code=400, detail="Limit should be greater than 0")
 
-    cache = Redis()
+    cache = get_redis_client()
     last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
-    
+
     logger.info(f"get_top_search_queries. result: {last_x_keys}")
 
     return JSONResponse(status_code=200, content=last_x_keys)
