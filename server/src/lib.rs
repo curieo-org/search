@@ -3,6 +3,7 @@ use settings::SETTINGS;
 use startup::Application;
 
 pub mod auth;
+pub mod cache;
 mod err;
 mod health_check;
 pub mod routing;
