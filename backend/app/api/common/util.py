@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class RouteCategory(str, Enum):
     CT = "clinicaltrials"
     DRUG = "drug"

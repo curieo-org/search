@@ -1,23 +1,19 @@
 import json
-from llama_index.core.query_pipeline import (
-    QueryPipeline as QP,
-    InputComponent,
-    FnComponent,
-)
-from llama_index.llms.openai import OpenAI
-from llama_index.core.prompts import PromptTemplate, PromptType
-from llama_index.core import VectorStoreIndex
-from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
-    DEFAULT_NEBULAGRAPH_NL2CYPHER_PROMPT_TMPL,
-)
-from llama_index.core.objects import (
-    SimpleObjectNodeMapping,
-    ObjectIndex,
-)
-from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 import os
 from pathlib import Path
 from typing import List
+
+from llama_index.core import VectorStoreIndex
+from llama_index.core.objects import ObjectIndex, SimpleObjectNodeMapping
+from llama_index.core.prompts import PromptTemplate, PromptType
+from llama_index.core.query_pipeline import FnComponent, InputComponent
+from llama_index.core.query_pipeline import QueryPipeline as QP
+from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
+from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
+    DEFAULT_NEBULAGRAPH_NL2CYPHER_PROMPT_TMPL,
+)
+from llama_index.llms.openai import OpenAI
+
 from app.database.nebula_graph import get_nebula_graph_client
 from app.services.search_utility import setup_logger
 from app.settings import Settings
@@ -69,9 +65,7 @@ class DrugChEMBLText2CypherEngine:
         self.qp = self.build_query_pipeline()
 
     def execute_graph_query(self, queries):
-        logger.info(
-            f"execute_graph_query queries: {queries}"
-        )
+        logger.info(f"execute_graph_query queries: {queries}")
         queries = str(queries).strip()
         query_list = []
 
@@ -86,13 +80,11 @@ class DrugChEMBLText2CypherEngine:
                 if end_index == -1:
                     break
 
-                query_list.append(queries[start_index + 3: end_index])
+                query_list.append(queries[start_index + 3 : end_index])
 
                 start_index = queries.find("```", end_index + 3)
 
-        logger.info(
-            f"execute_graph_query query_list: {query_list}"
-        )
+        logger.info(f"execute_graph_query query_list: {query_list}")
         results = []
 
         for query in query_list:
@@ -104,15 +96,12 @@ class DrugChEMBLText2CypherEngine:
             result_dict = self.graph_storage.execute_query(query)
             results.append(result_dict)
 
-        logger.info(
-            f"execute_graph_query results: {results}"
-        )
+        logger.info(f"execute_graph_query results: {results}")
 
         return results
 
     def _get_table_info_with_index(self, idx: int) -> dict | None:
-        results_gen = Path(self.settings.table_info_dir.drug_chembl).glob(
-            f"{idx}_*")
+        results_gen = Path(self.settings.table_info_dir.drug_chembl).glob(f"{idx}_*")
         results_list = list(results_gen)
 
         if not results_list:
@@ -133,9 +122,7 @@ class DrugChEMBLText2CypherEngine:
             table_info = self._get_table_info_with_index(i)
             table_infos.append(table_info)
 
-        logger.info(
-            f"get_all_table_info table_infos: {len(table_infos)}"
-        )
+        logger.info(f"get_all_table_info table_infos: {len(table_infos)}")
         return table_infos
 
     def get_table_context_str(self, table_schema_objs: List[dict[str, str]]) -> str:
@@ -174,9 +161,7 @@ class DrugChEMBLText2CypherEngine:
 
             response_str += " ## ".join(record_in_list) + "\n"
 
-        logger.info(
-            f"cypher_output_parser response_str: {response_str}"
-        )
+        logger.info(f"cypher_output_parser response_str: {response_str}")
         return response_str
 
     def build_query_pipeline(self):
@@ -232,8 +217,9 @@ class DrugChEMBLText2CypherEngine:
             logger.info(f"call_text2cypher response: {str(response)}")
 
         except Exception as ex:
-            logger.exception("call_text2cypher Exception -", exc_info=ex,
-                             stack_info=True)
+            logger.exception(
+                "call_text2cypher Exception -", exc_info=ex, stack_info=True
+            )
 
             raise ex
 

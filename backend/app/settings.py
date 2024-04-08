@@ -1,10 +1,5 @@
 # Load environment variables from .env file
-from pydantic import (
-    BaseModel,
-    RedisDsn,
-    SecretStr,
-)
-
+from pydantic import BaseModel, RedisDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -67,7 +62,9 @@ class RerankSettings(BaseSettings):
 
 
 class TableInfoDirSettings(BaseSettings):
-    clinical_trials: str = "app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo"
+    clinical_trials: str = (
+        "app/rag/retrieval/clinical_trials/AACTTableQuestions_TableInfo"
+    )
     drug_chembl: str = "app/rag/retrieval/drug_chembl/ChEMBLTableQuestions_TableInfo"
 
 
@@ -144,8 +141,9 @@ class AIModelsSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8',
-                                      env_nested_delimiter='__')
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
+    )
 
     postgres_engine: SecretStr
     project: ProjectSettings = ProjectSettings()
@@ -165,6 +163,7 @@ class Settings(BaseSettings):
     llama_index: LlamaIndexSettings
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
+
 
 # print(Settings().model_dump())
 # settings = Settings()

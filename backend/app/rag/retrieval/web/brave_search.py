@@ -1,6 +1,6 @@
 from typing import List
-import requests
 
+import requests
 from llama_index.core.schema import TextNode
 
 from app.services.search_utility import setup_logger
@@ -22,23 +22,22 @@ class BraveSearchQueryEngine:
     def __init__(self, settings: BraveSettings):
         self.settings = settings
 
-    async def call_brave_search_api(
-        self,
-        search_text: str
-    ) -> List[TextNode]:
+    async def call_brave_search_api(self, search_text: str) -> List[TextNode]:
         logger.info("call_brave_search_api. query: " + search_text)
 
-        endpoint = ("{url_address}?count={count}&q={"
-                    "search_text}&search_lang=en&extra_snippets=True").format(
+        endpoint = (
+            "{url_address}?count={count}&q={"
+            "search_text}&search_lang=en&extra_snippets=True"
+        ).format(
             url_address=self.settings.api_root,
             count=self.settings.result_count,
-            search_text=search_text
+            search_text=search_text,
         )
 
         headers = {
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip',
-            'X-Subscription-Token': str(self.settings.subscription_key)
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": str(self.settings.subscription_key),
         }
         results = []
 
@@ -48,25 +47,26 @@ class BraveSearchQueryEngine:
 
             response = requests.get(endpoint, headers=headers)
             response.raise_for_status()
-            web_response = response.json().get('web').get('results')
+            web_response = response.json().get("web").get("results")
 
             if web_response:
                 results = [
                     TextNode(
-                        text=resp.get('description') + ''.join(
-                            resp.get('extra_snippets') if resp.get(
-                                'extra_snippets') else ''),
-                        metadata={
-                            "url": resp['url'],
-                            "page_age": resp.get('page_age')
-                        }
+                        text=resp.get("description")
+                        + "".join(
+                            resp.get("extra_snippets")
+                            if resp.get("extra_snippets")
+                            else ""
+                        ),
+                        metadata={"url": resp["url"], "page_age": resp.get("page_age")},
                     )
                     for resp in web_response
                 ]
 
         except Exception as ex:
-            logger.exception("call_brave_search_api Exception -", exc_info=ex,
-                             stack_info=True)
+            logger.exception(
+                "call_brave_search_api Exception -", exc_info=ex, stack_info=True
+            )
             raise ex
 
         logger.info("call_brave_search_api. result: " + str(results))

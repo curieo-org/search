@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from app.settings import Settings
+
 from app.api import api
 from app.api.errors.http_error import http_error_handler
 from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
-from app.middleware.process_time import ProcessTimeHeaderMiddleware
 from app.database.redis import init_redis_client
+from app.middleware.process_time import ProcessTimeHeaderMiddleware
 from app.services.tracing import setup_tracing
+from app.settings import Settings
 
 
 def get_application() -> FastAPI:
@@ -14,8 +15,9 @@ def get_application() -> FastAPI:
     redis_settings = settings.redis
 
     application = FastAPI(
-        title=settings.project.name, debug=settings.project.debug,
-        version=settings.project.version
+        title=settings.project.name,
+        debug=settings.project.debug,
+        version=settings.project.version,
     )
 
     # Initialize redis client at app level

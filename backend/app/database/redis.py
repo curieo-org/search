@@ -1,7 +1,8 @@
 import logging
+import random
 
 import redis.asyncio as aioredis
-import random
+
 from app.settings import RedisSettings
 
 
@@ -23,10 +24,9 @@ class Redis:
 
         value = await self.connection.get(key)
 
-        return str(value, 'utf-8') if value else None
+        return str(value, "utf-8") if value else None
 
-    async def set_value(self, key: str, value: str,
-                        expire: int | None = None) -> None:
+    async def set_value(self, key: str, value: str, expire: int | None = None) -> None:
         if not expire:
             expire = self.max_age
         await self.connection.set(key, value, ex=expire)
@@ -37,12 +37,11 @@ class Redis:
     async def get_sorted_set(self, space: str, start: int, stop: int) -> list[str]:
         random_number = random.random()
         if random_number < 0.1:
-            await self.connection.zremrangebyrank(space, 0,
-                                                  -self.max_sorted_set - 1)
+            await self.connection.zremrangebyrank(space, 0, -self.max_sorted_set - 1)
 
         values = await self.connection.zrevrange(space, start, stop, withscores=False)
 
-        return [str(value, 'utf-8') for value in values]
+        return [str(value, "utf-8") for value in values]
 
 
 _redis_client: Redis | None = None
@@ -62,10 +61,12 @@ def init_redis_client(settings: RedisSettings) -> Redis:
     """
     global _redis_client
     if not _redis_client:
-        _redis_client = Redis(url=settings.url,
-                              max_age=settings.max_age,
-                              max_sorted_set=settings.max_sorted_set)
+        _redis_client = Redis(
+            url=settings.url,
+            max_age=settings.max_age,
+            max_sorted_set=settings.max_sorted_set,
+        )
     else:
         logging.warning("Tried initializing redis client more than once, skipping ...")
-    
+
     return _redis_client

@@ -1,14 +1,14 @@
 import collections
 import json
+from urllib.parse import urlparse
 
 import pydantic
 import requests
-from urllib.parse import urlparse
 
 from app.services.search_utility import setup_logger
 from app.settings import Settings
 
-logger = setup_logger('ResponseSynthesisEngine')
+logger = setup_logger("ResponseSynthesisEngine")
 
 
 class ResponseSynthesisRecord(pydantic.BaseModel):
@@ -68,53 +68,50 @@ class ResponseSynthesisEngine:
         return prompt, urls
 
     async def call_llm_service_api(
-        self,
-        search_text: str,
-        reranked_results: collections.defaultdict[list]
+        self, search_text: str, reranked_results: collections.defaultdict[list]
     ) -> ResponseSynthesisRecord:
         logger.info("call_llm_service_api. search_text: " + search_text)
-        logger.info("call_llm_service_api. reranked_results length: " + str(
-            len(reranked_results)))
+        logger.info(
+            "call_llm_service_api. reranked_results length: "
+            + str(len(reranked_results))
+        )
 
         try:
             headers = {
-                'Authorization': self.together.api_key.get_secret_value(),
-                'accept': 'application/json',
-                'content-type': 'application/json'
+                "Authorization": self.together.api_key.get_secret_value(),
+                "accept": "application/json",
+                "content-type": "application/json",
             }
 
             prompt, urls = self.get_prompt_v3(search_text, reranked_results)
 
-            payload = json.dumps({
-                "model": self.together.model,
-                "prompt": "<s>[INST] " + prompt + " [/INST]",
-                "max_tokens": 1024,
-                "stop": [
-                    "</s>",
-                    "[/INST]"
-                ],
-                "temperature": 0.1,
-                "top_p": 0.7,
-                "top_k": 50,
-                "repetition_penalty": 1,
-                "n": 1
-            })
+            payload = json.dumps(
+                {
+                    "model": self.together.model,
+                    "prompt": "<s>[INST] " + prompt + " [/INST]",
+                    "max_tokens": 1024,
+                    "stop": ["</s>", "[/INST]"],
+                    "temperature": 0.1,
+                    "top_p": 0.7,
+                    "top_k": 50,
+                    "repetition_penalty": 1,
+                    "n": 1,
+                }
+            )
 
             response = requests.request(
-                "POST",
-                self.together.api_root,
-                headers=headers,
-                data=payload
+                "POST", self.together.api_root, headers=headers, data=payload
             )
 
         except Exception as ex:
-            logger.exception("call_llm_service_api Exception -", exc_info=ex,
-                             stack_info=True)
+            logger.exception(
+                "call_llm_service_api Exception -", exc_info=ex, stack_info=True
+            )
             raise ex
 
         logger.info("call_llm_service_api. response: " + response.text)
 
         return ResponseSynthesisRecord(
             result=self.clean_response_text(response.json()["choices"][0]["text"]),
-            source=list(urls)
+            source=list(urls),
         )

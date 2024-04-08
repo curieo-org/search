@@ -20,10 +20,12 @@ class RouterModuleQA(dspy.Signature):
     '3. useful only for retrieving the drug related information like molecular
     weights,similarities,smile codes, target medicines, effects on other medicine':
     '3'}"""
+
     question = dspy.InputField(desc="Question to be routed to route")
     answer = dspy.OutputField(
         desc="route option should be integer without any additional explaination",
-        prefix="The route number to the question is:")
+        prefix="The route number to the question is:",
+    )
 
 
 class RouterModule(dspy.Module):

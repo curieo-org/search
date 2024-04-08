@@ -1,7 +1,7 @@
-from typing import Any, List, Optional
-import requests
 import re
+from typing import Any, List, Optional
 
+import requests
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.callbacks import CBEventType, EventPayload
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
@@ -10,7 +10,7 @@ from llama_index.core.schema import NodeWithScore, QueryBundle
 from app.services.search_utility import setup_logger
 from app.settings import RerankSettings
 
-TAG_RE = re.compile(r'<[^>]+>')
+TAG_RE = re.compile(r"<[^>]+>")
 
 logger = setup_logger("TextEmbeddingInferenceRerankEngine")
 
@@ -21,6 +21,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
     This class is part of a larger framework, likely for processing and analyzing data within a specific domain,
     such as document retrieval or search engine optimization. Here's an overview of the class and its components:
     """
+
     model: str = Field(
         default="BAAI/bge-reranker-large",
         description="The model to use when calling AI API",
@@ -31,7 +32,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         self,
         settings: RerankSettings,
         top_n: int = 2,
-        model: str = "BAAI/bge-reranker-large"
+        model: str = "BAAI/bge-reranker-large",
     ):
         super().__init__(top_n=top_n, model=model)
         self.api = settings.api
@@ -62,20 +63,18 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         if len(nodes) == 0:
             return []
 
-        with self.callback_manager.event(
-            CBEventType.RERANKING
-        ) as event:
+        with self.callback_manager.event(CBEventType.RERANKING) as event:
             logger.info(
                 "TextEmbeddingInferenceRerankEngine.postprocess_nodes query: "
                 + query_bundle.query_str
             )
-            texts = [TAG_RE.sub('', node.get_content()) for node in nodes]
+            texts = [TAG_RE.sub("", node.get_content()) for node in nodes]
             results = self._session.post(  # type: ignore
                 self.api,
                 json={
                     "query": query_bundle.query_str,
                     "truncate": True,
-                    "texts": texts
+                    "texts": texts,
                 },
             ).json()
 
@@ -90,4 +89,4 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
                 new_nodes.append(new_node_with_score)
             event.on_end(payload={EventPayload.NODES: new_nodes})
 
-        return new_nodes[:self.top_count]
+        return new_nodes[: self.top_count]

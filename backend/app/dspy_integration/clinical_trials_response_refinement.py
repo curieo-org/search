@@ -3,6 +3,7 @@ import dspy
 
 class ResponseSynthesizerModuleQA(dspy.Signature):
     """Given the input question synthesizes the response from query results"""
+
     question = dspy.InputField(desc="Question which used to generate sql query")
     sql = dspy.InputField(desc="SQL query for question")
     database_output = dspy.InputField(desc="Database output for the given sql query")
@@ -17,8 +18,10 @@ class ResponseSynthesizerModule(dspy.Module):
         self.generate_answer = dspy.ChainOfThought(ResponseSynthesizerModuleQA)
 
     def forward(self, question, sql, database_output):
-        prediction = self.generate_answer(question=question, sql=sql,
-                                          database_output=database_output)
+        prediction = self.generate_answer(
+            question=question, sql=sql, database_output=database_output
+        )
         return dspy.Prediction(answer=prediction.answer)
+
 
 # /Users/som/Downloads/code/search/backend/.venv/lib/python3.11/site-packages/dsp/primitives/predict.py

@@ -1,9 +1,9 @@
 from contextlib import contextmanager
-from typing import Generator, Any
+from typing import Any, Generator
 
-from nebula3.gclient.net import ConnectionPool, Session
 from nebula3.Config import Config
 from nebula3.data.ResultSet import ResultSet
+from nebula3.gclient.net import ConnectionPool, Session
 
 from app.settings import NebulaGraphSettings
 
@@ -101,7 +101,7 @@ def get_nebula_graph_client(settings: NebulaGraphSettings) -> NebulaGraph:
             port=settings.port,
             user=str(settings.user),
             password=str(settings.password),
-            space=settings.space
+            space=settings.space,
         )
 
     return _nebula_graph_client

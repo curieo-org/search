@@ -1,14 +1,16 @@
-from fastapi import (APIRouter, HTTPException)
+import json
+
+import sentry_sdk
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_versioning import version
-import sentry_sdk
-import json
+
 from app.api.common.util import RouteCategory
 from app.api.router.gzip import GzipRoute
-from app.router.orchestrator import Orchestrator
-from app.settings import Settings
-from app.services.search_utility import setup_logger
 from app.database.redis import get_redis_client
+from app.router.orchestrator import Orchestrator
+from app.services.search_utility import setup_logger
+from app.settings import Settings
 
 router = APIRouter()
 router.route_class = GzipRoute
@@ -25,11 +27,10 @@ logger = setup_logger("Search_Endpoint")
 )
 @version(1, 0)
 async def get_search_results(
-    query: str = "",
-    route_category: RouteCategory = RouteCategory.PBW
+    query: str = "", route_category: RouteCategory = RouteCategory.PBW
 ) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
-        trace_transaction.set_tag("title", 'api_get_search_results')
+        trace_transaction.set_tag("title", "api_get_search_results")
 
     logger.info(f"get_search_results. query: {query}")
 
@@ -43,8 +44,7 @@ async def get_search_results(
         logger.info(f"get_search_results. cached_result: {search_result}")
     else:
         search_result = await orchestrator.query_and_get_answer(
-            search_text=query,
-            routecategory=route_category
+            search_text=query, routecategory=route_category
         )
     await cache.set_value(cache_key, json.dumps(search_result))
 
@@ -62,11 +62,9 @@ async def get_search_results(
     response_model=list[str],
 )
 @version(1, 0)
-async def get_top_search_queries(
-    limit: int
-) -> JSONResponse:
+async def get_top_search_queries(limit: int) -> JSONResponse:
     if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
-        trace_transaction.set_tag("title", 'api_get_top_search_queries')
+        trace_transaction.set_tag("title", "api_get_top_search_queries")
 
     logger.info("get_top_search_queries")
 

@@ -2,8 +2,8 @@ from fastapi import APIRouter
 
 from app.api.router.gzip import GzipRoute
 
-from .endpoints import search_endpoint
 from .auth import routes as auth_routes
+from .endpoints import search_endpoint
 
 router = APIRouter()
 router.route_class = GzipRoute
