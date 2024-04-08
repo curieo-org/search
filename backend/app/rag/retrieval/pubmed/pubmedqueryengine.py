@@ -6,7 +6,7 @@ from llama_index.core.schema import NodeWithScore
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
+from qdrant_client import AsyncQdrantClient
 
 from app.services.search_utility import setup_logger
 from app.settings import Settings
@@ -27,7 +27,7 @@ class PubmedSearchQueryEngine:
 
         qdrant_settings = settings.qdrant
 
-        self.client = QdrantClient(
+        self.client = AsyncQdrantClient(
             url=qdrant_settings.api_url,
             port=qdrant_settings.api_port,
             api_key=qdrant_settings.api_key.get_secret_value(),
@@ -35,7 +35,7 @@ class PubmedSearchQueryEngine:
         )
 
         self.vector_store = QdrantVectorStore(
-            client=self.client,
+            aclient=self.client,
             collection_name=qdrant_settings.collection_name,
             enable_hybrid=True,
             batch_size=20,
@@ -55,11 +55,11 @@ class PubmedSearchQueryEngine:
         logger.info("PubmedSearchQueryEngine.call_pubmed_vectors query: " + search_text)
 
         try:
-            response = [
+            return [
                 n
                 for n in self.retriever.retrieve(search_text)
                 if n.score >= float(self.relevance_criteria)
             ]
-        except Exception as ex:
-            raise ex
-        return response
+        except Exception as e:
+            logger.exception("Pubmed search failed", e)
+            return []
