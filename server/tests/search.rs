@@ -1,6 +1,5 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
-use server::cache::CacheSettings;
 use server::search::{
     get_search_history, get_top_searches, insert_search_history, search, update_search_reaction,
 };
@@ -17,13 +16,7 @@ use uuid::Uuid;
 #[sqlx::test]
 async fn search_test() -> Result<()> {
     let settings = Settings::new();
-    let cache_settings = CacheSettings {
-        cache_url: settings.cache_url.expose().to_string(),
-        enabled: settings.cache_enabled,
-        ttl: settings.cache_ttl,
-        max_sorted_size: settings.cache_max_sorted_size,
-    };
-    let cache = cache_connect(&cache_settings).await?;
+    let cache = cache_connect(&settings.cache).await?;
 
     let search_query = SearchQueryRequest {
         session_id: Some(Uuid::new_v4()),
@@ -40,13 +33,7 @@ async fn search_test() -> Result<()> {
 #[sqlx::test]
 async fn top_searches_test() -> Result<()> {
     let settings = Settings::new();
-    let cache_settings = CacheSettings {
-        cache_url: settings.cache_url.expose().to_string(),
-        enabled: settings.cache_enabled,
-        ttl: settings.cache_ttl,
-        max_sorted_size: settings.cache_max_sorted_size,
-    };
-    let cache = cache_connect(&cache_settings).await?;
+    let cache = cache_connect(&settings.cache).await?;
 
     let top_search_query = TopSearchRequest { limit: Some(1) };
 
@@ -61,13 +48,7 @@ async fn top_searches_test() -> Result<()> {
 #[sqlx::test]
 async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
     let settings = Settings::new();
-    let cache_settings = CacheSettings {
-        cache_url: settings.cache_url.expose().to_string(),
-        enabled: settings.cache_enabled,
-        ttl: settings.cache_ttl,
-        max_sorted_size: settings.cache_max_sorted_size,
-    };
-    let cache = cache_connect(&cache_settings).await?;
+    let cache = cache_connect(&settings.cache).await?;
 
     let new_user = register(
         pool.clone(),
@@ -117,13 +98,7 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
     let settings = Settings::new();
-    let cache_settings = CacheSettings {
-        cache_url: settings.cache_url.expose().to_string(),
-        enabled: settings.cache_enabled,
-        ttl: settings.cache_ttl,
-        max_sorted_size: settings.cache_max_sorted_size,
-    };
-    let cache = cache_connect(&cache_settings).await?;
+    let cache = cache_connect(&settings.cache).await?;
 
     let new_user = register(
         pool.clone(),
