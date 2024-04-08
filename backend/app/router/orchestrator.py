@@ -3,7 +3,6 @@ import re
 
 import dspy
 import pydantic
-import together
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
@@ -11,12 +10,6 @@ from llama_index.llms.together import TogetherLLM
 from app.api.common.util import RouteCategory
 from app.dspy_integration.router_prompt import RouterModule
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
-from app.rag.retrieval.clinical_trials.clinical_trial_sql_query_engine import (
-    ClinicalTrialText2SQLEngine,
-)
-from app.rag.retrieval.drug_chembl.drug_chembl_graph_query_engine import (
-    DrugChEMBLText2CypherEngine,
-)
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.services.search_utility import setup_logger
@@ -41,20 +34,21 @@ class Orchestrator:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.llm = dspy.OpenAI(
-            model=str(settings.ai_models.router), api_key=str(settings.openai.api_key)
+            model=settings.ai_models.router,
+            api_key=settings.openai.api_key.get_secret_value(),
         )
         dspy.settings.configure(lm=self.llm)
         self.router = RouterModule()
         self.router.load(settings.dspy.orchestrator_router_prompt_program)
 
-        self.clinical_trial_search = ClinicalTrialText2SQLEngine(settings)
-        self.drug_chembl_search = DrugChEMBLText2CypherEngine(settings)
+        # self.clinical_trial_search = ClinicalTrialText2SQLEngine(settings)
+        # self.drug_chembl_search = DrugChEMBLText2CypherEngine(settings)
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
     async def query_and_get_answer(
         self, search_text: str, route_category: RouteCategory = RouteCategory.PBW
-    ) -> SearchResultRecord:
+    ) -> SearchResultRecord | None:
         # search router call
         logger.info(
             f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
@@ -76,6 +70,8 @@ class Orchestrator:
                 )
             logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
 
+        # TODO: Enable once stable and infallible
+        """
         # routing
         if router_id == 0 or route_category == RouteCategory.CT:
             # clinical trial call
@@ -99,8 +95,11 @@ class Orchestrator:
                     stack_info=True,
                 )
                 pass
+        """
 
-        elif router_id == 1 or route_category == RouteCategory.DRUG:
+        # TODO: Enable once stable and infallible
+        """
+        if router_id == 1 or route_category == RouteCategory.DRUG:
             # drug information call
             logger.info(
                 "Orchestrator.query_and_get_answer.router_id drug_information_choice "
@@ -124,41 +123,50 @@ class Orchestrator:
                     exc_info=e,
                     stack_info=True,
                 )
+        """
 
         # if routing fails, sql and cypher calls fail, routing to pubmed or brave
         logger.info("Orchestrator.query_and_get_answer.router_id Fallback Entered.")
-
-        extracted_pubmed_results, extracted_web_results = await asyncio.gather(
-            self.pubmed_search.call_pubmed_vectors(search_text=search_text),
-            self.brave_search.call_brave_search_api(search_text=search_text),
-        )
-        extracted_results = extracted_pubmed_results + extracted_web_results
-        logger.info(
-            f"Orchestrator.query_and_get_answer.extracted_results count: {len(extracted_pubmed_results), len(extracted_web_results)}"
-        )
-
-        # rerank call
-        rerank_engine = TextEmbeddingInferenceRerankEngine(
-            settings=self.settings.reranking, top_n=2
-        )
-
-        reranked_results = rerank_engine.postprocess_nodes(
-            nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text)
-        )
-
-        summarizer = SimpleSummarize(
-            llm=TogetherLLM(
-                model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                api_key=str(together.api_key),
+        try:
+            extracted_pubmed_results, extracted_web_results = await asyncio.gather(
+                self.pubmed_search.call_pubmed_vectors(search_text=search_text),
+                self.brave_search.call_brave_search_api(search_text=search_text),
             )
-        )
-        result = summarizer.get_response(
-            query_str=search_text,
-            text_chunks=[
-                TAG_RE.sub("", node.get_content()) for node in reranked_results
-            ],
-        )
+            extracted_results = extracted_pubmed_results + extracted_web_results
+            logger.info(
+                f"Orchestrator.query_and_get_answer.extracted_results count: "
+                f"{len(extracted_pubmed_results), len(extracted_web_results)}"
+            )
 
-        sources = [node.node.metadata for node in reranked_results]
+            # rerank call
+            rerank_engine = TextEmbeddingInferenceRerankEngine(
+                settings=self.settings.reranking, top_n=2
+            )
 
-        return SearchResultRecord(result=result, sources=sources)
+            reranked_results = rerank_engine.postprocess_nodes(
+                nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text)
+            )
+
+            summarizer = SimpleSummarize(
+                llm=TogetherLLM(
+                    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                    api_key=self.settings.together.api_key.get_secret_value(),
+                )
+            )
+            result = summarizer.get_response(
+                query_str=search_text,
+                text_chunks=[
+                    TAG_RE.sub("", node.get_content()) for node in reranked_results
+                ],
+            )
+
+            sources = [node.node.metadata for node in reranked_results]
+
+            return SearchResultRecord(result=result, sources=sources)
+        except Exception as e:
+            logger.exception(
+                "Orchestrator.query_and_get_answer.fallback failed: ",
+                exc_info=e,
+                stack_info=True,
+            )
+            return None

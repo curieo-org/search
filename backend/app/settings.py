@@ -1,5 +1,5 @@
 # Load environment variables from .env file
-from pydantic import RedisDsn, SecretStr
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -77,7 +77,7 @@ class NebulaGraphSettings(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
-    url: RedisDsn
+    url: SecretStr
     max_age: int = 86400
     max_sorted_set: int = 100
 

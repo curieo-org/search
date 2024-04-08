@@ -68,6 +68,4 @@ def get_application() -> FastAPI:
     return application
 
 
-if __name__ == "__main__":
-    app = get_application()
-    app.run(debug=True, port=5006)
+app = get_application()

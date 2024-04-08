@@ -30,7 +30,7 @@ class PubmedSearchQueryEngine:
         self.client = QdrantClient(
             url=qdrant_settings.api_url,
             port=qdrant_settings.api_port,
-            api_key=str(qdrant_settings.top_k),
+            api_key=qdrant_settings.api_key.get_secret_value(),
             https=False,  # TODO: use https in prod
         )
 
@@ -43,8 +43,8 @@ class PubmedSearchQueryEngine:
 
         self.retriever = VectorIndexRetriever(
             index=VectorStoreIndex.from_vector_store(vector_store=self.vector_store),
-            similarity_top_k=int(qdrant_settings.top_k),
-            sparse_top_k=int(qdrant_settings.sparse_top_k),
+            similarity_top_k=qdrant_settings.top_k,
+            sparse_top_k=qdrant_settings.sparse_top_k,
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
             embed_model=TextEmbeddingsInference(
                 base_url=settings.embedding.api, model_name=""  # TODO: is "" correct?

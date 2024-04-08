@@ -61,7 +61,7 @@ def init_redis_client(settings: RedisSettings) -> Redis:
     global _redis_client
     if not _redis_client:
         _redis_client = Redis(
-            url=settings.url,
+            url=settings.url.get_secret_value(),
             max_age=settings.max_age,
             max_sorted_set=settings.max_sorted_set,
         )

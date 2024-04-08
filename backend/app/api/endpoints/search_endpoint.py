@@ -37,22 +37,22 @@ async def get_search_results(
     query = query.strip()
     cache = get_redis_client()
     cache_key = f"{query}##{route_category}"
-    search_result = await cache.get_value(cache_key)
 
-    if search_result:
-        search_result = json.loads(search_result)
-        logger.info(f"get_search_results. cached_result: {search_result}")
-    else:
-        search_result = await orchestrator.query_and_get_answer(
-            search_text=query, route_category=route_category
-        )
-    await cache.set_value(cache_key, json.dumps(search_result))
+    if search_result := await cache.get_value(cache_key):
+        return JSONResponse(status_code=200, content=search_result)
 
-    await cache.add_to_sorted_set("searched_queries", query)
+    if search_result := await orchestrator.query_and_get_answer(
+        search_text=query, route_category=route_category
+    ):
+        await cache.set_value(cache_key, json.dumps(search_result))
 
-    logger.info(f"get_search_results. result: {search_result}")
+        await cache.add_to_sorted_set("searched_queries", query)
 
-    return JSONResponse(status_code=200, content=search_result)
+        logger.info(f"get_search_results. result: {search_result}")
+
+        return JSONResponse(status_code=200, content=search_result)
+
+    return JSONResponse(status_code=500, content={"message": "Search failed"})
 
 
 @router.get(

@@ -17,7 +17,7 @@ from app.settings import SentrySettings
 
 def setup_tracing(settings: SentrySettings):
     sentry_sdk.init(
-        dsn=str(settings.dsn),
+        dsn=settings.dsn.get_secret_value(),
         enable_tracing=settings.enable_tracing,
         integrations=[
             AsyncioIntegration(),
@@ -27,7 +27,7 @@ def setup_tracing(settings: SentrySettings):
         ],
     )
 
-    if settings.project.environment == "production":
+    if settings.environment == "production":
         resource = Resource(attributes={})
         tracer_provider = trace_sdk.TracerProvider(resource=resource)
         span_exporter = OTLPSpanExporter(endpoint=settings.phoenix_api)

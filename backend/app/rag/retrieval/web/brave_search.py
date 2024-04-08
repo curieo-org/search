@@ -11,12 +11,15 @@ logger = setup_logger("BraveSearchQueryEngine")
 
 class BraveSearchQueryEngine:
     """
-    The BraveSearchQueryEngine class is a utility for interacting with the Brave search API within a larger application framework,
-    likely aimed at providing search capabilities or integrating search results into an application's functionality.
-    It abstracts the details of making API requests, handling responses, and error logging, providing a simple interface
-    (call_brave_search_api) for obtaining processed search results in an asynchronous manner.
-    This class leverages a configuration object for flexibility, allowing it to adapt to different settings or
-    requirements without changing the core implementation.
+    The BraveSearchQueryEngine class is a utility for interacting with the Brave
+    search API within a larger application framework, likely aimed at providing
+    search capabilities or integrating search results into an application's
+    functionality. It abstracts the details of making API requests, handling
+    responses, and error logging, providing a simple interface (call_brave_search_api)
+    for obtaining processed search results in an asynchronous manner.
+    This class leverages a configuration object for flexibility, allowing it
+    to adapt to different settings or requirements without changing the core
+    implementation.
     """
 
     def __init__(self, settings: BraveSettings):
@@ -37,7 +40,7 @@ class BraveSearchQueryEngine:
         headers = {
             "Accept": "application/json",
             "Accept-Encoding": "gzip",
-            "X-Subscription-Token": str(self.settings.subscription_key),
+            "X-Subscription-Token": self.settings.subscription_key.get_secret_value(),
         }
         results = []
 
@@ -52,12 +55,7 @@ class BraveSearchQueryEngine:
             if web_response:
                 results = [
                     TextNode(
-                        text=resp.get("description")
-                        + "".join(
-                            resp.get("extra_snippets")
-                            if resp.get("extra_snippets")
-                            else ""
-                        ),
+                        text=resp.get("description") + resp.get("extra_snippets", ""),
                         metadata={"url": resp["url"], "page_age": resp.get("page_age")},
                     )
                     for resp in web_response
