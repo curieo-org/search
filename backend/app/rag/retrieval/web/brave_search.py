@@ -40,9 +40,10 @@ class BraveSearchQueryEngine:
         headers = {
             "Accept": "application/json",
             "Accept-Encoding": "gzip",
-            "X-Subscription-Token": self.settings.subscription_key.get_secret_value(),
+            "X-Subscription-Token": str(
+                self.settings.subscription_key.get_secret_value()
+            ),
         }
-        results = []
 
         try:
             logger.info("call_brave_search_api. endpoint: " + endpoint)
@@ -53,7 +54,7 @@ class BraveSearchQueryEngine:
             web_response = response.json().get("web").get("results")
 
             if web_response:
-                results = [
+                return [
                     TextNode(
                         text=resp.get("description") + resp.get("extra_snippets", ""),
                         metadata={"url": resp["url"], "page_age": resp.get("page_age")},
@@ -61,11 +62,6 @@ class BraveSearchQueryEngine:
                     for resp in web_response
                 ]
 
-        except Exception as ex:
-            logger.exception(
-                "call_brave_search_api Exception -", exc_info=ex, stack_info=True
-            )
-            raise ex
-
-        logger.info("call_brave_search_api. result: " + str(results))
-        return results
+        except Exception as e:
+            logger.exception("Brave search failed", exc_info=e, stack_info=True)
+            return []
