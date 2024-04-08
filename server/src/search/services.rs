@@ -1,8 +1,8 @@
 use crate::cache::{Cache, CacheFn};
 use crate::err::AppError;
 use crate::search::{
-    RAGTokenResponse, SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchResponse,
-    TopSearchRequest,
+    RAGTokenResponse, SearchHistory, SearchHistoryRequest, SearchQueryRequest,
+    SearchReactionRequest, SearchResponse, TopSearchRequest,
 };
 use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
@@ -61,10 +61,13 @@ pub async fn insert_search_history(
 ) -> crate::Result<SearchHistory> {
     cache.set(&search_query.query, search_response).await?;
 
+    let session_id = search_query.session_id.unwrap_or(Uuid::new_v4());
+
     let search_history = sqlx::query_as!(
         SearchHistory,
-        "insert into search_history (user_id, query, result, sources) values ($1, $2, $3, $4) returning *",
+        "insert into search_history (user_id, session_id, query, result, sources) values ($1, $2, $3, $4, $5) returning *",
         user_id,
+        &session_id,
         search_query.query,
         search_response.result,
         &search_response.sources
@@ -114,4 +117,24 @@ pub async fn get_top_searches(
     let top_searches: Vec<String> = cache.zrevrange("search_history", 1, limit).await?;
 
     return Ok(top_searches);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn update_search_reaction(
+    pool: &PgPool,
+    user_id: &Uuid,
+    search_reaction_request: &SearchReactionRequest,
+) -> crate::Result<SearchHistory> {
+    let search_history = sqlx::query_as!(
+        SearchHistory,
+        "update search_history set reaction = $1 where search_history_id = $2 and user_id = $3 returning *",
+        search_reaction_request.reaction,
+        search_reaction_request.search_history_id,
+        user_id
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| AppError::from(e))?;
+
+    return Ok(search_history);
 }
