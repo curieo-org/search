@@ -1,5 +1,5 @@
 # Load environment variables from .env file
-from pydantic import BaseModel, RedisDsn, SecretStr
+from pydantic import RedisDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,7 +27,7 @@ class BraveSettings(BaseSettings):
     result_count: int = 10
 
 
-class TogetherPromptConfig(BaseModel):
+class TogetherPromptConfig(BaseSettings):
     max_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.7

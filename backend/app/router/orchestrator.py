@@ -2,6 +2,7 @@ import asyncio
 import re
 
 import dspy
+import pydantic
 import together
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
@@ -23,6 +24,11 @@ from app.settings import Settings
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
+
+
+class SearchResultRecord(pydantic.BaseModel):
+    result: str
+    sources: list[str]
 
 
 class Orchestrator:
@@ -47,8 +53,8 @@ class Orchestrator:
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
     async def query_and_get_answer(
-        self, search_text: str, routecategory: RouteCategory = RouteCategory.PBW
-    ) -> dict[str, str]:
+        self, search_text: str, route_category: RouteCategory = RouteCategory.PBW
+    ) -> SearchResultRecord:
         # search router call
         logger.info(
             f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
@@ -58,7 +64,7 @@ class Orchestrator:
         router_id = -1
 
         # user not specified
-        if routecategory == RouteCategory.NS:
+        if route_category == RouteCategory.NS:
             logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
             try:
                 router_id = int(self.router(search_text).answer)
@@ -71,7 +77,7 @@ class Orchestrator:
             logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
 
         # routing
-        if router_id == 0 or routecategory == RouteCategory.CT:
+        if router_id == 0 or route_category == RouteCategory.CT:
             # clinical trial call
             logger.info(
                 "Orchestrator.query_and_get_answer.router_id clinical trial Entered."
@@ -81,11 +87,11 @@ class Orchestrator:
                     search_text=search_text
                 )
                 result = str(sql_response)
-                sources = result  # TODO
+                sources = [result]  # TODO: clinical trial sql sources impl
 
-                logger.info(f"sql_response: {result} and {sources}")
+                logger.info(f"sql_response: {result}")
 
-                return {"result": result, "sources": sources}
+                return SearchResultRecord(result=result, sources=sources)
             except Exception as e:
                 logger.exception(
                     "Orchestrator.query_and_get_answer.sqlResponse Exception -",
@@ -94,26 +100,27 @@ class Orchestrator:
                 )
                 pass
 
-        elif router_id == 1 or routecategory == RouteCategory.DRUG:
+        elif router_id == 1 or route_category == RouteCategory.DRUG:
             # drug information call
             logger.info(
                 "Orchestrator.query_and_get_answer.router_id drug_information_choice "
                 "Entered."
             )
             try:
-                cypherResponse = await self.drug_chembl_search.call_text2cypher(
+                cypher_response = await self.drug_chembl_search.call_text2cypher(
                     search_text=search_text
                 )
-                result = str(cypherResponse)
-                sources = result
+                result = str(cypher_response)
+                sources = [result]  # TODO: chembl cypher sources impl
                 logger.info(
-                    f"Orchestrator.query_and_get_answer.cypherResponse cypherResponse: {result}"
+                    f"Orchestrator.query_and_get_answer.cypher_response "
+                    f"cypher_response: {result}"
                 )
 
-                return {"result": result, "sources": sources}
+                return SearchResultRecord(result=result, sources=sources)
             except Exception as e:
                 logger.exception(
-                    "Orchestrator.query_and_get_answer.cypherResponse Exception -",
+                    "Orchestrator.query_and_get_answer.cypher_response Exception -",
                     exc_info=e,
                     stack_info=True,
                 )
@@ -154,4 +161,4 @@ class Orchestrator:
 
         sources = [node.node.metadata for node in reranked_results]
 
-        return {"result": result, "sources": sources}
+        return SearchResultRecord(result=result, sources=sources)

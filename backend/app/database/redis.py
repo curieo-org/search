@@ -21,7 +21,6 @@ class Redis:
         await self.connection.close()
 
     async def get_value(self, key: str) -> str:
-
         value = await self.connection.get(key)
 
         return str(value, "utf-8") if value else None

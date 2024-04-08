@@ -44,7 +44,7 @@ async def get_search_results(
         logger.info(f"get_search_results. cached_result: {search_result}")
     else:
         search_result = await orchestrator.query_and_get_answer(
-            search_text=query, routecategory=route_category
+            search_text=query, route_category=route_category
         )
     await cache.set_value(cache_key, json.dumps(search_result))
 
