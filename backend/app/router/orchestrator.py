@@ -46,6 +46,16 @@ class Orchestrator:
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
+        self.rerank_engine = TextEmbeddingInferenceRerankEngine.from_settings(
+            settings=self.settings.reranking
+        )
+        self.summarizer = SimpleSummarize(
+            llm=TogetherLLM(
+                model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                api_key=self.settings.together.api_key.get_secret_value(),
+            )
+        )
+
     async def query_and_get_answer(
         self, search_text: str, route_category: RouteCategory = RouteCategory.PBW
     ) -> SearchResultRecord | None:
@@ -138,22 +148,15 @@ class Orchestrator:
                 f"{len(extracted_pubmed_results), len(extracted_web_results)}"
             )
 
-            # rerank call
-            rerank_engine = TextEmbeddingInferenceRerankEngine(
-                settings=self.settings.reranking, top_n=2
-            )
+            if not extracted_results:
+                return None
 
-            reranked_results = rerank_engine.postprocess_nodes(
+            # rerank call
+            reranked_results = self.rerank_engine.postprocess_nodes(
                 nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text)
             )
 
-            summarizer = SimpleSummarize(
-                llm=TogetherLLM(
-                    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                    api_key=self.settings.together.api_key.get_secret_value(),
-                )
-            )
-            result = summarizer.get_response(
+            result = self.summarizer.get_response(
                 query_str=search_text,
                 text_chunks=[
                     TAG_RE.sub("", node.get_content()) for node in reranked_results
@@ -163,6 +166,7 @@ class Orchestrator:
             sources = [node.node.metadata for node in reranked_results]
 
             return SearchResultRecord(result=result, sources=sources)
+
         except Exception as e:
             logger.exception(
                 "Orchestrator.query_and_get_answer.fallback failed: ",
