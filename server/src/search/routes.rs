@@ -1,4 +1,4 @@
-use crate::err::AppError;
+use crate::cache::Cache;
 use crate::search::services;
 use crate::search::{SearchHistoryRequest, SearchQueryRequest, TopSearchRequest};
 use crate::startup::AppState;
@@ -8,37 +8,24 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
-use redis::{AsyncCommands, Client as RedisClient};
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_handler(
     State(pool): State<PgPool>,
-    State(cache): State<RedisClient>,
+    State(cache): State<Cache>,
     user: User,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let mut connection = cache
-        .get_multiplexed_async_connection()
-        .await
-        .map_err(|e| AppError::from(e))?;
+    let search_response = services::search(&cache, &search_query).await?;
+    services::insert_search_history(&pool, &cache, &user_id, &search_query, &search_response)
+        .await?;
 
-    let search_response = services::search(&mut connection, &search_query).await?;
-    services::insert_search_history(
-        &pool,
-        &mut connection,
-        &user_id,
-        &search_query,
-        &search_response,
-    )
-    .await?;
-
-    connection
+    cache
         .zincr("search_queries", &search_query.query, 1)
-        .await
-        .map_err(|e| AppError::from(e))?;
+        .await?;
 
     Ok((StatusCode::OK, Json(search_response)))
 }
@@ -59,15 +46,10 @@ async fn get_search_history_handler(
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_top_searches_handler(
-    State(cache): State<RedisClient>,
+    State(cache): State<Cache>,
     Query(query): Query<TopSearchRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    let mut connection = cache
-        .get_multiplexed_async_connection()
-        .await
-        .map_err(|e| AppError::from(e))?;
-
-    let top_searches = services::get_top_searches(&mut connection, &query).await?;
+    let top_searches = services::get_top_searches(&cache, &query).await?;
 
     Ok((StatusCode::OK, Json(top_searches)))
 }

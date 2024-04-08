@@ -3,14 +3,15 @@ use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
+use server::cache::CacheSettings;
 use server::routing::router;
 use server::settings::Settings;
+use server::startup::cache_connect;
 use server::startup::AppState;
 use server::users::selectors::get_user;
 use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
-use server::startup::cache_connect;
 
 /// Helper function to create a GET request for a given URI.
 fn _send_get_request(uri: &str) -> Request<Body> {
@@ -48,7 +49,13 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
-    let cache = cache_connect(settings.cache.expose()).await.unwrap();
+    let cache_settings = CacheSettings {
+        cache_url: settings.cache_url.expose().to_string(),
+        enabled: settings.cache_enabled,
+        ttl: settings.cache_ttl,
+        max_sorted_size: settings.cache_max_sorted_size,
+    };
+    let cache = cache_connect(&cache_settings).await.unwrap();
     let state = AppState::from((pool, cache, settings));
     let router = router(state).unwrap();
 

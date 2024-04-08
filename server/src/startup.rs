@@ -1,10 +1,10 @@
 use crate::auth::oauth2::OAuth2Client;
+use crate::cache::{Cache, CacheSettings};
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
-use redis::Client as RedisClient;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -45,13 +45,13 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
-    pub cache: RedisClient,
+    pub cache: Cache,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
 }
 
-impl From<(PgPool, RedisClient, Settings)> for AppState {
-    fn from((db, cache, settings): (PgPool, RedisClient, Settings)) -> Self {
+impl From<(PgPool, Cache, Settings)> for AppState {
+    fn from((db, cache, settings): (PgPool, Cache, Settings)) -> Self {
         Self {
             db,
             cache,
@@ -72,11 +72,10 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     }
 }
 
-pub async fn cache_connect(cache_url: &str) -> Result<RedisClient> {
-    match RedisClient::open(cache_url) {
-        Ok(client) => Ok(client),
-        Err(e) => Err(eyre!("Failed to connect to Redis: {}", e).into()),
-    }
+pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
+    let cache_client = Cache::new(cache_settings).await?;
+
+    Ok(cache_client)
 }
 
 async fn run(
@@ -85,7 +84,13 @@ async fn run(
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
 
-    let cache = cache_connect(settings.cache.expose()).await?;
+    let cache_settings = CacheSettings {
+        cache_url: settings.cache_url.expose().to_string(),
+        enabled: settings.cache_enabled,
+        ttl: settings.cache_ttl,
+        max_sorted_size: settings.cache_max_sorted_size,
+    };
+    let cache = cache_connect(&cache_settings).await?;
 
     let state = AppState::from((db, cache, settings));
 
