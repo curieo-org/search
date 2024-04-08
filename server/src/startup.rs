@@ -84,13 +84,7 @@ async fn run(
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
 
-    let cache_settings = CacheSettings {
-        cache_url: settings.cache_url.expose().to_string(),
-        enabled: settings.cache_enabled,
-        ttl: settings.cache_ttl,
-        max_sorted_size: settings.cache_max_sorted_size,
-    };
-    let cache = cache_connect(&cache_settings).await?;
+    let cache = cache_connect(&settings.cache).await?;
 
     let state = AppState::from((db, cache, settings));
 

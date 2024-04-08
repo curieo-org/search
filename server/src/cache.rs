@@ -1,4 +1,5 @@
 use crate::err::AppError;
+use crate::secrets::Secret;
 use axum::extract::FromRef;
 use color_eyre::eyre::eyre;
 use redis::AsyncCommands;
@@ -9,7 +10,7 @@ use std::future::Future;
 #[derive(Debug, Clone, Deserialize)]
 #[allow(unused)]
 pub struct CacheSettings {
-    pub cache_url: String,
+    pub cache_url: Secret<String>,
     pub enabled: bool,
     pub ttl: u64,
     pub max_sorted_size: i64,
@@ -30,7 +31,7 @@ impl Cache {
     }
 
     pub async fn new(cache_settings: &CacheSettings) -> Result<Self, AppError> {
-        let client = Self::cache_connect(&cache_settings.cache_url).await?;
+        let client = Self::cache_connect(cache_settings.cache_url.expose()).await?;
 
         Ok(Self {
             settings: cache_settings.clone(),
