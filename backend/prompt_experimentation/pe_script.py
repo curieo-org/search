@@ -6,8 +6,8 @@ import pandas as pd
 import wandb
 from dotenv import load_dotenv
 from dspy.teleprompt import BootstrapFewShot
-from pydantic import SecretStr
 from tqdm import tqdm
+
 from app.settings import Settings
 
 settings = Settings()
@@ -70,8 +70,7 @@ txt_to_idx = {
     "Communication and Education, Synthetic Biology, Systems Biology, Zoology": "2",
     # bioarxiv
     "3. useful only for retrieving the drug related information like molecular "
-    "weights,similarities,smile codes, target medicines, effects on other medicine":
-        "3",
+    "weights,similarities,smile codes, target medicines, effects on other medicine": "3",
     # chembl
 }
 
@@ -94,8 +93,7 @@ idx_to_txt = {v: k for k, v in txt_to_idx.items()}
 
 if args.llm == "gpt-3.5-turbo":
     turbo = dspy.OpenAI(
-        model="gpt-3.5-turbo",
-        api_key=settings.openai.api_key.get_secret_value()
+        model="gpt-3.5-turbo", api_key=settings.openai.api_key.get_secret_value()
     )
 elif args.llm == "gemma-7b-it":
     turbo = dspy.GROQ(
@@ -202,7 +200,7 @@ def metric(gold, pred, trace=None):
 teleprompter = BootstrapFewShot(metric=metric)
 compiled_rag = teleprompter.compile(Router_module(), trainset=total_data[:DEV_NUM])
 
-for x in tqdm(total_data[DEV_NUM: DEV_NUM + 20]):
+for x in tqdm(total_data[DEV_NUM : DEV_NUM + 20]):
     pred = compiled_rag.generate_answer(question=x.question)
     print(f"Question: {x.question}")
     print(f"Predicted Answer: {pred.answer}")

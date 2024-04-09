@@ -1,5 +1,4 @@
 # Load environment variables from .env file
-import pydantic
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -142,8 +141,10 @@ class AIModelsSettings(BaseSettings):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        extra='allow',
-        env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
+        extra="allow",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
     )
 
     postgres_engine: SecretStr
