@@ -23,6 +23,6 @@ export default function PostHogPageView() : null {
       )
     }
   }, [pathname, searchParams, posthog])
-  
+
   return null
 }

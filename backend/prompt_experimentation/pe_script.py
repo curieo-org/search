@@ -1,12 +1,16 @@
 import argparse
-import pandas as pd
+
 import dspy
-from dotenv import load_dotenv
-from tqdm import tqdm
-from dspy.teleprompt import BootstrapFewShot
 import matplotlib.pyplot as plt
+import pandas as pd
 import wandb
-from app import config
+from dotenv import load_dotenv
+from dspy.teleprompt import BootstrapFewShot
+from tqdm import tqdm
+
+from app.settings import Settings
+
+settings = Settings()
 
 # Initialize the argument parser
 parser = argparse.ArgumentParser(
@@ -42,19 +46,36 @@ args = parser.parse_args()
 load_dotenv(args.env_file)
 
 # Login to WANDB
-wandb.login(key=config.WANDB_API_KEY)
+wandb.login(key=settings.wandb.api_key)
 
 # Initialize WANDB run
 run = wandb.init(project=args.project_name, name=args.run_name, entity=args.entity)
 # CONFIG
 random_state = 42
 txt_to_idx = {
-    "0. useful for retrieving only the clinical trials information like adverse effects,eligibility details of clinical trials perticipents, sponsor details, death count, condition  of many healthcare problems": "0",  # clinical trials
-    "1. useful for retrieving general information about healthcare data. has various articles from pubmed which contains information about studies and research papers from healthcare domain": "1",  # pubmed
-    "2. useful for retiving the information about the life sciences, following article category is there Animal Behavior and Cognition, Biochemistry, Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific Communication and Education, Synthetic Biology, Systems Biology, Zoology": "2",  # bioarxiv
-    "3. useful only for retrieving the drug related information like molecular weights,similarities,smile codes, target medicines, effects on other medicine": "3",  # chembl
+    "0. useful for retrieving only the clinical trials information like adverse "
+    "effects,eligibility details of clinical trials perticipents, sponsor details, "
+    "death count, condition  of many healthcare problems": "0",
+    # clinical trials
+    "1. useful for retrieving general information about healthcare data. has various "
+    "articles from pubmed which contains information about studies and research "
+    "papers from healthcare domain": "1",
+    # pubmed
+    "2. useful for retrieving the information about the life sciences, following "
+    "article category is there Animal Behavior and Cognition, Biochemistry, "
+    "Bioengineering, Bioinformatics, Biophysics, Cancer Biology, Cell Biology, "
+    "Developmental Biology, Ecology, Evolutionary Biology, Genetics, Genomics, "
+    "Immunology, Microbiology, Molecular Biology, Neuroscience, Paleontology, "
+    "Pathology, Pharmacology and Toxicology, Physiology, Plant Biology, Scientific "
+    "Communication and Education, Synthetic Biology, Systems Biology, Zoology": "2",
+    # bioarxiv
+    "3. useful only for retrieving the drug related information like molecular "
+    "weights,similarities,smile codes, target medicines, effects on other medicine": "3",
+    # chembl
 }
-# Assuming the 't2i' dictionary maps the class names to their respective numeric representations
+
+# Assuming the 't2i' dictionary maps the class names to their respective numeric
+# representations
 t_2_i = {
     "Clinical Trials": "0",
     "pubmed": "1",
@@ -69,18 +90,23 @@ NUM_THREADS = 5
 DEV_NUM = args.num_samples
 
 idx_to_txt = {v: k for k, v in txt_to_idx.items()}
+
 if args.llm == "gpt-3.5-turbo":
-    turbo = dspy.OpenAI(model="gpt-3.5-turbo", api_key=config.OPENAI_API_KEY)
+    turbo = dspy.OpenAI(
+        model="gpt-3.5-turbo", api_key=settings.openai.api_key.get_secret_value()
+    )
 elif args.llm == "gemma-7b-it":
     turbo = dspy.GROQ(
-        api_key=config.GROQ_API_KEY,
+        api_key=settings.groq.api_key.get_secret_value(),
         model="gemma-7b-it",
     )
 elif args.llm == "mixtral-8x7b-32768":
     turbo = dspy.GROQ(
-        api_key=config.GROQ_API_KEY,
+        api_key=settings.groq.api_key.get_secret_value(),
         model="mixtral-8x7b-32768",
     )
+else:
+    raise ValueError("Unsupported llm model: ", args.llm)
 # rm module is currently not available.
 
 dspy.settings.configure(lm=turbo)
@@ -174,7 +200,6 @@ def metric(gold, pred, trace=None):
 teleprompter = BootstrapFewShot(metric=metric)
 compiled_rag = teleprompter.compile(Router_module(), trainset=total_data[:DEV_NUM])
 
-
 for x in tqdm(total_data[DEV_NUM : DEV_NUM + 20]):
     pred = compiled_rag.generate_answer(question=x.question)
     print(f"Question: {x.question}")
@@ -197,7 +222,6 @@ print(f"{args.llm} was right {how_much_right}% times")
 compiled_rag.save(args.rag_save_path)
 print(f"optmized prompt was saved to {args.rag_save_path}")
 
-
 log_df["is_pred_right"] = log_df["answer"] == log_df["prediction"]
 wandb.log({f"{args.llm}_output": log_df})
 log_df.to_csv(f"{args.llm}_debug_log_file.csv", index=False)
@@ -205,7 +229,6 @@ log_df.to_csv(f"{args.llm}_debug_log_file.csv", index=False)
 prediction_counts = (
     log_df.groupby(["llm", "is_pred_right"]).size().unstack(fill_value=0)
 )
-
 
 fig, ax = plt.subplots()
 
@@ -221,7 +244,6 @@ ax.legend(["Wrong", "Right"])
 plt.xticks(rotation=0)
 
 wandb.log({"predictions_comparision": wandb.Image(fig)})
-
 
 log_df["answer"] = log_df["answer"].astype(str).map(i_2_t)
 log_df["prediction"] = log_df["prediction"].astype(str).map(i_2_t)

@@ -1,58 +1,74 @@
-from nebula3.gclient.net import ConnectionPool
+from contextlib import contextmanager
+from typing import Any, Generator
+
 from nebula3.Config import Config
 from nebula3.data.ResultSet import ResultSet
-from app.config import (
-    NEBULA_GRAPH_HOST,
-    NEBULA_GRAPH_PORT,
-    NEBULA_GRAPH_USER,
-    NEBULA_GRAPH_PASSWORD,
-    NEBULA_GRAPH_SPACE,
-)
+from nebula3.gclient.net import ConnectionPool, Session
 
-connection_pool = None
-current_session = None
+from app.settings import NebulaGraphSettings
 
 
 class NebulaGraph:
-    def __init__(self):
-        global connection_pool
-        global current_session
+    def __init__(self, *, host: str, port: int, user: str, password: str, space: str):
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.space = space
 
-        if not connection_pool:
-            self.create_connection_pool()
+        self._connection_pool: None | ConnectionPool = None
+        self._current_session: None | Session = None
 
-        if not current_session:
-            self.create_new_session()
+    def get_connection_pool(self) -> ConnectionPool:
+        if not self._connection_pool:
+            self._connection_pool = self.create_connection_pool()
+        return self._connection_pool
 
-    def create_connection_pool(self):
-        global connection_pool
-
+    def create_connection_pool(self) -> ConnectionPool:
         config = Config()
         config.max_connection_pool_size = 30
 
         connection_pool = ConnectionPool()
-        connection_pool.init([(NEBULA_GRAPH_HOST, NEBULA_GRAPH_PORT)], config)
+        connection_pool.init([(self.host, self.port)], config)
 
-    def create_new_session(self):
-        global connection_pool
-        global current_session
+        return connection_pool
 
-        current_session = connection_pool.get_session(
-            str(NEBULA_GRAPH_USER), str(NEBULA_GRAPH_PASSWORD)
+    def get_session(self) -> Session:
+        if not self._current_session:
+            self._current_session = self.create_new_session()
+        elif not self._current_session.ping_session():
+            self._current_session = self.create_new_session()
+
+        return self._current_session
+
+    def create_new_session(self) -> Session:
+        current_session = self.get_connection_pool().get_session(
+            str(self.user), str(self.password)
         )
-        current_session.execute(f"USE {NEBULA_GRAPH_SPACE}")
+        current_session.execute(f"USE {self.space}")
+        return current_session
+
+    @contextmanager
+    def session_ctx(self) -> Generator[Session, Any, Any]:
+        session: None | Session = None
+        try:
+            session = self.get_session()
+            yield session
+        except Exception:
+            raise
+        finally:
+            if session:
+                session.release()
 
     def disconnect(self):
-        global connection_pool
-        global current_session
+        if self._current_session:
+            self._current_session.release()
 
-        if current_session:
-            current_session.release()
+        if self._connection_pool:
+            self._connection_pool.close()
 
-        if connection_pool:
-            connection_pool.close()
-
-    def result_to_dict(self, result: ResultSet) -> dict[str, list]:
+    @staticmethod
+    def result_to_dict(result: ResultSet) -> dict[str, list]:
         assert result.is_succeeded()
         columns = result.keys()
         result_dict: dict[str, list] = {}
@@ -68,6 +84,24 @@ class NebulaGraph:
         return result_dict
 
     def execute_query(self, query) -> dict[str, list]:
-        result = current_session.execute(query)
-        result_dict = self.result_to_dict(result)
-        return result_dict
+        with self.session_ctx() as session:
+            result = session.execute(query)
+            return self.result_to_dict(result)
+
+
+_nebula_graph_client: NebulaGraph | None = None
+
+
+def get_nebula_graph_client(settings: NebulaGraphSettings) -> NebulaGraph:
+    global _nebula_graph_client
+
+    if not _nebula_graph_client:
+        _nebula_graph_client = NebulaGraph(
+            host=settings.host,
+            port=settings.port,
+            user=str(settings.user),
+            password=str(settings.password),
+            space=settings.space,
+        )
+
+    return _nebula_graph_client

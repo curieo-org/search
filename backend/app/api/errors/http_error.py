@@ -1,7 +1,6 @@
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
-
 HTTP_ERROR_TITLE = "HTTP_ERROR"
 
 

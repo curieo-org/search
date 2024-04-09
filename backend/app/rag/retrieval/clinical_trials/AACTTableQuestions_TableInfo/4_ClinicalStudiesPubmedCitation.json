@@ -1,4 +1,4 @@
 {
-    "table_name": "tbl_studies_pubmed_links",
-    "table_summary": "The table contains Citations to publications related to the study protocol and/or results. Includes PubMed Unique Identifier (PMID) and/or full bibliographic citation. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document.' title' is the title of the document. 'pubmedcitation' has information in JSON format. The first field is 'Pubmed'  which contains the associated article ID at the Pubmed website. The second field is about the citation details of the article of subject(field name is 'Citation')."
+  "table_name": "tbl_studies_pubmed_links",
+  "table_summary": "The table contains Citations to publications related to the study protocol and/or results. Includes PubMed Unique Identifier (PMID) and/or full bibliographic citation. The table has the below columns.'nct_id' is the primary key of the table. It is the id of the document.' title' is the title of the document. 'pubmedcitation' has information in JSON format. The first field is 'Pubmed'  which contains the associated article ID at the Pubmed website. The second field is about the citation details of the article of subject(field name is 'Citation')."
 }
