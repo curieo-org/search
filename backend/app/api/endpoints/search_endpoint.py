@@ -39,18 +39,18 @@ async def get_search_results(
     cache_key = f"{query}##{route_category}"
 
     if search_result := await cache.get_value(cache_key):
-        return JSONResponse(status_code=200, content=search_result)
+        return JSONResponse(status_code=200, content=json.loads(search_result))
 
     if search_result := await orchestrator.query_and_get_answer(
         search_text=query, route_category=route_category
     ):
-        await cache.set_value(cache_key, json.dumps(search_result))
+        await cache.set_value(cache_key, search_result.model_dump_json())
 
         await cache.add_to_sorted_set("searched_queries", query)
 
         logger.info(f"get_search_results. result: {search_result}")
 
-        return JSONResponse(status_code=200, content=search_result)
+        return JSONResponse(status_code=200, content=search_result.model_dump())
 
     return JSONResponse(status_code=500, content={"message": "Search failed"})
 

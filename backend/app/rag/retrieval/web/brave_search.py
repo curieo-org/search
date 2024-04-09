@@ -47,7 +47,6 @@ class BraveSearchQueryEngine:
 
         try:
             logger.info("call_brave_search_api. endpoint: " + endpoint)
-            logger.info("call_brave_search_api. headers: " + str(headers))
 
             response = requests.get(endpoint, headers=headers)
             response.raise_for_status()
@@ -56,7 +55,8 @@ class BraveSearchQueryEngine:
             if web_response:
                 return [
                     TextNode(
-                        text=resp.get("description") + resp.get("extra_snippets", ""),
+                        text=resp.get("description")
+                        + "".join(resp.get("extra_snippets", [])),
                         metadata={"url": resp["url"], "page_age": resp.get("page_age")},
                     )
                     for resp in web_response
