@@ -18,9 +18,19 @@ logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
 
 
+class BraveSourceRecord(pydantic.BaseModel):
+    url: str
+    page_age: str
+
+
+AnySourceRecord = dict[str, str]
+
+SourceRecord = AnySourceRecord | BraveSourceRecord
+
+
 class SearchResultRecord(pydantic.BaseModel):
     result: str
-    sources: list[str]
+    sources: list[SourceRecord]
 
 
 class Orchestrator:

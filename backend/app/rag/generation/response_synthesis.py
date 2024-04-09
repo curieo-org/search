@@ -78,7 +78,7 @@ class ResponseSynthesisEngine:
 
         try:
             headers = {
-                "Authorization": self.together.api_key.get_secret_value(),
+                "Authorization": "Bearer " + self.together.api_key.get_secret_value(),
                 "accept": "application/json",
                 "content-type": "application/json",
             }
