@@ -30,18 +30,6 @@ class Redis:
             expire = self.max_age
         await self.connection.set(key, value, ex=expire)
 
-    async def add_to_sorted_set(self, space: str, key: str) -> None:
-        await self.connection.zincrby(space, 1, key)
-
-    async def get_sorted_set(self, space: str, start: int, stop: int) -> list[str]:
-        random_number = random.random()
-        if random_number < 0.1:
-            await self.connection.zremrangebyrank(space, 0, -self.max_sorted_set - 1)
-
-        values = await self.connection.zrevrange(space, start, stop, withscores=False)
-
-        return [str(value, "utf-8") for value in values]
-
 
 _redis_client: Redis | None = None
 

@@ -1,7 +1,7 @@
 import json
 
 import sentry_sdk
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from fastapi_versioning import version
 
@@ -46,34 +46,8 @@ async def get_search_results(
     ):
         await cache.set_value(cache_key, search_result.model_dump_json())
 
-        await cache.add_to_sorted_set("searched_queries", query)
-
         logger.info(f"get_search_results. result: {search_result}")
 
         return JSONResponse(status_code=200, content=search_result.model_dump())
 
     return JSONResponse(status_code=500, content={"message": "Search failed"})
-
-
-@router.get(
-    "/topqueries",
-    summary="List all top search queries",
-    description="List all Top Search Queries",
-    response_model=list[str],
-)
-@version(1, 0)
-async def get_top_search_queries(limit: int) -> JSONResponse:
-    if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
-        trace_transaction.set_tag("title", "api_get_top_search_queries")
-
-    logger.info("get_top_search_queries")
-
-    if limit <= 0:
-        raise HTTPException(status_code=400, detail="Limit should be greater than 0")
-
-    cache = get_redis_client()
-    last_x_keys = await cache.get_sorted_set("searched_queries", 0, limit - 1)
-
-    logger.info(f"get_top_search_queries. result: {last_x_keys}")
-
-    return JSONResponse(status_code=200, content=last_x_keys)
