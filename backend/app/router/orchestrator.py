@@ -8,7 +8,6 @@ from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
 from app.api.common.util import RouteCategory
-from app.dspy_integration.router_prompt import RouterModule
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
@@ -38,8 +37,8 @@ class Orchestrator:
             api_key=settings.openai.api_key.get_secret_value(),
         )
         dspy.settings.configure(lm=self.llm)
-        self.router = RouterModule()
-        self.router.load(settings.dspy.orchestrator_router_prompt_program)
+        # self.router = RouterModule()
+        # self.router.load(settings.dspy.orchestrator_router_prompt_program)
 
         # self.clinical_trial_search = ClinicalTrialText2SQLEngine(settings)
         # self.drug_chembl_search = DrugChEMBLText2CypherEngine(settings)
@@ -64,6 +63,8 @@ class Orchestrator:
             f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
         )
 
+        # TODO: Enable once stable and infallible
+        """
         # initialize router with bad value
         router_id = -1
 
@@ -79,6 +80,7 @@ class Orchestrator:
                     stack_info=True,
                 )
             logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
+        """
 
         # TODO: Enable once stable and infallible
         """
