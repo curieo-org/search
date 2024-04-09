@@ -1,4 +1,5 @@
 # Load environment variables from .env file
+import pydantic
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -115,7 +116,6 @@ class QdrantSettings(BaseSettings):
 
 
 class LlamaIndexSettings(BaseSettings):
-    chat_enabled: bool = False
     relevance_criteria: float = 0.7
 
 
@@ -142,24 +142,25 @@ class AIModelsSettings(BaseSettings):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
+        extra='allow',
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
     )
 
     postgres_engine: SecretStr
     project: ProjectSettings = ProjectSettings()
-    search: SearchSettings
+    search: SearchSettings = SearchSettings()
     brave: BraveSettings
     together: TogetherSettings
     openai: OpenAISettings
     nebula_graph: NebulaGraphSettings
     redis: RedisSettings
-    wandb: WandbSettings
+    wandb: WandbSettings | None = None
     sentry: SentrySettings
     groq: GroqSettings
     dspy: DspySettings = DspySettings()
     embedding: EmbeddingSettings = EmbeddingSettings()
     reranking: RerankSettings = RerankSettings()
     qdrant: QdrantSettings
-    llama_index: LlamaIndexSettings
+    llama_index: LlamaIndexSettings = LlamaIndexSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
