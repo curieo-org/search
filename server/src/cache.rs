@@ -4,8 +4,8 @@ use axum::extract::FromRef;
 use color_eyre::eyre::eyre;
 use redis::AsyncCommands;
 use redis::Client as RedisClient;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::future::Future;
 
 #[derive(Debug, Clone, Deserialize)]
 #[allow(unused)]
@@ -39,7 +39,38 @@ impl Cache {
         })
     }
 
-    pub async fn zincr(&self, space: &str, key: &str, value: i64) -> Result<(), AppError> {
+    pub async fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+        match self.try_get(key).await {
+            Ok(response) => response,
+            Err(e) => {
+                tracing::error!("Failed to get cache key {}: {}", key, e);
+                None
+            }
+        }
+    }
+
+    pub async fn try_get<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, AppError> {
+        if !self.settings.enabled {
+            return Ok(None);
+        }
+
+        let mut connection = self.client.get_multiplexed_tokio_connection().await?;
+
+        let cache_response: Option<T> =
+            connection.get(key).await.map(|response: Option<String>| {
+                response.and_then(|response| serde_json::from_str(&response).ok())
+            })?;
+
+        Ok(cache_response)
+    }
+
+    pub async fn set<T: Serialize>(&self, key: &str, value: &T) {
+        if let Err(e) = self.try_set(key, value).await {
+            tracing::error!("Failed to set cache key {}: {}", key, e);
+        }
+    }
+
+    pub async fn try_set<T: Serialize>(&self, key: &str, value: &T) -> Result<(), AppError> {
         if !self.settings.enabled {
             return Ok(());
         }
@@ -47,9 +78,24 @@ impl Cache {
         let mut connection = self.client.get_multiplexed_tokio_connection().await?;
 
         connection
-            .zincr(space, key, value)
-            .await
-            .map_err(|e| AppError::from(e))?;
+            .set(
+                key,
+                serde_json::to_string(value)
+                    .map_err(|_| eyre!("unable to convert string to json"))?,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn zincr(&self, space: &str, key: &str, value: i64) -> Result<(), AppError> {
+        if !self.settings.enabled {
+            return Ok(());
+        }
+
+        let mut connection = self.client.get_multiplexed_tokio_connection().await?;
+
+        connection.zincr(space, key, value).await?;
 
         Ok(())
     }
@@ -68,8 +114,7 @@ impl Cache {
 
         let cache_response: Vec<String> = connection
             .zrevrange(space, start as isize - 1, stop as isize - 1)
-            .await
-            .map_err(|e| AppError::from(e))?;
+            .await?;
 
         Ok(cache_response)
     }
@@ -83,52 +128,7 @@ impl Cache {
 
         connection
             .zremrangebyrank(space, 0, -self.settings.max_sorted_size as isize - 1)
-            .await
-            .map_err(|e| AppError::from(e))?;
-
-        Ok(())
-    }
-}
-
-pub trait CacheFn<T> {
-    fn get(&self, key: &str) -> impl Future<Output = Result<Option<T>, AppError>>;
-    fn set(&self, key: &str, value: &T) -> impl Future<Output = Result<(), AppError>>;
-}
-
-impl<T: Serialize + for<'de> Deserialize<'de>> CacheFn<T> for Cache {
-    async fn get(&self, key: &str) -> Result<Option<T>, AppError> {
-        if !self.settings.enabled {
-            return Ok(None);
-        }
-
-        let mut connection = self.client.get_multiplexed_tokio_connection().await?;
-
-        let cache_response: Option<T> = connection
-            .get(key)
-            .await
-            .map(|response: Option<String>| {
-                response.and_then(|response| serde_json::from_str(&response).ok())
-            })
-            .map_err(|e| AppError::from(e))?;
-
-        Ok(cache_response)
-    }
-
-    async fn set(&self, key: &str, value: &T) -> Result<(), AppError> {
-        if !self.settings.enabled {
-            return Ok(());
-        }
-
-        let mut connection = self.client.get_multiplexed_tokio_connection().await?;
-
-        connection
-            .set(
-                key,
-                serde_json::to_string(value)
-                    .map_err(|_| eyre!("unable to convert string to json"))?,
-            )
-            .await
-            .map_err(|e| AppError::from(e))?;
+            .await?;
 
         Ok(())
     }
