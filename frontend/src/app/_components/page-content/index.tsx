@@ -6,38 +6,45 @@ import { SearchForm } from "../search-form";
 import { Loader } from "../loader";
 import useSWR from "swr";
 
-async function tokenFetcher(url: string): Promise<string> {
-  // TODO: Remove once we have real auth working.
-  localStorage.clear();
-
-  const token = localStorage.getItem("token");
-  if (token) {
-    return token;
+async function tokenFetcher(url: string): Promise<boolean> {
+  const c = document.cookie
+    .split("; ")
+    .filter((row) => row.startsWith("id="))
+    .map((c) => c.split("=")[1])[0];
+  console.log(c);
+  if (c) {
+    return true;
   }
-
-  const formData = new FormData();
-  formData.append("username", "curieo");
-  formData.append("password", "whatever");
+  const input: Record<string, string> = {
+    username: "test1",
+    password: "abcdef",
+  };
+  const payload = new URLSearchParams(input);
 
   const res = await fetch(url, {
     method: "POST",
-    body: formData,
+    body: payload,
   });
-  const json = await res.json();
-  let tokenValue = json?.access_token;
-  localStorage.setItem("token", tokenValue);
-  return tokenValue;
+
+  return true;
 }
 
 export const PageContent = () => {
   const [searchResults, setSearchResults] = useState<string>("");
-  const { data: token, error, isLoading } = useSWR("/api/token", tokenFetcher);
+  const {
+    data: token,
+    error,
+    isLoading,
+  } = useSWR("/api/auth/login", tokenFetcher);
 
   if (error) {
-    return <h1>Could not authenticate</h1>;
+    return <h1>Could not ausdsthenticate</h1>;
   }
   if (isLoading) {
     return <Loader />;
+  }
+  if (token === undefined) {
+    return <h1>Could not authenticate</h1>;
   }
   return (
     <>

@@ -5,8 +5,8 @@ const nextConfig = {
     return {
       beforeFiles: [
         {
-          source: '/api/:path*',
-          destination: 'http://127.0.0.1:8000/:path*',
+          source: "/api/:path*",
+          destination: "http://127.0.0.1:9876/:path*",
         },
         {
           source: "/ingest/static/:path*",
@@ -16,9 +16,9 @@ const nextConfig = {
           source: "/ingest/:path*",
           destination: "https://us.i.posthog.com/:path*",
         },
-      ]
+      ],
     };
-  }
-}
+  },
+};
 
 export default nextConfig;

@@ -58,7 +58,7 @@ async fn register_users_works(pool: PgPool) {
         ("password", "my-password"),
     ];
     let serialized_body = serde_urlencoded::to_string(form).unwrap();
-    let request = Request::post("/api/auth/register")
+    let request = Request::post("/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();
@@ -76,7 +76,7 @@ async fn register_users_works(pool: PgPool) {
         ("access_token", "my-access-token"),
     ];
     let serialized_body = serde_urlencoded::to_string(form).unwrap();
-    let request = Request::post("/api/auth/register")
+    let request = Request::post("/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();

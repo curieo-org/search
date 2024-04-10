@@ -40,12 +40,11 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
             PostgresBackend,
             login_url = "/api/auth/login"
         ))
-        // Health check should be accessible regardless of session middleware
-        .merge(health_check::routes())
         .nest("/auth", auth::routes());
 
     Ok(Router::new()
-        .nest("/api", api_routes)
+        .merge(api_routes)
+        // Health check should be accessible regardless of session middleware
         .merge(health_check::routes())
         .with_state(state.clone())
         .layer(auth_layer)
