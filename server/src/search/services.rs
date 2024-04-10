@@ -1,8 +1,7 @@
-use crate::cache::{Cache, CacheFn};
-use crate::err::AppError;
+use crate::cache::Cache;
 use crate::search::{
-    RAGTokenResponse, SearchHistory, SearchHistoryRequest, SearchQueryRequest,
-    SearchReactionRequest, SearchResponse, TopSearchRequest,
+    SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, SearchResponse,
+    TopSearchRequest,
 };
 use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
@@ -16,37 +15,21 @@ pub async fn search(
     cache: &Cache,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
-    let cache_response: Option<SearchResponse> = cache.get(&search_query.query).await?;
-    if let Some(response) = cache_response {
+    if let Some(response) = cache.get(&search_query.query).await {
         return Ok(response);
     }
-
-    // TODO: replace this with actual search logic using GRPC calls with backend services
-    let rag_api_url = SETTINGS.rag_api.clone() + "/token";
-    let form_data = [
-        ("username", &SETTINGS.rag_api_username.expose()),
-        ("password", &SETTINGS.rag_api_password.expose()),
-    ];
-    let token: RAGTokenResponse = ReqwestClient::new()
-        .post(rag_api_url)
-        .form(&form_data)
-        .send()
-        .await
-        .map_err(|_| eyre!("unable to send request to rag api"))?
-        .json()
-        .await
-        .map_err(|_| eyre!("unable to parse json response from rag api"))?;
 
     let rag_api_url = SETTINGS.rag_api.clone() + "/search?query=" + &search_query.query;
     let response: SearchResponse = ReqwestClient::new()
         .get(rag_api_url)
-        .header("Authorization", format!("Bearer {}", token.access_token))
         .send()
         .await
         .map_err(|_| eyre!("unable to send request to rag api"))?
         .json()
         .await
         .map_err(|_| eyre!("unable to parse json response from rag api"))?;
+
+    cache.set(&search_query.query, &response).await;
 
     return Ok(response);
 }
@@ -59,8 +42,6 @@ pub async fn insert_search_history(
     search_query: &SearchQueryRequest,
     search_response: &SearchResponse,
 ) -> crate::Result<SearchHistory> {
-    cache.set(&search_query.query, search_response).await?;
-
     let session_id = search_query.session_id.unwrap_or(Uuid::new_v4());
 
     let search_history = sqlx::query_as!(
@@ -73,8 +54,7 @@ pub async fn insert_search_history(
         &search_response.sources
     )
     .fetch_one(pool)
-    .await
-    .map_err(|e| AppError::from(e))?;
+    .await?;
 
     return Ok(search_history);
 }
@@ -93,8 +73,7 @@ pub async fn get_search_history(
         search_history_request.offset.unwrap_or(0) as i64
     )
     .fetch_all(pool)
-    .await
-    .map_err(|e| AppError::from(e))?;
+    .await?;
 
     return Ok(search_history);
 }
@@ -110,7 +89,7 @@ pub async fn get_top_searches(
     }
 
     let limit = top_search_request.limit.unwrap_or(10);
-    if limit < 1 || limit > 100 {
+    if !(1..=100).contains(&limit) {
         Err(eyre!("limit must be a number between 1 and 100"))?;
     }
 
@@ -133,8 +112,7 @@ pub async fn update_search_reaction(
         user_id
     )
     .fetch_one(pool)
-    .await
-    .map_err(|e| AppError::from(e))?;
+    .await?;
 
     return Ok(search_history);
 }
