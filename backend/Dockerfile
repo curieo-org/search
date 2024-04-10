@@ -1,8 +1,8 @@
 # pull official base image
-FROM python:3.11-slim
+FROM python:3.11.8-slim
 
 # install system dependencies
-RUN apt-get update && apt-get -y install libpq-dev gcc
+RUN apt-get update && apt-get -y install libpq-dev gcc git
 
 
 # install python dependencies
