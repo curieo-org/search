@@ -1,5 +1,6 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::{Cache, CacheSettings};
+use crate::err::AppError;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -83,6 +84,8 @@ async fn run(
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let db = db_connect(settings.db.expose()).await?;
+
+    sqlx::migrate!().run(&db).await.map_err(AppError::from)?;
 
     let cache = cache_connect(&settings.cache).await?;
 

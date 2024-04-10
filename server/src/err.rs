@@ -50,6 +50,11 @@ impl From<sqlx::Error> for AppError {
         AppError::Sqlx(inner)
     }
 }
+impl From<sqlx::migrate::MigrateError> for AppError {
+    fn from(inner: sqlx::migrate::MigrateError) -> Self {
+        AppError::Sqlx(inner.into())
+    }
+}
 
 impl From<redis::RedisError> for AppError {
     fn from(inner: redis::RedisError) -> Self {
