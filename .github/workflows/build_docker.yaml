@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Build Docker Image
-      run: docker build -t curieo/search-rustserver:latest server/
+      - name: Build Docker Image
+        run: docker build -t curieo/search-rustserver:latest server/
