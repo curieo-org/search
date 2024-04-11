@@ -17,7 +17,6 @@ WORKDIR app
 COPY --from=cacher /app/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
 COPY . .
-COPY .sqlx .sqlx
 ENV SQLX_OFFLINE true
 RUN cargo build --release --bin server
 
