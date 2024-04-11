@@ -1,0 +1,17 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - docker-fixes
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Build Docker Image
+      run: docker build -t curieo/search-rustserver:latest server/
