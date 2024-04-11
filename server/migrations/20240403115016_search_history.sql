@@ -4,7 +4,7 @@ create table search_history (
     session_id uuid not null,
     query text not null,
     result text not null,
-    sources text[] not null,
+    sources json not null,
     reaction boolean,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()

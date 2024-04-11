@@ -1,6 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::{Cache, CacheSettings};
 use crate::err::AppError;
+use crate::proto::rag_service_client::RagServiceClient;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -9,6 +10,7 @@ use color_eyre::eyre::eyre;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use tonic::transport::Channel;
 
 pub struct Application {
     port: u16,
@@ -49,15 +51,19 @@ pub struct AppState {
     pub cache: Cache,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
+    pub rag_service: RagServiceClient<Channel>,
 }
 
-impl From<(PgPool, Cache, Settings)> for AppState {
-    fn from((db, cache, settings): (PgPool, Cache, Settings)) -> Self {
+impl From<(PgPool, Cache, Settings, RagServiceClient<Channel>)> for AppState {
+    fn from(
+        (db, cache, settings, rag_service): (PgPool, Cache, Settings, RagServiceClient<Channel>),
+    ) -> Self {
         Self {
             db,
             cache,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
+            rag_service,
         }
     }
 }
@@ -79,6 +85,14 @@ pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
     Ok(cache_client)
 }
 
+pub async fn search_service_connect(search_service_url: &str) -> Result<RagServiceClient<Channel>> {
+    let search_service = RagServiceClient::connect(search_service_url.to_owned())
+        .await
+        .map_err(|e| eyre!("Failed to connect to search service: {}", e))?;
+
+    Ok(search_service)
+}
+
 async fn run(
     listener: TcpListener,
     settings: Settings,
@@ -89,7 +103,9 @@ async fn run(
 
     let cache = cache_connect(&settings.cache).await?;
 
-    let state = AppState::from((db, cache, settings));
+    let rag_search_service = search_service_connect(&settings.rag_api).await?;
+
+    let state = AppState::from((db, cache, settings, rag_search_service));
 
     let app = router(state)?;
 

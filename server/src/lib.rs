@@ -15,6 +15,10 @@ mod telemetry;
 pub mod users;
 pub mod utils;
 
+pub mod proto {
+    tonic::include_proto!("rag");
+}
+
 pub type Result<T> = std::result::Result<T, err::AppError>;
 
 pub async fn run() -> Result<Application> {

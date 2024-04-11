@@ -1,4 +1,5 @@
 use crate::cache::Cache;
+use crate::proto::rag_service_client::RagServiceClient;
 use crate::search::services;
 use crate::search::{
     SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
@@ -11,17 +12,19 @@ use axum::response::IntoResponse;
 use axum::routing::{get, patch};
 use axum::{Json, Router};
 use sqlx::PgPool;
+use tonic::transport::Channel;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_handler(
     State(pool): State<PgPool>,
     State(cache): State<Cache>,
+    State(mut rag_service): State<RagServiceClient<Channel>>,
     user: User,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_response = services::search(&cache, &search_query).await?;
+    let search_response = services::search(&cache, &mut rag_service, &search_query).await?;
     let search_history =
         services::insert_search_history(&pool, &cache, &user_id, &search_query, &search_response)
             .await?;
