@@ -24,7 +24,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute("Source", "#[derive(serde::Deserialize, serde::Serialize)]")
-        .type_attribute("Pair", "#[derive(serde::Deserialize, serde::Serialize)]")
+        .type_attribute(
+            "Metadata",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .compile(&proto_files, &["."])?;
 
     Ok(())

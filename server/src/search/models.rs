@@ -1,4 +1,4 @@
-use crate::proto::{Pair, Source};
+use crate::proto::{Metadata, Source};
 use serde::{Deserialize, Serialize};
 use sqlx::types::time;
 use sqlx::types::JsonValue;
@@ -52,20 +52,24 @@ impl From<JsonValue> for SearchSource {
                 let mut sources = Vec::new();
                 for source in arr {
                     let json = source.as_object().unwrap();
-                    let pairs = json.get("pairs").unwrap().as_array().unwrap();
-                    let mut pairs_vec = Vec::new();
+                    let url = json.get("url").unwrap().as_str().unwrap();
+                    let metadata = json.get("metadata").unwrap().as_array().unwrap();
+                    let mut metadata_vec = Vec::new();
 
-                    for pair in pairs {
-                        let json = pair.as_object().unwrap();
+                    for item in metadata {
+                        let json = item.as_object().unwrap();
                         let key = json.get("key").unwrap().as_str().unwrap();
                         let value = json.get("value").unwrap().as_str().unwrap();
-                        pairs_vec.push(Pair {
+                        metadata_vec.push(Metadata {
                             key: key.to_string(),
                             value: value.to_string(),
                         });
                     }
 
-                    sources.push(Source { pairs: pairs_vec });
+                    sources.push(Source {
+                        url: url.to_string(),
+                        metadata: metadata_vec,
+                    });
                 }
                 SearchSource(sources)
             }
