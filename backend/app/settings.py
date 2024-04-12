@@ -8,6 +8,9 @@ class ProjectSettings(BaseSettings):
     environment: str = "production"
     version: str = "0.0.1"
     default_base_url: str = "http://127.0.0.1"
+    port: int = 50051
+    graceful_shutdown_period: int = 5
+    max_grpc_workers: int = 10
     debug: bool = True
     testing: bool = True
     show_request_process_time_header: bool = True

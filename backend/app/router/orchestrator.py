@@ -7,25 +7,38 @@ from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.api.common.util import RouteCategory
+from app.api.util import RouteCategory
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
+from app.grpc_types.rag_pb2 import Source, Metadata
 from app.services.search_utility import setup_logger
 from app.settings import Settings
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
 
-
 class BraveSourceRecord(pydantic.BaseModel):
     url: str
     page_age: str
 
+    def to_grpc_source(self) -> Source:
+        return Source(
+            url=self.url,
+            metadata=[Metadata(key="page_age", value=self.page_age)]
+        )
 
-AnySourceRecord = dict[str, str]
+class PubmedSourceRecord(pydantic.BaseModel):
+    url: str
+    helper_text: str
 
-SourceRecord = AnySourceRecord | BraveSourceRecord
+    def to_grpc_source(self) -> Source:
+        return Source(
+            url=self.url,
+            metadata=[Metadata(key="helper_text", value=self.helper_text)]
+        )
+
+SourceRecord = PubmedSourceRecord | BraveSourceRecord
 
 
 class SearchResultRecord(pydantic.BaseModel):
@@ -66,7 +79,7 @@ class Orchestrator:
         )
 
     async def query_and_get_answer(
-        self, search_text: str, route_category: RouteCategory = RouteCategory.PBW
+        self, search_text: str, route_category: RouteCategory = RouteCategory.PUBMED_BIOXRIV_WEB
     ) -> SearchResultRecord | None:
         # search router call
         logger.info(
@@ -79,7 +92,7 @@ class Orchestrator:
         router_id = -1
 
         # user not specified
-        if route_category == RouteCategory.NS:
+        if route_category == RouteCategory.NOT_SELECTED:
             logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
             try:
                 router_id = int(self.router(search_text).answer)
@@ -95,7 +108,7 @@ class Orchestrator:
         # TODO: Enable once stable and infallible
         """
         # routing
-        if router_id == 0 or route_category == RouteCategory.CT:
+        if router_id == 0 or route_category == RouteCategory.ClinicalTrials:
             # clinical trial call
             logger.info(
                 "Orchestrator.query_and_get_answer.router_id clinical trial Entered."

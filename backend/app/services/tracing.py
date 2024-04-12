@@ -8,9 +8,8 @@ from opentelemetry.sdk import trace as trace_sdk
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
-from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-from sentry_sdk.integrations.starlette import StarletteIntegration
+from sentry_sdk.integrations.grpc import GRPCIntegration
 
 from app.settings import SentrySettings
 
@@ -21,8 +20,7 @@ def setup_tracing(settings: SentrySettings):
         enable_tracing=settings.enable_tracing,
         integrations=[
             AsyncioIntegration(),
-            StarletteIntegration(transaction_style="endpoint"),
-            FastApiIntegration(transaction_style="endpoint"),
+            GRPCIntegration(),
             LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
         ],
     )

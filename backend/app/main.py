@@ -1,21 +1,19 @@
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
-
-from app.api import api
-from app.api.errors.http_error import http_error_handler
-from app.api.errors.if_none_match import IfNoneMatch, if_none_match_handler
-from app.database.redis import init_redis_client
-from app.middleware.process_time import ProcessTimeHeaderMiddleware
+from app.database.redis import init_redis_client, get_redis_client
+from app.services.search_utility import setup_logger
 from app.services.tracing import setup_tracing
 from app.settings import Settings
 
+from concurrent import futures
+import grpc
+from app.api import setup_grpc_api
+import asyncio
+
 settings = Settings()
+logger = setup_logger("Main")
 
+_cleanup_coroutines = []
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+async def start_services():
     # Initialize redis client at app level
     cache = init_redis_client(settings.redis)
 
@@ -28,39 +26,40 @@ async def lifespan(app: FastAPI):
     # brave connection checking function
     # llmservice connection checking function
 
-    yield
+async def stop_services(server):
+    logger.info("Server graceful shutdown started")
 
     # disconnect from redis
+    cache = get_redis_client()
     await cache.disconnect()
-
-
-def get_application() -> FastAPI:
-    application = FastAPI(
-        title=settings.project.name,
-        debug=settings.project.debug,
-        version=settings.project.version,
-        lifespan=lifespan,
-    )
-
-    @application.get("/", include_in_schema=False)
-    def redirect_to_docs() -> RedirectResponse:  # pylint: disable=W0612
-        return RedirectResponse("/docs")
-
-    # exception handlers
-    application.add_exception_handler(IfNoneMatch, if_none_match_handler)
-    application.add_exception_handler(HTTPException, http_error_handler)
-
-    # middlewares
-    if settings.project.show_request_process_time_header:
-        application.add_middleware(ProcessTimeHeaderMiddleware)
-
-    # routers
-    application.include_router(api.router)
 
     # tracing
     setup_tracing(settings.sentry)
 
-    return application
+    # graceful shutdown
+    await server.stop(settings.project.graceful_shutdown_period)
 
+async def serve():
+    await start_services()
+    
+    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers))
+    setup_grpc_api(server)
 
-app = get_application()
+    port = settings.project.port
+    server.add_insecure_port(f"[::]:{port}")
+
+    await server.start()
+    logger.info(f"Server started on port: {port}")
+
+    _cleanup_coroutines.append(stop_services(server))
+    await server.wait_for_termination()
+
+def start_server():
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(serve())
+    finally:
+        loop.run_until_complete(*_cleanup_coroutines)
+        loop.close()
+
+app = start_server()

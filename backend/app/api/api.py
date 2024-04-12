@@ -1,10 +1,8 @@
-from fastapi import APIRouter
+import grpc
 
-from app.api.router.gzip import GzipRoute
+from .search import Search
+from app.grpc_types.rag_pb2_grpc import add_RagServiceServicer_to_server
 
-from .endpoints import search_endpoint
 
-router = APIRouter()
-router.route_class = GzipRoute
-
-router.include_router(search_endpoint.router, tags=["Search Results"])
+def setup_grpc_api(server: grpc.Server):
+    add_RagServiceServicer_to_server(Search(), server)

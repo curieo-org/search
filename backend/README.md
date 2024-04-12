@@ -13,10 +13,10 @@ accurate, up-to-date, and relevant medical information.
 ## Table of Contents
 
 - [⚕️🧬🔬Curieo Healthcare Search API 🔍](#️curieo-healthcare-search-api-)
-    - [Table of Contents](#table-of-contents)
-    - [Installation](#installation)
-    - [Running the App](#running-the-app)
-    - [Deployment](#deployment)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Running the App](#running-the-app)
+  - [Deployment](#deployment)
 
 ## Installation
 
@@ -24,7 +24,7 @@ accurate, up-to-date, and relevant medical information.
     - Make sure `pyenv` is installed.
     - Create a new virtual environment `python -m venv .venv`
     - Activate the env `source .venv/bin/activate`
-    - Install poetry and uvicorn `pip install poetry uvicorn`
+    - Install poetry and uvicorn `pip install poetry`
     - Install dependencies `poetry install`
 
 
@@ -106,18 +106,8 @@ Steps and commands for running the app are to be included here
 - Use the below command to execute the server:
 
   ```
-  poetry run uvicorn app.main:app --reload
+  poetry run app
   ```
-
-- Example search queries:
-
-    ```
-    curl --location 'http://127.0.0.1:8000/search?query=What is diseases associated with A Natural History Study of Canavan Disease'
-    ```
-
-    ```
-    curl --location 'http://127.0.0.1:8000/search?query=Are there any recent regulatory updates or guidance documents related to CMC requirements for biopharmaceutical products similar to mRNA vaccine for covid'
-    ```
 
 ## Deployment
 
