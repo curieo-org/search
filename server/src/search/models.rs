@@ -29,7 +29,7 @@ pub struct SearchReactionRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SearchSource(Vec<Source>);
+pub struct SearchSource(pub Vec<Source>);
 
 #[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
 pub struct SearchHistory {

@@ -5,8 +5,8 @@ use server::auth::models::RegisterUserRequest;
 use server::auth::register;
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::cache_connect;
 use server::startup::AppState;
+use server::startup::{cache_connect, rag_service_connect};
 use server::users::selectors::get_user;
 use server::Result;
 use sqlx::PgPool;
@@ -49,7 +49,8 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
     let cache = cache_connect(&settings.cache).await.unwrap();
-    let state = AppState::from((pool, cache, settings));
+    let rag_service = rag_service_connect(&settings.rag_api).await.unwrap();
+    let state = AppState::from((pool, cache, settings, rag_service));
     let router = router(state).unwrap();
 
     let form = &[

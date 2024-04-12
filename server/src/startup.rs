@@ -85,12 +85,12 @@ pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
     Ok(cache_client)
 }
 
-pub async fn search_service_connect(search_service_url: &str) -> Result<RagServiceClient<Channel>> {
-    let search_service = RagServiceClient::connect(search_service_url.to_owned())
+pub async fn rag_service_connect(rag_service_url: &str) -> Result<RagServiceClient<Channel>> {
+    let rag_service = RagServiceClient::connect(rag_service_url.to_owned())
         .await
         .map_err(|e| eyre!("Failed to connect to search service: {}", e))?;
 
-    Ok(search_service)
+    Ok(rag_service)
 }
 
 async fn run(
@@ -103,9 +103,9 @@ async fn run(
 
     let cache = cache_connect(&settings.cache).await?;
 
-    let rag_search_service = search_service_connect(&settings.rag_api).await?;
+    let rag_service = rag_service_connect(&settings.rag_api).await?;
 
-    let state = AppState::from((db, cache, settings, rag_search_service));
+    let state = AppState::from((db, cache, settings, rag_service));
 
     let app = router(state)?;
 

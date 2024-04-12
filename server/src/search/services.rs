@@ -1,4 +1,5 @@
 use crate::cache::Cache;
+use crate::err::AppError;
 use crate::proto::rag_service_client::RagServiceClient;
 use crate::proto::{RouteCategory, SearchRequest, SearchResponse};
 use crate::search::{
@@ -31,6 +32,10 @@ pub async fn search(
         .await
         .map_err(|_| eyre!("unable to send request to search service"))?
         .into_inner();
+
+    if response.status != 200 {
+        return Err(AppError::from(eyre!("failed to get search results")));
+    }
 
     cache.set(&search_query.query, &response).await;
 
