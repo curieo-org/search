@@ -36,7 +36,7 @@ class Search(RagService):
                 sources = sources
             )
         
-        logger.error(f"get_search_results. failed to get the search results")
+        logger.error("get_search_results. failed to get the search results")
         
         return SearchResponse(
             status = 500,
