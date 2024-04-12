@@ -13,6 +13,7 @@ logger = setup_logger("Main")
 
 _cleanup_coroutines = []
 
+
 async def start_services():
     # Initialize redis client at app level
     cache = init_redis_client(settings.redis)
@@ -25,6 +26,7 @@ async def start_services():
     # redis connection
     # brave connection checking function
     # llmservice connection checking function
+
 
 async def stop_services(server):
     logger.info("Server graceful shutdown started")
@@ -39,10 +41,13 @@ async def stop_services(server):
     # graceful shutdown
     await server.stop(settings.project.graceful_shutdown_period)
 
+
 async def serve():
     await start_services()
-    
-    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers))
+
+    server = grpc.aio.server(
+        futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers)
+    )
     setup_grpc_api(server)
 
     port = settings.project.port
@@ -54,6 +59,7 @@ async def serve():
     _cleanup_coroutines.append(stop_services(server))
     await server.wait_for_termination()
 
+
 def start_server():
     loop = asyncio.get_event_loop()
     try:
@@ -61,5 +67,6 @@ def start_server():
     finally:
         loop.run_until_complete(*_cleanup_coroutines)
         loop.close()
+
 
 app = start_server()

@@ -18,15 +18,16 @@ from app.settings import Settings
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
 
+
 class BraveSourceRecord(pydantic.BaseModel):
     url: str
     page_age: str
 
     def to_grpc_source(self) -> Source:
         return Source(
-            url=self.url,
-            metadata=[Metadata(key="page_age", value=self.page_age)]
+            url=self.url, metadata=[Metadata(key="page_age", value=self.page_age)]
         )
+
 
 class PubmedSourceRecord(pydantic.BaseModel):
     url: str
@@ -34,9 +35,9 @@ class PubmedSourceRecord(pydantic.BaseModel):
 
     def to_grpc_source(self) -> Source:
         return Source(
-            url=self.url,
-            metadata=[Metadata(key="helper_text", value=self.helper_text)]
+            url=self.url, metadata=[Metadata(key="helper_text", value=self.helper_text)]
         )
+
 
 SourceRecord = PubmedSourceRecord | BraveSourceRecord
 
@@ -79,7 +80,9 @@ class Orchestrator:
         )
 
     async def query_and_get_answer(
-        self, search_text: str, route_category: RouteCategory = RouteCategory.PUBMED_BIOXRIV_WEB
+        self,
+        search_text: str,
+        route_category: RouteCategory = RouteCategory.PUBMED_BIOXRIV_WEB,
     ) -> SearchResultRecord | None:
         # search router call
         logger.info(
