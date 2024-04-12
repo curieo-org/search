@@ -20,7 +20,12 @@ accurate, up-to-date, and relevant medical information.
 
 ## Installation
 
-- Install Cureio backend
+- Install Curieo Backend using Docker
+    - Make sure Docker is installed.
+    - Build the Docker image `docker build -t curieo-backend .`
+    - Run the Docker container `docker run -p 50051:50051 -d backend`
+
+- Install Cureio Backend without Docker
     - Make sure `pyenv` is installed.
     - Create a new virtual environment `python -m venv .venv`
     - Activate the env `source .venv/bin/activate`
