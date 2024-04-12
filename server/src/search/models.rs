@@ -1,4 +1,4 @@
-use crate::proto::{Metadata, Source};
+use crate::proto::Source;
 use serde::{Deserialize, Serialize};
 use sqlx::types::time;
 use sqlx::types::JsonValue;
@@ -47,33 +47,7 @@ pub struct SearchHistory {
 
 impl From<JsonValue> for SearchSource {
     fn from(value: JsonValue) -> Self {
-        match value {
-            JsonValue::Array(arr) => {
-                let mut sources = Vec::new();
-                for source in arr {
-                    let json = source.as_object().unwrap();
-                    let url = json.get("url").unwrap().as_str().unwrap();
-                    let metadata = json.get("metadata").unwrap().as_array().unwrap();
-                    let mut metadata_vec = Vec::new();
-
-                    for item in metadata {
-                        let json = item.as_object().unwrap();
-                        let key = json.get("key").unwrap().as_str().unwrap();
-                        let value = json.get("value").unwrap().as_str().unwrap();
-                        metadata_vec.push(Metadata {
-                            key: key.to_string(),
-                            value: value.to_string(),
-                        });
-                    }
-
-                    sources.push(Source {
-                        url: url.to_string(),
-                        metadata: metadata_vec,
-                    });
-                }
-                SearchSource(sources)
-            }
-            _ => SearchSource(Vec::new()),
-        }
+        let sources = serde_json::from_value(value).unwrap_or_else(|_| Vec::new());
+        SearchSource(sources)
     }
 }
