@@ -47,7 +47,16 @@ pub struct SearchHistory {
 
 impl From<JsonValue> for SearchSource {
     fn from(value: JsonValue) -> Self {
-        let sources = serde_json::from_value(value).unwrap_or_else(|_| Vec::new());
-        SearchSource(sources)
+        if let JsonValue::Array(array) = value {
+            SearchSource(
+                array
+                    .into_iter()
+                    .filter_map(|v| serde_json::from_value(v).ok())
+                    .collect(),
+            )
+        } else {
+            tracing::warn!("Invalid SearchSource: {:?}", value);
+            SearchSource(vec![])
+        }
     }
 }
