@@ -20,12 +20,12 @@ accurate, up-to-date, and relevant medical information.
 
 ## Installation
 
-- Install Curieo Backend using Docker
+- Install Curieo Agency using Docker
     - Make sure Docker is installed.
-    - Build the Docker image `docker build -t curieo-backend .`
-    - Run the Docker container `docker run -p 50051:50051 -d backend`
+    - Build the Docker image `docker build -t curieo-agency .`
+    - Run the Docker container `docker run -p 50051:50051 -d agency`
 
-- Install Cureio Backend without Docker
+- Install Cureio Agency without Docker
     - Make sure `pyenv` is installed.
     - Create a new virtual environment `python -m venv .venv`
     - Activate the env `source .venv/bin/activate`
