@@ -1,4 +1,4 @@
-use crate::cache::Cache;
+use crate::cache::CachePool;
 use crate::search::{
     SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, SearchResponse,
     TopSearchRequest,
@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
-    cache: &Cache,
+    cache: &CachePool,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
     if let Some(response) = cache.get(&search_query.query).await {
@@ -27,7 +27,7 @@ pub async fn search(
         .map_err(|_| eyre!("unable to send request to rag api"))?
         .json()
         .await
-        .map_err(|_| eyre!("unable to parse json response from rag api"))?;
+        .map_err(|e| eyre!("unable to parse json response from rag api: {e:?}"))?;
 
     cache.set(&search_query.query, &response).await;
 
@@ -37,7 +37,7 @@ pub async fn search(
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn insert_search_history(
     pool: &PgPool,
-    cache: &Cache,
+    cache: &CachePool,
     user_id: &Uuid,
     search_query: &SearchQueryRequest,
     search_response: &SearchResponse,
@@ -51,7 +51,7 @@ pub async fn insert_search_history(
         &session_id,
         search_query.query,
         search_response.result,
-        &search_response.sources
+        serde_json::to_value(&search_response.sources).map_err(|e|eyre!("wat {e}"))?
     )
     .fetch_one(pool)
     .await?;
@@ -80,7 +80,7 @@ pub async fn get_search_history(
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn get_top_searches(
-    cache: &Cache,
+    cache: &CachePool,
     top_search_request: &TopSearchRequest,
 ) -> crate::Result<Vec<String>> {
     let random_number = rand::thread_rng().gen_range(0.0..1.0);

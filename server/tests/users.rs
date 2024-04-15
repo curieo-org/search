@@ -3,9 +3,9 @@ use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
+use server::cache::CachePool;
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::cache_connect;
 use server::startup::AppState;
 use server::users::selectors::get_user;
 use server::Result;
@@ -48,8 +48,16 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
-    let cache = cache_connect(&settings.cache).await.unwrap();
-    let state = AppState::from((pool, cache, settings));
+    let cache = CachePool::new(&settings.cache).await.unwrap();
+    let state = AppState::new(
+        pool.clone(),
+        cache,
+        settings.oauth2_clients.clone(),
+        settings,
+    )
+    .await
+    .unwrap();
+
     let router = router(state).unwrap();
 
     let form = &[

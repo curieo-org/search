@@ -31,7 +31,7 @@
       {
         "ordinal": 5,
         "name": "sources",
-        "type_info": "TextArray"
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 6,
@@ -55,7 +55,7 @@
         "Uuid",
         "Text",
         "Text",
-        "TextArray"
+        "Jsonb"
       ]
     },
     "nullable": [

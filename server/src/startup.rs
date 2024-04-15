@@ -1,5 +1,5 @@
 use crate::auth::oauth2::OAuth2Client;
-use crate::cache::{Cache, CacheSettings};
+use crate::cache::CachePool;
 use crate::err::AppError;
 use crate::routing::router;
 use crate::settings::Settings;
@@ -46,25 +46,38 @@ impl Application {
 #[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub db: PgPool,
-    pub cache: Cache,
+    pub cache: CachePool,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
 }
 
-impl From<(PgPool, Cache, Settings)> for AppState {
-    fn from((db, cache, settings): (PgPool, Cache, Settings)) -> Self {
-        Self {
+impl AppState {
+    pub async fn new(
+        db: PgPool,
+        cache: CachePool,
+        oauth2_clients: Vec<OAuth2Client>,
+        settings: Settings,
+    ) -> Result<Self> {
+        Ok(Self {
             db,
             cache,
+            oauth2_clients,
+            settings,
+        })
+    }
+    pub async fn initialize(settings: Settings) -> Result<Self> {
+        Ok(Self {
+            db: db_connect(settings.db.expose()).await?,
+            cache: CachePool::new(&settings.cache).await?,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
-        }
+        })
     }
 }
 
 pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     match PgPoolOptions::new()
-        .max_connections(5)
+        .max_connections(10)
         .connect(database_url)
         .await
     {
@@ -73,23 +86,15 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
     }
 }
 
-pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
-    let cache_client = Cache::new(cache_settings).await?;
-
-    Ok(cache_client)
-}
-
 async fn run(
     listener: TcpListener,
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
-    let db = db_connect(settings.db.expose()).await?;
-
-    sqlx::migrate!().run(&db).await.map_err(AppError::from)?;
-
-    let cache = cache_connect(&settings.cache).await?;
-
-    let state = AppState::from((db, cache, settings));
+    let state = AppState::initialize(settings).await?;
+    sqlx::migrate!()
+        .run(&state.db)
+        .await
+        .map_err(AppError::from)?;
 
     let app = router(state)?;
 

@@ -1,4 +1,4 @@
-use crate::cache::Cache;
+use crate::cache::CachePool;
 use crate::search::services;
 use crate::search::{
     SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
@@ -15,7 +15,7 @@ use sqlx::PgPool;
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_handler(
     State(pool): State<PgPool>,
-    State(cache): State<Cache>,
+    State(cache): State<CachePool>,
     user: User,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
@@ -49,7 +49,7 @@ async fn get_search_history_handler(
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_top_searches_handler(
-    State(cache): State<Cache>,
+    State(cache): State<CachePool>,
     Query(query): Query<TopSearchRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let top_searches = services::get_top_searches(&cache, &query).await?;

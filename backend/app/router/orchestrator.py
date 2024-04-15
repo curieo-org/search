@@ -1,5 +1,6 @@
 import asyncio
 import re
+import typing
 
 import dspy
 import pydantic
@@ -13,22 +14,32 @@ from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.services.search_utility import setup_logger
 from app.settings import Settings
+from typing import Any
+from pydantic import AliasChoices, BaseModel, Field
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
 
 
-class BraveSourceRecord(pydantic.BaseModel):
+class BraveSourceRecord(BaseModel):
+    type: typing.Literal["Brave"] = "Brave"
     url: str
-    page_age: str
+    page_age: str | None
 
 
-AnySourceRecord = dict[str, str]
-
-SourceRecord = AnySourceRecord | BraveSourceRecord
+Metadata = dict[str, Any | None]
 
 
-class SearchResultRecord(pydantic.BaseModel):
+class OtherSourceRecord(BaseModel):
+    type: typing.Literal["Other"] = "Other"
+    origin: str
+    metadata: Metadata | None
+
+
+SourceRecord = BraveSourceRecord | OtherSourceRecord
+
+
+class SearchResultRecord(BaseModel):
     result: str
     sources: list[SourceRecord]
 
@@ -177,7 +188,9 @@ class Orchestrator:
 
             sources = [node.node.metadata for node in reranked_results]
 
-            return SearchResultRecord(result=result, sources=sources)
+            result = SearchResultRecord(result=result, sources=sources)
+            logger.info("Returning search result: ", result)
+            return result
 
         except Exception as e:
             logger.exception(
