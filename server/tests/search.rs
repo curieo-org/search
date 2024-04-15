@@ -1,5 +1,6 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
+use server::cache::{CachePool, CacheSettings};
 use server::proto::{SearchResponse, Source};
 use server::search::{
     get_search_history, get_top_searches, insert_search_history, search, update_search_reaction,
@@ -8,17 +9,19 @@ use server::search::{
     SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
 };
 use server::settings::Settings;
-use server::startup::{agency_service_connect, cache_connect};
+use server::startup::agency_service_connect;
 use server::Result;
 use sqlx::PgPool;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[sqlx::test]
+#[tokio::test]
 async fn search_test() -> Result<()> {
     let settings = Settings::new();
-    let mut agency_service = agency_service_connect(&settings.agency_api).await.unwrap();
-    let cache = cache_connect(&settings.cache).await?;
+    let mut agency_service = agency_service_connect(&settings.agency_api.expose())
+        .await
+        .unwrap();
+    let cache = CachePool::new(&settings.cache).await?;
 
     let search_query = SearchQueryRequest {
         session_id: Some(Uuid::new_v4()),
@@ -33,15 +36,19 @@ async fn search_test() -> Result<()> {
     Ok(())
 }
 
-#[sqlx::test]
+#[tokio::test]
 async fn top_searches_test() -> Result<()> {
-    let settings = Settings::new();
-    let cache = cache_connect(&settings.cache).await?;
+    let cache_settings = CacheSettings {
+        url: "redis://127.0.0.1/".to_string().into(),
+        enabled: true,
+        ttl: 3600,
+        max_sorted_size: 100,
+    };
+    let cache = CachePool::new(&cache_settings).await?;
 
     let top_search_query = TopSearchRequest { limit: Some(1) };
 
     let top_searches_result = get_top_searches(&cache, &top_search_query).await;
-
     assert!(top_searches_result.is_ok());
     assert_eq!(top_searches_result.unwrap().len(), 1);
 
@@ -51,7 +58,7 @@ async fn top_searches_test() -> Result<()> {
 #[sqlx::test]
 async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
     let settings = Settings::new();
-    let cache = cache_connect(&settings.cache).await?;
+    let cache = CachePool::new(&settings.cache).await?;
 
     let new_user = register(
         pool.clone(),
@@ -108,7 +115,7 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
     let settings = Settings::new();
-    let cache = cache_connect(&settings.cache).await?;
+    let cache = CachePool::new(&settings.cache).await?;
 
     let new_user = register(
         pool.clone(),
@@ -145,7 +152,7 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
     let search_insertion_result = search_insertion_result.unwrap();
 
     let search_reaction_request = SearchReactionRequest {
-        search_history_id: search_insertion_result.search_history_id.clone(),
+        search_history_id: search_insertion_result.search_history_id,
         reaction: true,
     };
 

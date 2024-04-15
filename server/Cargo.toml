@@ -56,6 +56,7 @@ futures = "0.3.30"
 axum-extra = { version = "0.9.3", features = ["typed-header"] }
 tonic = "0.11.0"
 prost = "0.12"
+bb8-redis = "0.15.0"
 
 [dependencies.openssl-sys]
 version = "0.9.102"

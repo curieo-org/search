@@ -3,10 +3,11 @@ use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
+use server::cache::CachePool;
 use server::routing::router;
 use server::settings::Settings;
+use server::startup::agency_service_connect;
 use server::startup::AppState;
-use server::startup::{agency_service_connect, cache_connect};
 use server::users::selectors::get_user;
 use server::Result;
 use sqlx::PgPool;
@@ -48,9 +49,20 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
-    let cache = cache_connect(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api).await.unwrap();
-    let state = AppState::from((pool, cache, settings, agency_service));
+    let cache = CachePool::new(&settings.cache).await.unwrap();
+    let agency_service = agency_service_connect(&settings.agency_api.expose())
+        .await
+        .unwrap();
+    let state = AppState::new(
+        pool.clone(),
+        cache,
+        agency_service,
+        settings.oauth2_clients.clone(),
+        settings,
+    )
+    .await
+    .unwrap();
+
     let router = router(state).unwrap();
 
     let form = &[
@@ -59,7 +71,7 @@ async fn register_users_works(pool: PgPool) {
         ("password", "my-password"),
     ];
     let serialized_body = serde_urlencoded::to_string(form).unwrap();
-    let request = Request::post("/api/auth/register")
+    let request = Request::post("/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();
@@ -77,7 +89,7 @@ async fn register_users_works(pool: PgPool) {
         ("access_token", "my-access-token"),
     ];
     let serialized_body = serde_urlencoded::to_string(form).unwrap();
-    let request = Request::post("/api/auth/register")
+    let request = Request::post("/auth/register")
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(serialized_body)
         .unwrap();

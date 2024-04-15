@@ -1,4 +1,5 @@
 use crate::auth::BackendError;
+use crate::cache::CacheError;
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
@@ -16,7 +17,7 @@ pub enum AppError {
     UnprocessableEntity(ErrorMap),
     Sqlx(sqlx::Error),
     GenericError(color_eyre::eyre::Error),
-    Redis(redis::RedisError),
+    Cache(CacheError),
 }
 
 impl AppError {
@@ -25,7 +26,7 @@ impl AppError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Sqlx(_) | Self::GenericError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Cache(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
     /// Convenient constructor for `Error::UnprocessableEntity`.
@@ -56,12 +57,6 @@ impl From<sqlx::migrate::MigrateError> for AppError {
     }
 }
 
-impl From<redis::RedisError> for AppError {
-    fn from(inner: redis::RedisError) -> Self {
-        AppError::Redis(inner)
-    }
-}
-
 impl From<BackendError> for AppError {
     fn from(e: BackendError) -> Self {
         match e {
@@ -80,7 +75,7 @@ impl Display for AppError {
             AppError::Sqlx(e) => write!(f, "{}", e),
             AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
             AppError::Unauthorized => write!(f, "Unauthorized"),
-            AppError::Redis(e) => write!(f, "{}", e),
+            AppError::Cache(e) => write!(f, "{}", e),
         }
     }
 }
@@ -132,7 +127,7 @@ impl IntoResponse for AppError {
             }
             AppError::Sqlx(ref e) => error!("SQLx error: {:?}", e),
             AppError::GenericError(ref e) => error!("Generic error: {:?}", e),
-            AppError::Redis(ref e) => error!("Redis error: {:?}", e),
+            AppError::Cache(ref e) => error!("Redis error: {:?}", e),
         };
 
         // Return a http status code and json body with error message.

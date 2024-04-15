@@ -2,7 +2,10 @@ import logging
 
 import redis.asyncio as aioredis
 
+from app.services.search_utility import setup_logger
 from app.settings import RedisSettings
+
+logger = setup_logger("Redis")
 
 
 class Redis:
@@ -19,15 +22,21 @@ class Redis:
     async def disconnect(self):
         await self.connection.close()
 
-    async def get_value(self, key: str) -> str:
-        value = await self.connection.get(key)
+    async def get_value(self, key: str) -> str | None:
+        try:
+            value = await self.connection.get(key)
+            return str(value, "utf-8") if value else None
+        except aioredis.RedisError as e:
+            logger.exception("Retrieving value from cache failed: ", e)
+            return None
 
-        return str(value, "utf-8") if value else None
-
-    async def set_value(self, key: str, value: str, expire: int | None = None) -> None:
-        if not expire:
-            expire = self.max_age
-        await self.connection.set(key, value, ex=expire)
+    async def set_value(self, key: str, value: str, expire: int | None = None):
+        try:
+            if not expire:
+                expire = self.max_age
+            await self.connection.set(key, value, ex=expire)
+        except aioredis.RedisError as e:
+            logger.exception("Setting value into cache failed: ", e)
 
 
 _redis_client: Redis | None = None

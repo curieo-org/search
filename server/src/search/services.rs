@@ -1,5 +1,4 @@
-use crate::cache::Cache;
-use crate::err::AppError;
+use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{SearchRequest, SearchResponse};
 use crate::search::{
@@ -14,7 +13,7 @@ use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
-    cache: &Cache,
+    cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
@@ -29,11 +28,11 @@ pub async fn search(
     let response: SearchResponse = agency_service
         .pubmed_bioxriv_web_search(request)
         .await
-        .map_err(|_| eyre!("unable to send request to search service"))?
+        .map_err(|e| eyre!("Request to agency failed: {e}"))?
         .into_inner();
 
     if response.status != 200 {
-        return Err(AppError::from(eyre!("failed to get search results")));
+        return Err(eyre!("Failed to get search results").into());
     }
 
     cache.set(&search_query.query, &response).await;
@@ -44,7 +43,7 @@ pub async fn search(
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn insert_search_history(
     pool: &PgPool,
-    cache: &Cache,
+    cache: &CachePool,
     user_id: &Uuid,
     search_query: &SearchQueryRequest,
     search_response: &SearchResponse,
@@ -58,7 +57,7 @@ pub async fn insert_search_history(
         &session_id,
         search_query.query,
         search_response.result,
-        serde_json::to_value(&search_response.sources).map_err(|_| eyre!("unable to serialize sources"))?
+        serde_json::to_value(&search_response.sources).map_err(|e| eyre!("Serialization failed: {e}"))?
     )
     .fetch_one(pool)
     .await?;
@@ -87,7 +86,7 @@ pub async fn get_search_history(
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn get_top_searches(
-    cache: &Cache,
+    cache: &CachePool,
     top_search_request: &TopSearchRequest,
 ) -> crate::Result<Vec<String>> {
     let random_number = rand::thread_rng().gen_range(0.0..1.0);

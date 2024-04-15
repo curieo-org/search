@@ -1,12 +1,13 @@
-from app.database.redis import init_redis_client, get_redis_client
+import asyncio
+from concurrent import futures
+
+import grpc
+
+from app.api import setup_grpc_api
+from app.database.redis import get_redis_client, init_redis_client
 from app.services.search_utility import setup_logger
 from app.services.tracing import setup_tracing
 from app.settings import Settings
-
-from concurrent import futures
-import grpc
-from app.api import setup_grpc_api
-import asyncio
 
 settings = Settings()
 logger = setup_logger("Main")
@@ -69,4 +70,4 @@ def start_server():
         loop.close()
 
 
-app = start_server()
+app = start_server

@@ -1,4 +1,4 @@
-use crate::cache::Cache;
+use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::search::services;
 use crate::search::{
@@ -17,7 +17,7 @@ use tonic::transport::Channel;
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_handler(
     State(pool): State<PgPool>,
-    State(cache): State<Cache>,
+    State(cache): State<CachePool>,
     State(mut agency_service): State<AgencyServiceClient<Channel>>,
     user: User,
     Query(search_query): Query<SearchQueryRequest>,
@@ -52,7 +52,7 @@ async fn get_search_history_handler(
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_top_searches_handler(
-    State(cache): State<Cache>,
+    State(cache): State<CachePool>,
     Query(query): Query<TopSearchRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let top_searches = services::get_top_searches(&cache, &query).await?;

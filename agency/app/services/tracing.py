@@ -8,8 +8,8 @@ from opentelemetry.sdk import trace as trace_sdk
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.grpc import GRPCIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.settings import SentrySettings
 
