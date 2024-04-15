@@ -20,15 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "SearchResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
-        .type_attribute(
-            "RouteCategory",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
         .type_attribute("Source", "#[derive(serde::Deserialize, serde::Serialize)]")
-        .type_attribute(
-            "Metadata",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
         .compile(&proto_files, &proto_dir)?;
 
     Ok(())

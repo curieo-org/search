@@ -8,7 +8,6 @@ from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.api.util import RouteCategory
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
@@ -79,92 +78,12 @@ class Orchestrator:
             )
         )
 
-    async def query_and_get_answer(
-        self,
-        search_text: str,
-        route_category: RouteCategory = RouteCategory.PUBMED_BIOXRIV_WEB,
+    async def handle_pubmed_bioxriv_web_search(
+        self, search_text: str
     ) -> SearchResultRecord | None:
-        # search router call
         logger.info(
-            f"Orchestrator.query_and_get_answer.router_id search_text: {search_text}"
+            f"Orchestrator.handle_pubmed_bioxriv_web_search Entered. search_text: {search_text}"
         )
-
-        # TODO: Enable once stable and infallible
-        """
-        # initialize router with bad value
-        router_id = -1
-
-        # user not specified
-        if route_category == RouteCategory.NOT_SELECTED:
-            logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
-            try:
-                router_id = int(self.router(search_text).answer)
-            except Exception as e:
-                logger.exception(
-                    "query_and_get_answer.router_id Exception -",
-                    exc_info=e,
-                    stack_info=True,
-                )
-            logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
-        """
-
-        # TODO: Enable once stable and infallible
-        """
-        # routing
-        if router_id == 0 or route_category == RouteCategory.ClinicalTrials:
-            # clinical trial call
-            logger.info(
-                "Orchestrator.query_and_get_answer.router_id clinical trial Entered."
-            )
-            try:
-                sql_response = await self.clinical_trial_search.call_text2sql(
-                    search_text=search_text
-                )
-                result = str(sql_response)
-                sources = [result]  # TODO: clinical trial sql sources impl
-
-                logger.info(f"sql_response: {result}")
-
-                return SearchResultRecord(result=result, sources=sources)
-            except Exception as e:
-                logger.exception(
-                    "Orchestrator.query_and_get_answer.sqlResponse Exception -",
-                    exc_info=e,
-                    stack_info=True,
-                )
-                pass
-        """
-
-        # TODO: Enable once stable and infallible
-        """
-        if router_id == 1 or route_category == RouteCategory.DRUG:
-            # drug information call
-            logger.info(
-                "Orchestrator.query_and_get_answer.router_id drug_information_choice "
-                "Entered."
-            )
-            try:
-                cypher_response = await self.drug_chembl_search.call_text2cypher(
-                    search_text=search_text
-                )
-                result = str(cypher_response)
-                sources = [result]  # TODO: chembl cypher sources impl
-                logger.info(
-                    f"Orchestrator.query_and_get_answer.cypher_response "
-                    f"cypher_response: {result}"
-                )
-
-                return SearchResultRecord(result=result, sources=sources)
-            except Exception as e:
-                logger.exception(
-                    "Orchestrator.query_and_get_answer.cypher_response Exception -",
-                    exc_info=e,
-                    stack_info=True,
-                )
-        """
-
-        # if routing fails, sql and cypher calls fail, routing to pubmed or brave
-        logger.info("Orchestrator.query_and_get_answer.router_id Fallback Entered.")
         try:
             extracted_pubmed_results, extracted_web_results = await asyncio.gather(
                 self.pubmed_search.call_pubmed_vectors(search_text=search_text),
@@ -172,7 +91,7 @@ class Orchestrator:
             )
             extracted_results = extracted_pubmed_results + extracted_web_results
             logger.info(
-                f"Orchestrator.query_and_get_answer.extracted_results count: "
+                f"Orchestrator.handle_pubmed_bioxriv_web_search.extracted_results count: "
                 f"{len(extracted_pubmed_results), len(extracted_web_results)}"
             )
 
@@ -197,8 +116,86 @@ class Orchestrator:
 
         except Exception as e:
             logger.exception(
-                "Orchestrator.query_and_get_answer.fallback failed: ",
+                "Orchestrator.handle_pubmed_bioxriv_web_search failed -",
                 exc_info=e,
                 stack_info=True,
             )
             return None
+
+    async def handle_clinical_trial_search(
+        self, search_text: str
+    ) -> SearchResultRecord | None:
+        pass
+        # TODO: Enable once stable and infallible
+        """
+        # clinical trial call
+        logger.info(
+            "Orchestrator.handle_clinical_trial_search.router_id clinical trial Entered."
+        )
+        try:
+            sql_response = await self.clinical_trial_search.call_text2sql(
+                search_text=search_text
+            )
+            result = str(sql_response)
+            sources = [result]  # TODO: clinical trial sql sources impl
+
+            logger.info(f"sql_response: {result}")
+
+            return SearchResultRecord(result=result, sources=sources)
+        except Exception as e:
+            logger.exception(
+                "Orchestrator.handle_clinical_trial_search.sqlResponse Exception -",
+                exc_info=e,
+                stack_info=True,
+            )
+        """
+
+    async def handle_drug_search(self, search_text: str) -> SearchResultRecord | None:
+        pass
+        # TODO: Enable once stable and infallible
+        """
+        # drug information call
+        logger.info(
+            "Orchestrator.handle_drug_search drug_information_choice "
+            "Entered."
+        )
+        try:
+            cypher_response = await self.drug_chembl_search.call_text2cypher(
+                search_text=search_text
+            )
+            result = str(cypher_response)
+            sources = [result]  # TODO: chembl cypher sources impl
+            logger.info(
+                f"Orchestrator.handle_drug_search.cypher_response "
+                f"cypher_response: {result}"
+            )
+
+            return SearchResultRecord(result=result, sources=sources)
+        except Exception as e:
+            logger.exception(
+                "Orchestrator.handle_drug_search.cypher_response Exception -",
+                exc_info=e,
+                stack_info=True,
+            )
+        """
+
+    # TODO: Enable once stable and infallible
+    """
+    # initialize router with bad value
+    router_id = -1
+
+    # user not specified
+    if route_category == RouteCategory.NOT_SELECTED:
+        logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
+        try:
+            router_id = int(self.router(search_text).answer)
+        except Exception as e:
+            logger.exception(
+                "query_and_get_answer.router_id Exception -",
+                exc_info=e,
+                stack_info=True,
+            )
+        logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
+
+    # if routing fails, sql and cypher calls fail, routing to pubmed or brave
+    """

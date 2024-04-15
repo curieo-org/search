@@ -14,8 +14,8 @@ class AgencyServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.search = channel.unary_unary(
-            "/agency.AgencyService/search",
+        self.pubmed_bioxriv_web_search = channel.unary_unary(
+            "/agency.AgencyService/pubmed_bioxriv_web_search",
             request_serializer=agency__pb2.SearchRequest.SerializeToString,
             response_deserializer=agency__pb2.SearchResponse.FromString,
         )
@@ -24,7 +24,7 @@ class AgencyServiceStub(object):
 class AgencyServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def search(self, request, context):
+    def pubmed_bioxriv_web_search(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
@@ -33,8 +33,8 @@ class AgencyServiceServicer(object):
 
 def add_AgencyServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-        "search": grpc.unary_unary_rpc_method_handler(
-            servicer.search,
+        "pubmed_bioxriv_web_search": grpc.unary_unary_rpc_method_handler(
+            servicer.pubmed_bioxriv_web_search,
             request_deserializer=agency__pb2.SearchRequest.FromString,
             response_serializer=agency__pb2.SearchResponse.SerializeToString,
         ),
@@ -50,7 +50,7 @@ class AgencyService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def search(
+    def pubmed_bioxriv_web_search(
         request,
         target,
         options=(),
@@ -65,7 +65,7 @@ class AgencyService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/agency.AgencyService/search",
+            "/agency.AgencyService/pubmed_bioxriv_web_search",
             agency__pb2.SearchRequest.SerializeToString,
             agency__pb2.SearchResponse.FromString,
             options,

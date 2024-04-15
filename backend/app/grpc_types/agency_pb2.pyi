@@ -1,5 +1,4 @@
 from google.protobuf.internal import containers as _containers
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from typing import (
@@ -12,29 +11,11 @@ from typing import (
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class RouteCategory(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    ClinicalTrials: _ClassVar[RouteCategory]
-    DRUG: _ClassVar[RouteCategory]
-    PUBMED_BIOXRIV_WEB: _ClassVar[RouteCategory]
-    NOT_SELECTED: _ClassVar[RouteCategory]
-
-ClinicalTrials: RouteCategory
-DRUG: RouteCategory
-PUBMED_BIOXRIV_WEB: RouteCategory
-NOT_SELECTED: RouteCategory
-
 class SearchRequest(_message.Message):
-    __slots__ = ("query", "route_category")
+    __slots__ = ("query",)
     QUERY_FIELD_NUMBER: _ClassVar[int]
-    ROUTE_CATEGORY_FIELD_NUMBER: _ClassVar[int]
     query: str
-    route_category: RouteCategory
-    def __init__(
-        self,
-        query: _Optional[str] = ...,
-        route_category: _Optional[_Union[RouteCategory, str]] = ...,
-    ) -> None: ...
+    def __init__(self, query: _Optional[str] = ...) -> None: ...
 
 class Source(_message.Message):
     __slots__ = ("url", "metadata")

@@ -1,7 +1,7 @@
 use crate::cache::Cache;
 use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{RouteCategory, SearchRequest, SearchResponse};
+use crate::proto::{SearchRequest, SearchResponse};
 use crate::search::{
     SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
     TopSearchRequest,
@@ -24,11 +24,10 @@ pub async fn search(
 
     let request = tonic::Request::new(SearchRequest {
         query: search_query.query.clone(),
-        route_category: RouteCategory::PubmedBioxrivWeb as i32,
     });
 
     let response: SearchResponse = agency_service
-        .search(request)
+        .pubmed_bioxriv_web_search(request)
         .await
         .map_err(|_| eyre!("unable to send request to search service"))?
         .into_inner();

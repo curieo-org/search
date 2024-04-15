@@ -6,6 +6,14 @@ use sqlx::FromRow;
 use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Debug)]
+pub enum RouteCategory {
+    PubmedBioxrivWeb = 0,
+    ClinicalTrials = 1,
+    Drug = 2,
+    NotSpecified = 3,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TopSearchRequest {
     pub limit: Option<i64>,
 }

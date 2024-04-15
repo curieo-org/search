@@ -2,16 +2,8 @@ syntax = "proto3";
 
 package agency;
 
-enum RouteCategory {
-    ClinicalTrials = 0;
-    DRUG = 1;
-    PUBMED_BIOXRIV_WEB = 2;
-    NOT_SELECTED = 3;
-}
-
 message SearchRequest {
     string query = 1;
-    RouteCategory route_category = 2;
 }
 
 message Source {
@@ -26,5 +18,5 @@ message SearchResponse {
 }
 
 service AgencyService {
-    rpc search(SearchRequest) returns (SearchResponse);
+    rpc pubmed_bioxriv_web_search(SearchRequest) returns (SearchResponse);
 }
