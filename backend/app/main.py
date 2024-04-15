@@ -21,6 +21,9 @@ async def start_services():
     # connect to redis
     await cache.connect()
 
+    # tracing
+    setup_tracing(settings.sentry)
+
     # db connection
     # embedding connection
     # redis connection
@@ -34,9 +37,6 @@ async def stop_services(server):
     # disconnect from redis
     cache = get_redis_client()
     await cache.disconnect()
-
-    # tracing
-    setup_tracing(settings.sentry)
 
     # graceful shutdown
     await server.stop(settings.project.graceful_shutdown_period)
