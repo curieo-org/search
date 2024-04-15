@@ -1,6 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::{Cache, CacheSettings};
 use crate::err::AppError;
+use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -9,6 +10,7 @@ use color_eyre::eyre::eyre;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use tonic::transport::Channel;
 
 pub struct Application {
     port: u16,
@@ -49,15 +51,24 @@ pub struct AppState {
     pub cache: Cache,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
+    pub agency_service: AgencyServiceClient<Channel>,
 }
 
-impl From<(PgPool, Cache, Settings)> for AppState {
-    fn from((db, cache, settings): (PgPool, Cache, Settings)) -> Self {
+impl From<(PgPool, Cache, Settings, AgencyServiceClient<Channel>)> for AppState {
+    fn from(
+        (db, cache, settings, agency_service): (
+            PgPool,
+            Cache,
+            Settings,
+            AgencyServiceClient<Channel>,
+        ),
+    ) -> Self {
         Self {
             db,
             cache,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
+            agency_service,
         }
     }
 }
@@ -79,6 +90,16 @@ pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
     Ok(cache_client)
 }
 
+pub async fn agency_service_connect(
+    agency_service_url: &str,
+) -> Result<AgencyServiceClient<Channel>> {
+    let agency_service = AgencyServiceClient::connect(agency_service_url.to_owned())
+        .await
+        .map_err(|e| eyre!("Failed to connect to agency service: {}", e))?;
+
+    Ok(agency_service)
+}
+
 async fn run(
     listener: TcpListener,
     settings: Settings,
@@ -89,7 +110,9 @@ async fn run(
 
     let cache = cache_connect(&settings.cache).await?;
 
-    let state = AppState::from((db, cache, settings));
+    let agency_service = agency_service_connect(&settings.agency_api).await?;
+
+    let state = AppState::from((db, cache, settings, agency_service));
 
     let app = router(state)?;
 

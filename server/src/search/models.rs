@@ -1,17 +1,21 @@
+use crate::proto::Source;
 use serde::{Deserialize, Serialize};
 use sqlx::types::time;
+use sqlx::types::JsonValue;
 use sqlx::FromRow;
 use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TopSearchRequest {
-    pub limit: Option<i64>,
+pub enum RouteCategory {
+    PubmedBioxrivWeb = 0,
+    ClinicalTrials = 1,
+    Drug = 2,
+    NotSpecified = 3,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct RAGTokenResponse {
-    pub access_token: String,
-    pub token_type: String,
+pub struct TopSearchRequest {
+    pub limit: Option<i64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -32,11 +36,8 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SearchResponse {
-    pub result: String,
-    pub sources: Vec<String>,
-}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SearchSource(pub Vec<Source>);
 
 #[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
 pub struct SearchHistory {
@@ -45,9 +46,25 @@ pub struct SearchHistory {
     pub session_id: uuid::Uuid,
     pub query: String,
     pub result: String,
-    pub sources: Vec<String>,
+    pub sources: SearchSource,
     pub reaction: Option<bool>,
 
     pub created_at: time::OffsetDateTime,
     pub updated_at: time::OffsetDateTime,
+}
+
+impl From<JsonValue> for SearchSource {
+    fn from(value: JsonValue) -> Self {
+        if let JsonValue::Array(array) = value {
+            SearchSource(
+                array
+                    .into_iter()
+                    .filter_map(|v| serde_json::from_value(v).ok())
+                    .collect(),
+            )
+        } else {
+            tracing::warn!("Invalid SearchSource: {:?}", value);
+            SearchSource(vec![])
+        }
+    }
 }
