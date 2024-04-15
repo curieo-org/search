@@ -11,8 +11,6 @@ name = "server"
 path = "src/main.rs"
 
 [dependencies]
-
-
 anyhow = { version = "1.0.81", features = ["backtrace"] }
 async-trait = "0.1.78"
 axum = { version = "0.7.4", features = ["macros"] }
@@ -56,8 +54,13 @@ redis = { version = "0.25.2", features = ["tokio-comp", "json"] }
 rand = "0.8.5"
 futures = "0.3.30"
 axum-extra = { version = "0.9.3", features = ["typed-header"] }
+tonic = "0.11.0"
+prost = "0.12"
 bb8-redis = "0.15.0"
 
 [dependencies.openssl-sys]
 version = "0.9.102"
 features = ["vendored"]
+
+[build-dependencies]
+tonic-build = "0.11.0"

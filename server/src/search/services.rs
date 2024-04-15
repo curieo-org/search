@@ -1,33 +1,39 @@
 use crate::cache::CachePool;
+use crate::proto::agency_service_client::AgencyServiceClient;
+use crate::proto::{SearchRequest, SearchResponse};
 use crate::search::{
-    SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, SearchResponse,
+    SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
     TopSearchRequest,
 };
-use crate::settings::SETTINGS;
 use color_eyre::eyre::eyre;
 use rand::Rng;
-use reqwest::Client as ReqwestClient;
 use sqlx::PgPool;
+use tonic::transport::Channel;
 use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
     cache: &CachePool,
+    agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
     if let Some(response) = cache.get(&search_query.query).await {
         return Ok(response);
     }
 
-    let rag_api_url = SETTINGS.rag_api.clone() + "/search?query=" + &search_query.query;
-    let response: SearchResponse = ReqwestClient::new()
-        .get(rag_api_url)
-        .send()
+    let request = tonic::Request::new(SearchRequest {
+        query: search_query.query.clone(),
+    });
+
+    let response: SearchResponse = agency_service
+        .pubmed_bioxriv_web_search(request)
         .await
-        .map_err(|_| eyre!("unable to send request to rag api"))?
-        .json()
-        .await
-        .map_err(|e| eyre!("unable to parse json response from rag api: {e:?}"))?;
+        .map_err(|e| eyre!("Request to agency failed: {e}"))?
+        .into_inner();
+
+    if response.status != 200 {
+        return Err(eyre!("Failed to get search results").into());
+    }
 
     cache.set(&search_query.query, &response).await;
 
@@ -51,7 +57,7 @@ pub async fn insert_search_history(
         &session_id,
         search_query.query,
         search_response.result,
-        serde_json::to_value(&search_response.sources).map_err(|e|eyre!("wat {e}"))?
+        serde_json::to_value(&search_response.sources).map_err(|e| eyre!("Serialization failed: {e}"))?
     )
     .fetch_one(pool)
     .await?;

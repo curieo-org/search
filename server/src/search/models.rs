@@ -1,8 +1,17 @@
+use crate::proto::Source;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use sqlx::types::time;
 use sqlx::FromRow;
 use std::fmt::Debug;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum RouteCategory {
+    PubmedBioxrivWeb = 0,
+    ClinicalTrials = 1,
+    Drug = 2,
+    NotSpecified = 3,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TopSearchRequest {
@@ -27,44 +36,33 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct BraveSource {
-    pub url: String,
-    pub page_age: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-#[serde(tag = "type")]
-pub enum Source {
-    Brave(BraveSource),
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct SourceOld {
-    pub origin: String,
-    pub metadata: serde_json::Value,
-}
+//#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+//pub struct BraveSource {
+//    pub url: String,
+//    pub page_age: Option<String>,
+//}
+//
+//#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+//#[serde(tag = "type")]
+//pub enum Source {
+//    Brave(BraveSource),
+//}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Sources(pub Vec<Source>);
 
 impl From<serde_json::Value> for Sources {
-    fn from(value: serde_json::Value) -> Sources {
-        match value {
-            serde_json::Value::Array(array) => {
-                let mut sources = vec![];
-                for v in array {
-                    match serde_json::from_value(v) {
-                        Ok(source) => sources.push(source),
-                        Err(e) => tracing::error!("Failed to parse source: {:?}", e),
-                    }
-                }
-                Self(sources)
-            }
-            _ => {
-                tracing::error!("Failed to parse sources: {:?}", value);
-                Sources(vec![])
-            }
+    fn from(value: serde_json::Value) -> Self {
+        if let serde_json::Value::Array(array) = value {
+            Sources(
+                array
+                    .into_iter()
+                    .filter_map(|v| serde_json::from_value(v).ok())
+                    .collect(),
+            )
+        } else {
+            tracing::warn!("Invalid SearchSource: {:?}", value);
+            Sources(vec![])
         }
     }
 }

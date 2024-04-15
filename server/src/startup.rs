@@ -1,6 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::CachePool;
 use crate::err::AppError;
+use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -9,6 +10,7 @@ use color_eyre::eyre::eyre;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use tonic::transport::Channel;
 
 pub struct Application {
     port: u16,
@@ -47,6 +49,7 @@ impl Application {
 pub struct AppState {
     pub db: PgPool,
     pub cache: CachePool,
+    pub agency_service: AgencyServiceClient<Channel>,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
 }
@@ -55,12 +58,14 @@ impl AppState {
     pub async fn new(
         db: PgPool,
         cache: CachePool,
+        agency_service: AgencyServiceClient<Channel>,
         oauth2_clients: Vec<OAuth2Client>,
         settings: Settings,
     ) -> Result<Self> {
         Ok(Self {
             db,
             cache,
+            agency_service,
             oauth2_clients,
             settings,
         })
@@ -69,6 +74,7 @@ impl AppState {
         Ok(Self {
             db: db_connect(settings.db.expose()).await?,
             cache: CachePool::new(&settings.cache).await?,
+            agency_service: agency_service_connect(settings.agency_api.expose()).await?,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
         })
@@ -84,6 +90,16 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
         Ok(pool) => Ok(pool),
         Err(e) => Err(eyre!("Failed to connect to Postgres: {}", e).into()),
     }
+}
+
+pub async fn agency_service_connect(
+    agency_service_url: &str,
+) -> Result<AgencyServiceClient<Channel>> {
+    let agency_service = AgencyServiceClient::connect(agency_service_url.to_owned())
+        .await
+        .map_err(|e| eyre!("Failed to connect to agency service: {}", e))?;
+
+    Ok(agency_service)
 }
 
 async fn run(

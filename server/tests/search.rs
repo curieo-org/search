@@ -1,21 +1,26 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
 use server::cache::{CachePool, CacheSettings};
+use server::proto::{SearchResponse, Source};
 use server::search::{
     get_search_history, get_top_searches, insert_search_history, search, update_search_reaction,
 };
 use server::search::{
-    SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, SearchResponse,
-    TopSearchRequest,
+    SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
 };
 use server::settings::Settings;
+use server::startup::agency_service_connect;
 use server::Result;
 use sqlx::PgPool;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[tokio::test]
 async fn search_test() -> Result<()> {
     let settings = Settings::new();
+    let mut agency_service = agency_service_connect(&settings.agency_api.expose())
+        .await
+        .unwrap();
     let cache = CachePool::new(&settings.cache).await?;
 
     let search_query = SearchQueryRequest {
@@ -23,9 +28,10 @@ async fn search_test() -> Result<()> {
         query: "test".to_string(),
     };
 
-    let search_result = search(&cache, &search_query).await;
+    let search_result = search(&cache, &mut agency_service, &search_query).await;
 
     assert!(search_result.is_ok());
+    assert_eq!(search_result.unwrap().status, 200);
 
     Ok(())
 }
@@ -71,8 +77,15 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         query: "test_query".to_string(),
     };
     let search_response = SearchResponse {
+        status: 200,
         result: "test_result".to_string(),
-        sources: serde_json::json!(vec!["test_source".to_string()]).into(),
+        sources: vec![Source {
+            url: "test_url".to_string(),
+            metadata: HashMap::from([
+                ("test_key1".to_string(), "test_value1".to_string()),
+                ("test_key2".to_string(), "test_value2".to_string()),
+            ]),
+        }],
     };
 
     let search_insertion_result =
@@ -94,7 +107,7 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
     assert_eq!(&search_history_result[0].query, &search_query.query);
     assert_eq!(search_history_result[0].user_id, user_id);
     assert_eq!(search_history_result[0].result, search_response.result);
-    assert_eq!(search_history_result[0].sources, search_response.sources);
+    assert_eq!(search_history_result[0].sources.0, search_response.sources);
 
     Ok(())
 }
@@ -121,8 +134,15 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
         query: "test_query".to_string(),
     };
     let search_response = SearchResponse {
+        status: 200,
         result: "test_result".to_string(),
-        sources: serde_json::json!(vec!["test_source".to_string()]).into(),
+        sources: vec![Source {
+            url: "test_url".to_string(),
+            metadata: HashMap::from([
+                ("test_key1".to_string(), "test_value1".to_string()),
+                ("test_key2".to_string(), "test_value2".to_string()),
+            ]),
+        }],
     };
 
     let search_insertion_result =
@@ -145,7 +165,7 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
     assert_eq!(&search_reaction_result.query, &search_query.query);
     assert_eq!(&search_reaction_result.user_id, &user_id);
     assert_eq!(&search_reaction_result.result, &search_response.result);
-    assert_eq!(&search_reaction_result.sources, &search_response.sources);
+    assert_eq!(&search_reaction_result.sources.0, &search_response.sources);
     assert_eq!(
         search_reaction_result.reaction.unwrap(),
         search_reaction_request.reaction

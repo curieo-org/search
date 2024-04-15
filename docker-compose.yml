@@ -1,12 +1,12 @@
 version: "3.8"
 
 services:
-  backend:
-    build: backend
+  agency:
+    build: agency
     ports:
       - 8000:80
     volumes:
-      - ./backend:/usr/src/app
+      - ./agency:/usr/src/app
     networks:
       - curieo_db
     depends_on:
