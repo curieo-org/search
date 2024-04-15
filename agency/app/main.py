@@ -70,4 +70,4 @@ def start_server():
         loop.close()
 
 
-app = start_server()
+app = start_server
