@@ -1,5 +1,6 @@
 import asyncio
 import re
+import abc
 
 import dspy
 import pydantic
@@ -11,7 +12,7 @@ from app.api.util import RouteCategory
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
-from app.grpc_types.rag_pb2 import Source, Metadata
+from app.grpc_types.agency_pb2 import Source
 from app.services.search_utility import setup_logger
 from app.settings import Settings
 
@@ -19,27 +20,26 @@ logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
 
 
-class BraveSourceRecord(pydantic.BaseModel):
+class SourceRecord(abc.ABC, pydantic.BaseModel):
     url: str
+
+    @abc.abstractmethod
+    def to_grpc_source(self) -> Source:
+        raise NotImplementedError
+
+
+class BraveSourceRecord(SourceRecord):
     page_age: str
 
     def to_grpc_source(self) -> Source:
-        return Source(
-            url=self.url, metadata=[Metadata(key="page_age", value=self.page_age)]
-        )
+        return Source(url=self.url, metadata={"page_age": self.page_age})
 
 
-class PubmedSourceRecord(pydantic.BaseModel):
-    url: str
+class PubmedSourceRecord(SourceRecord):
     helper_text: str
 
     def to_grpc_source(self) -> Source:
-        return Source(
-            url=self.url, metadata=[Metadata(key="helper_text", value=self.helper_text)]
-        )
-
-
-SourceRecord = PubmedSourceRecord | BraveSourceRecord
+        return Source(url=self.url, metadata={"helper_text": self.helper_text})
 
 
 class SearchResultRecord(pydantic.BaseModel):

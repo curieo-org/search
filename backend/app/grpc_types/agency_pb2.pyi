@@ -36,26 +36,25 @@ class SearchRequest(_message.Message):
         route_category: _Optional[_Union[RouteCategory, str]] = ...,
     ) -> None: ...
 
-class Metadata(_message.Message):
-    __slots__ = ("key", "value")
-    KEY_FIELD_NUMBER: _ClassVar[int]
-    VALUE_FIELD_NUMBER: _ClassVar[int]
-    key: str
-    value: str
-    def __init__(
-        self, key: _Optional[str] = ..., value: _Optional[str] = ...
-    ) -> None: ...
-
 class Source(_message.Message):
     __slots__ = ("url", "metadata")
+
+    class MetadataEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
+
     URL_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
     url: str
-    metadata: _containers.RepeatedCompositeFieldContainer[Metadata]
+    metadata: _containers.ScalarMap[str, str]
     def __init__(
-        self,
-        url: _Optional[str] = ...,
-        metadata: _Optional[_Iterable[_Union[Metadata, _Mapping]]] = ...,
+        self, url: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...
     ) -> None: ...
 
 class SearchResponse(_message.Message):

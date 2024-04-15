@@ -5,15 +5,15 @@ from app.services.search_utility import setup_logger
 from app.settings import Settings
 
 import grpc
-from app.grpc_types.rag_pb2_grpc import RagService
-from app.grpc_types.rag_pb2 import SearchRequest, SearchResponse
+from app.grpc_types.agency_pb2_grpc import AgencyService
+from app.grpc_types.agency_pb2 import SearchRequest, SearchResponse
 
 orchestrator = Orchestrator(settings=Settings())
 
 logger = setup_logger("Search_API")
 
 
-class Search(RagService):
+class Search(AgencyService):
     async def search(
         self, request: SearchRequest, context: grpc.aio.ServicerContext
     ) -> SearchResponse:

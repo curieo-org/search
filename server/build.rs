@@ -6,7 +6,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("cargo:rerun-if-changed=migrations");
 
     // build the proto files
-    let proto_files = ["protos/rag.proto"];
+    let proto_dir = ["../protos"];
+    let proto_files = ["../protos/agency.proto"];
 
     tonic_build::configure()
         .build_server(false)
@@ -28,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "Metadata",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
-        .compile(&proto_files, &["."])?;
+        .compile(&proto_files, &proto_dir)?;
 
     Ok(())
 }

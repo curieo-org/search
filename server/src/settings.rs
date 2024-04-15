@@ -79,7 +79,7 @@ pub struct Settings {
     pub port: u16,
     pub db: Secret<String>,
     pub cache: CacheSettings,
-    pub rag_api: String,
+    pub agency_api: String,
     pub oauth2_clients: Vec<OAuth2Client>,
 }
 

@@ -16,7 +16,7 @@ pub mod users;
 pub mod utils;
 
 pub mod proto {
-    tonic::include_proto!("rag");
+    tonic::include_proto!("agency");
 }
 
 pub type Result<T> = std::result::Result<T, err::AppError>;

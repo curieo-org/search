@@ -1,6 +1,6 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
-use server::proto::{Metadata, SearchResponse, Source};
+use server::proto::{SearchResponse, Source};
 use server::search::{
     get_search_history, get_top_searches, insert_search_history, search, update_search_reaction,
 };
@@ -8,15 +8,16 @@ use server::search::{
     SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
 };
 use server::settings::Settings;
-use server::startup::{cache_connect, rag_service_connect};
+use server::startup::{agency_service_connect, cache_connect};
 use server::Result;
 use sqlx::PgPool;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[sqlx::test]
 async fn search_test() -> Result<()> {
     let settings = Settings::new();
-    let mut rag_service = rag_service_connect(&settings.rag_api).await.unwrap();
+    let mut agency_service = agency_service_connect(&settings.agency_api).await.unwrap();
     let cache = cache_connect(&settings.cache).await?;
 
     let search_query = SearchQueryRequest {
@@ -24,7 +25,7 @@ async fn search_test() -> Result<()> {
         query: "test".to_string(),
     };
 
-    let search_result = search(&cache, &mut rag_service, &search_query).await;
+    let search_result = search(&cache, &mut agency_service, &search_query).await;
 
     assert!(search_result.is_ok());
     assert_eq!(search_result.unwrap().status, 200);
@@ -73,10 +74,10 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         result: "test_result".to_string(),
         sources: vec![Source {
             url: "test_url".to_string(),
-            metadata: vec![Metadata {
-                key: "test_key".to_string(),
-                value: "test_value".to_string(),
-            }],
+            metadata: HashMap::from([
+                ("test_key1".to_string(), "test_value1".to_string()),
+                ("test_key2".to_string(), "test_value2".to_string()),
+            ]),
         }],
     };
 
@@ -130,10 +131,10 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
         result: "test_result".to_string(),
         sources: vec![Source {
             url: "test_url".to_string(),
-            metadata: vec![Metadata {
-                key: "test_key".to_string(),
-                value: "test_value".to_string(),
-            }],
+            metadata: HashMap::from([
+                ("test_key1".to_string(), "test_value1".to_string()),
+                ("test_key2".to_string(), "test_value2".to_string()),
+            ]),
         }],
     };
 

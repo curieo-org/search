@@ -1,5 +1,5 @@
 use crate::cache::Cache;
-use crate::proto::rag_service_client::RagServiceClient;
+use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::search::services;
 use crate::search::{
     SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
@@ -18,13 +18,13 @@ use tonic::transport::Channel;
 async fn get_search_handler(
     State(pool): State<PgPool>,
     State(cache): State<Cache>,
-    State(mut rag_service): State<RagServiceClient<Channel>>,
+    State(mut agency_service): State<AgencyServiceClient<Channel>>,
     user: User,
     Query(search_query): Query<SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_response = services::search(&cache, &mut rag_service, &search_query).await?;
+    let search_response = services::search(&cache, &mut agency_service, &search_query).await?;
     let search_history =
         services::insert_search_history(&pool, &cache, &user_id, &search_query, &search_response)
             .await?;

@@ -1,7 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::{Cache, CacheSettings};
 use crate::err::AppError;
-use crate::proto::rag_service_client::RagServiceClient;
+use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -51,19 +51,24 @@ pub struct AppState {
     pub cache: Cache,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
-    pub rag_service: RagServiceClient<Channel>,
+    pub agency_service: AgencyServiceClient<Channel>,
 }
 
-impl From<(PgPool, Cache, Settings, RagServiceClient<Channel>)> for AppState {
+impl From<(PgPool, Cache, Settings, AgencyServiceClient<Channel>)> for AppState {
     fn from(
-        (db, cache, settings, rag_service): (PgPool, Cache, Settings, RagServiceClient<Channel>),
+        (db, cache, settings, agency_service): (
+            PgPool,
+            Cache,
+            Settings,
+            AgencyServiceClient<Channel>,
+        ),
     ) -> Self {
         Self {
             db,
             cache,
             oauth2_clients: settings.oauth2_clients.clone(),
             settings,
-            rag_service,
+            agency_service,
         }
     }
 }
@@ -85,12 +90,14 @@ pub async fn cache_connect(cache_settings: &CacheSettings) -> Result<Cache> {
     Ok(cache_client)
 }
 
-pub async fn rag_service_connect(rag_service_url: &str) -> Result<RagServiceClient<Channel>> {
-    let rag_service = RagServiceClient::connect(rag_service_url.to_owned())
+pub async fn agency_service_connect(
+    agency_service_url: &str,
+) -> Result<AgencyServiceClient<Channel>> {
+    let agency_service = AgencyServiceClient::connect(agency_service_url.to_owned())
         .await
-        .map_err(|e| eyre!("Failed to connect to search service: {}", e))?;
+        .map_err(|e| eyre!("Failed to connect to agency service: {}", e))?;
 
-    Ok(rag_service)
+    Ok(agency_service)
 }
 
 async fn run(
@@ -103,9 +110,9 @@ async fn run(
 
     let cache = cache_connect(&settings.cache).await?;
 
-    let rag_service = rag_service_connect(&settings.rag_api).await?;
+    let agency_service = agency_service_connect(&settings.agency_api).await?;
 
-    let state = AppState::from((db, cache, settings, rag_service));
+    let state = AppState::from((db, cache, settings, agency_service));
 
     let app = router(state)?;
 

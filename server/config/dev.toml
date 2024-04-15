@@ -1,5 +1,5 @@
 db = "postgresql://postgres:postgres@localhost/curieo"
-rag_api = "http://127.0.0.1:50051"
+agency_api = "http://127.0.0.1:50051"
 oauth2_clients = []
 
 [cache]

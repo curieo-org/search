@@ -2,10 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import app.grpc_types.rag_pb2 as rag__pb2
+import app.grpc_types.agency_pb2 as agency__pb2
 
 
-class RagServiceStub(object):
+class AgencyServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -15,13 +15,13 @@ class RagServiceStub(object):
             channel: A grpc.Channel.
         """
         self.search = channel.unary_unary(
-            "/rag.RagService/search",
-            request_serializer=rag__pb2.SearchRequest.SerializeToString,
-            response_deserializer=rag__pb2.SearchResponse.FromString,
+            "/agency.AgencyService/search",
+            request_serializer=agency__pb2.SearchRequest.SerializeToString,
+            response_deserializer=agency__pb2.SearchResponse.FromString,
         )
 
 
-class RagServiceServicer(object):
+class AgencyServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def search(self, request, context):
@@ -31,22 +31,22 @@ class RagServiceServicer(object):
         raise NotImplementedError("Method not implemented!")
 
 
-def add_RagServiceServicer_to_server(servicer, server):
+def add_AgencyServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
         "search": grpc.unary_unary_rpc_method_handler(
             servicer.search,
-            request_deserializer=rag__pb2.SearchRequest.FromString,
-            response_serializer=rag__pb2.SearchResponse.SerializeToString,
+            request_deserializer=agency__pb2.SearchRequest.FromString,
+            response_serializer=agency__pb2.SearchResponse.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        "rag.RagService", rpc_method_handlers
+        "agency.AgencyService", rpc_method_handlers
     )
     server.add_generic_rpc_handlers((generic_handler,))
 
 
 # This class is part of an EXPERIMENTAL API.
-class RagService(object):
+class AgencyService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -65,9 +65,9 @@ class RagService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/rag.RagService/search",
-            rag__pb2.SearchRequest.SerializeToString,
-            rag__pb2.SearchResponse.FromString,
+            "/agency.AgencyService/search",
+            agency__pb2.SearchRequest.SerializeToString,
+            agency__pb2.SearchResponse.FromString,
             options,
             channel_credentials,
             insecure,

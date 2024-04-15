@@ -1,6 +1,6 @@
 use crate::cache::Cache;
 use crate::err::AppError;
-use crate::proto::rag_service_client::RagServiceClient;
+use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{RouteCategory, SearchRequest, SearchResponse};
 use crate::search::{
     SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
@@ -15,7 +15,7 @@ use uuid::Uuid;
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
     cache: &Cache,
-    rag_service: &mut RagServiceClient<Channel>,
+    agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &SearchQueryRequest,
 ) -> crate::Result<SearchResponse> {
     if let Some(response) = cache.get(&search_query.query).await {
@@ -27,7 +27,7 @@ pub async fn search(
         route_category: RouteCategory::PubmedBioxrivWeb as i32,
     });
 
-    let response: SearchResponse = rag_service
+    let response: SearchResponse = agency_service
         .search(request)
         .await
         .map_err(|_| eyre!("unable to send request to search service"))?
