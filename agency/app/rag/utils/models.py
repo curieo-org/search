@@ -1,5 +1,6 @@
 import abc
 import pydantic
+from typing import Optional
 
 from app.grpc_types.agency_pb2 import Source
 
@@ -12,18 +13,18 @@ class AbstractSourceRecord(abc.ABC):
 
 class BraveSourceRecord(pydantic.BaseModel, AbstractSourceRecord):
     url: str
-    page_age: str = ""
+    page_age: Optional[str]
 
     def to_grpc_source(self) -> Source:
-        return Source(url=self.url, metadata={"page_age": self.page_age})
+        return Source(url=self.url, metadata={"page_age": self.page_age or ""})
 
 
 class PubmedSourceRecord(pydantic.BaseModel, AbstractSourceRecord):
     url: str
-    helper_text: str = ""
+    helper_text: Optional[str]
 
     def to_grpc_source(self) -> Source:
-        return Source(url=self.url, metadata={"helper_text": self.helper_text})
+        return Source(url=self.url, metadata={"helper_text": self.helper_text or ""})
 
 
 SourceRecord = BraveSourceRecord | PubmedSourceRecord

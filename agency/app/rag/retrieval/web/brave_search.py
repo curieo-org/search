@@ -60,7 +60,7 @@ class BraveSearchQueryEngine:
                         text=resp.get("description")
                         + "".join(resp.get("extra_snippets", [])),
                         metadata=BraveSourceRecord(
-                            url=str(resp["url"]), page_age=str(resp.get("page_age"))
+                            url=str(resp["url"]), page_age=resp.get("page_age")
                         ),
                     )
                     for resp in web_response
