@@ -28,6 +28,16 @@ class BraveSettings(BaseSettings):
     api_root: str = "https://api.search.brave.com/res/v1/web/search"
     subscription_key: SecretStr
     result_count: int = 10
+    goggles_id: SecretStr
+    result_filter: list[str] = [
+        "discussions",
+        "faq",
+        "summarizer",
+        "infobox",
+        "news",
+        "query",
+        "web",
+    ]
 
 
 class TogetherPromptConfig(BaseSettings):

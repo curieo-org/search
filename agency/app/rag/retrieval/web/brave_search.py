@@ -5,6 +5,7 @@ from llama_index.core.schema import TextNode
 
 from app.services.search_utility import setup_logger
 from app.settings import BraveSettings
+from app.rag.utils.models import BraveSourceRecord
 
 logger = setup_logger("BraveSearchQueryEngine")
 
@@ -29,12 +30,13 @@ class BraveSearchQueryEngine:
         logger.info("call_brave_search_api. query: " + search_text)
 
         endpoint = (
-            "{url_address}?count={count}&q={"
-            "search_text}&search_lang=en&extra_snippets=True"
+            "{url_address}?count={count}&q={search_text}&goggles_id={goggles_id}&result_filter={result_filter}&search_lang=en&extra_snippets=True&safesearch=strict"
         ).format(
             url_address=self.settings.api_root,
             count=self.settings.result_count,
             search_text=search_text,
+            goggles_id=str(self.settings.goggles_id.get_secret_value()),
+            result_filter=",".join(self.settings.result_filter),
         )
 
         headers = {
@@ -57,7 +59,9 @@ class BraveSearchQueryEngine:
                     TextNode(
                         text=resp.get("description")
                         + "".join(resp.get("extra_snippets", [])),
-                        metadata={"url": resp["url"], "page_age": resp.get("page_age")},
+                        metadata=BraveSourceRecord(
+                            url=str(resp["url"]), page_age=str(resp.get("page_age"))
+                        ),
                     )
                     for resp in web_response
                 ]

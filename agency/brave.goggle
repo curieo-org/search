@@ -1,0 +1,24 @@
+! name: Life Science Goggle - A filter for the Brave search engine
+!
+! description: Rerank results to boost the well-respected medical and life science research websites. Also remove social media and other irrelevant websites.
+!
+! public: false
+! author: Curieo Technologies B.V.
+
+! Boost
+$boost=10,site=www.lifescience.net
+$boost=9,site=www.ncbi.nlm.nih.gov
+
+! Discard
+$discard,site=www.facebook.com
+$discard,site=www.twitter.com
+$discard,site=www.instagram.com
+$discard,site=www.pinterest.com
+$discard,site=www.linkedin.com
+$discard,site=www.youtube.com
+$discard,site=www.reddit.com
+$discard,site=www.tiktok.com
+$discard,site=www.medium.com
+$discard,site=www.tumblr.com
+$discard,site=www.quora.com
+$discard,site=www.wikipedia.org
