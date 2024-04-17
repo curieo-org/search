@@ -75,6 +75,9 @@ impl CachePool {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+        if !self.settings.enabled {
+            return None;
+        }
         match self.try_get(key).await {
             Ok(response) => response,
             Err(e) => {
@@ -96,6 +99,9 @@ impl CachePool {
     }
 
     pub async fn set<T: Serialize>(&self, key: &str, value: &T) {
+        if !self.settings.enabled {
+            return;
+        }
         if let Err(e) = self.try_set(key, value).await {
             tracing::error!("Failed to set cache key {}: {}", key, e);
         }
@@ -109,6 +115,9 @@ impl CachePool {
     }
 
     pub async fn zincr(&self, space: &str, key: &str, value: i64) -> Result<(), CacheError> {
+        if !self.settings.enabled {
+            return Ok(());
+        }
         if let Ok(mut conn) = self.pool.get().await {
             conn.zincr(space, key, value).await?;
         }
@@ -121,6 +130,9 @@ impl CachePool {
         start: i64,
         stop: i64,
     ) -> Result<Vec<String>, CacheError> {
+        if !self.settings.enabled {
+            return Ok(vec![]);
+        }
         if let Ok(mut conn) = self.pool.get().await {
             let result: Vec<String> = conn
                 .zrevrange(space, start as isize - 1, stop as isize - 1)
@@ -131,6 +143,9 @@ impl CachePool {
     }
 
     pub async fn zremrangebyrank(&self, space: &str) -> Result<(), CacheError> {
+        if !self.settings.enabled {
+            return Ok(());
+        }
         if let Ok(mut conn) = self.pool.get().await {
             conn.zremrangebyrank(space, 0, -self.settings.max_sorted_size as isize - 1)
                 .await?;
