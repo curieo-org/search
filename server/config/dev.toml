@@ -1,4 +1,4 @@
-db = "postgresql://postgres:postgres@localhost/curieo"
+db = "${DATABASE_URL}"
 agency_api = "http://127.0.0.1:50051"
 oauth2_clients = []
 
