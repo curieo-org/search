@@ -1,0 +1,19 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}-rule-policy
+  namespace: {{ .Release.Namespace }}
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            ipBlocks:
+              - "*"
+      to:
+        - operation:
+            hosts:
+              - {{ .Release.Name }}.{{ .Values.service.dns_zone }}
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
