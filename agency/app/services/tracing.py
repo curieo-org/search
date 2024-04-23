@@ -1,6 +1,7 @@
 import logging
 
 import sentry_sdk
+from openinference.semconv.resource import ResourceAttributes
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from opentelemetry import trace as trace_api
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -26,7 +27,11 @@ def setup_tracing(settings: SentrySettings):
     )
 
     if settings.environment == "production":
-        resource = Resource(attributes={})
+        resource = Resource(
+            attributes={
+                ResourceAttributes.PROJECT_NAME: settings.phoenix_project_name,
+            }
+        )
         tracer_provider = trace_sdk.TracerProvider(resource=resource)
         span_exporter = OTLPSpanExporter(endpoint=settings.phoenix_api)
         span_processor = SimpleSpanProcessor(span_exporter=span_exporter)

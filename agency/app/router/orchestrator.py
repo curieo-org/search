@@ -1,52 +1,20 @@
-import abc
 import asyncio
 import re
 
 import dspy
-import pydantic
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.grpc_types.agency_pb2 import Source
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
 from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.rag.utils.models import SearchResultRecord
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
-
-
-class AbstractSourceRecord(abc.ABC):
-    @abc.abstractmethod
-    def to_grpc_source(self) -> Source:
-        raise NotImplementedError
-
-
-class BraveSourceRecord(pydantic.BaseModel, AbstractSourceRecord):
-    url: str
-    page_age: str = ""
-
-    def to_grpc_source(self) -> Source:
-        return Source(url=self.url, metadata={"page_age": self.page_age})
-
-
-class PubmedSourceRecord(pydantic.BaseModel, AbstractSourceRecord):
-    url: str
-    helper_text: str = ""
-
-    def to_grpc_source(self) -> Source:
-        return Source(url=self.url, metadata={"helper_text": self.helper_text})
-
-
-SourceRecord = BraveSourceRecord | PubmedSourceRecord
-
-
-class SearchResultRecord(pydantic.BaseModel):
-    result: str
-    sources: list[SourceRecord]
 
 
 class Orchestrator:

@@ -28,6 +28,16 @@ class BraveSettings(BaseSettings):
     api_root: str = "https://api.search.brave.com/res/v1/web/search"
     subscription_key: SecretStr
     result_count: int = 10
+    goggles_id: SecretStr
+    result_filter: list[str] = [
+        "discussions",
+        "faq",
+        "summarizer",
+        "infobox",
+        "news",
+        "query",
+        "web",
+    ]
 
 
 class TogetherPromptConfig(BaseSettings):
@@ -96,7 +106,8 @@ class SentrySettings(BaseSettings):
     dsn: SecretStr
     enable_tracing: bool = False
     environment: str = "development"
-    phoenix_api: str = "http://127.0.0.1:6007/v1/traces"
+    phoenix_api: str = "http://127.0.0.1:6006/v1/traces"
+    phoenix_project_name: str = "Curieo Search Agency"
 
 
 class GroqSettings(BaseSettings):
