@@ -59,9 +59,7 @@ class BraveSearchQueryEngine:
                     TextNode(
                         text=resp.get("description")
                         + "".join(resp.get("extra_snippets", [])),
-                        metadata=BraveSourceRecord(
-                            url=str(resp["url"]), page_age=resp.get("page_age")
-                        ),
+                        metadata=BraveSourceRecord.model_validate(resp),
                     )
                     for resp in web_response
                 ]
