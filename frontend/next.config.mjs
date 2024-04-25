@@ -5,7 +5,7 @@ const nextConfig = {
         return {
             beforeFiles: [
                 {
-                    source: "/api/:path*",
+                    source: "/custodian/:path*",
                     destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
                 },
                 {

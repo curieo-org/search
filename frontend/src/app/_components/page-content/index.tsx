@@ -20,7 +20,7 @@ async function tokenFetcher(url: string): Promise<boolean> {
 }
 
 export const PageContent = () => {
-    const {data} = useSWR("/api/auth/login", tokenFetcher);
+    const {data} = useSWR("/custodian/auth/login", tokenFetcher);
     const [searchResults, setSearchResults] = useState<string>("");
     return (
         <>
