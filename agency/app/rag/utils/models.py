@@ -1,6 +1,7 @@
 import abc
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
 
 from app.grpc_types.agency_pb2 import Source
 

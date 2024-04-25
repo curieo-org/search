@@ -3,9 +3,9 @@ from typing import List
 import requests
 from llama_index.core.schema import TextNode
 
+from app.rag.utils.models import BraveSourceRecord
 from app.services.search_utility import setup_logger
 from app.settings import BraveSettings
-from app.rag.utils.models import BraveSourceRecord
 
 logger = setup_logger("BraveSearchQueryEngine")
 

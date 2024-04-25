@@ -1,8 +1,8 @@
 import logging
 
 import sentry_sdk
-from openinference.semconv.resource import ResourceAttributes
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from openinference.semconv.resource import ResourceAttributes
 from opentelemetry import trace as trace_api
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk import trace as trace_sdk

@@ -66,8 +66,9 @@ class EmbeddingSettings(BaseSettings):
     chunk_size: int = 512
 
 
-class RerankSettings(BaseSettings):
+class RerankingSettings(BaseSettings):
     api: str = "http://127.0.0.1:8081/rerank"
+    auth_token: SecretStr
     model: str = "BAAI/bge-reranker-large"
     revision: str = "refs/pr/4"
     chunk_size: int = 512
@@ -174,7 +175,7 @@ class Settings(BaseSettings):
     groq: GroqSettings
     dspy: DspySettings = DspySettings()
     embedding: EmbeddingSettings = EmbeddingSettings()
-    reranking: RerankSettings = RerankSettings()
+    reranking: RerankingSettings
     qdrant: QdrantSettings
     llama_index: LlamaIndexSettings = LlamaIndexSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
