@@ -36,6 +36,11 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchHistoryByIdRequest {
+    pub search_history_id: uuid::Uuid,
+}
+
 //#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 //pub struct BraveSource {
 //    pub url: String,
