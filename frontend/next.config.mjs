@@ -1,24 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    async rewrites() {
-        return {
-            beforeFiles: [
-                {
-                    source: "/api/:path*",
-                    destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
-                },
-                {
-                    source: "/ingest/static/:path*",
-                    destination: "https://us-assets.i.posthog.com/static/:path*",
-                },
-                {
-                    source: "/ingest/:path*",
-                    destination: "https://us.i.posthog.com/:path*",
-                },
-            ],
-        };
-    },
-};
+  env: {
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    API_BASE_URL: process.env.API_BASE_URL,
+  },
+  output: 'standalone',
+}
 
-export default nextConfig;
+export default nextConfig

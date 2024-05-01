@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* .hover-border-gradient:hover {
+  border-style: solid;
+  border-width: 1px;
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to top right, #8445bc, #3c2056);
+}
+
+.border-gradient {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #3c2056;
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to top right, #8445bc, #3c2056);
+} */
