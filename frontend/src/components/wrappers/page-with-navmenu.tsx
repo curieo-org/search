@@ -16,7 +16,7 @@ export default function PageWithNavMenu({ children }: LayoutProps) {
         <Navmenu />
       </div>
 
-      <div className="h-full w-full mb-5">{children}</div>
+      <div className="w-full pb-5">{children}</div>
     </div>
   )
 }

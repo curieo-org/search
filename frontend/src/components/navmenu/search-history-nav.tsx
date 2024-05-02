@@ -13,7 +13,7 @@ export default function SearchHistoryNav(props: SearchHistoryNavProps) {
   }
 
   return (
-    <div className={twMerge('w-full flex flex-col gap-y-2 max-h-96 overflow-y-scroll', props.className)}>
+    <div className={twMerge('w-full flex flex-col gap-y-4 max-h-96 overflow-y-scroll', props.className)}>
       <SearchHistorySlab title="Today" searchHistoryList={searchResults.slice(0, 4)} />
       <SearchHistorySlab title="Yesterday" searchHistoryList={searchResults.slice(4, 8)} />
       <SearchHistorySlab title="7 Days Ago" searchHistoryList={searchResults.slice(8, 12)} />

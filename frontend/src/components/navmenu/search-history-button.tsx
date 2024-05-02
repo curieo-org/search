@@ -30,8 +30,8 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
     <Button
       className={twMerge(
         classNames(
-          'w-full rounded-md font-normal text-xs px-2 hover:bg-custom-black-ash bg-transparent text-background-light',
-          [isNavmenuCollaped ? 'justify-center' : 'justify-start']
+          'w-full h-auto rounded-md font-normal text-xs px-2 hover:bg-custom-black-ash bg-transparent text-background-light',
+          [isNavmenuCollaped ? 'justify-center' : 'justify-start text-start pl-6']
         ),
         props.className
       )}

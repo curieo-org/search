@@ -1,11 +1,11 @@
 'use client'
 
 import { useTextWidth } from '@/hooks/util/use-text-width'
-import { HTMLAttributes, useState } from 'react'
-import { Textarea } from '../lib/form'
 import classNames from 'classnames'
+import { HTMLAttributes, useState } from 'react'
 import SendIcon from '../icons/send'
 import { Button } from '../lib/button'
+import { Textarea } from '../lib/form'
 
 type SearchInputProps = HTMLAttributes<HTMLDivElement>
 
@@ -13,8 +13,8 @@ type SearchInputProps = HTMLAttributes<HTMLDivElement>
 
 export default function SearchInput(props: SearchInputProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const textWidth = useTextWidth(searchQuery)
-  const lineCount = Math.ceil(textWidth / 560)
+  const textWidth = useTextWidth(searchQuery.toUpperCase())
+  const lineCount = Math.max(Math.ceil(textWidth / 560), searchQuery.length > 0 ? searchQuery.split('\n').length : 0)
 
   return (
     <Textarea

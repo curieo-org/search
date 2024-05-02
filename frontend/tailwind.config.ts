@@ -12,6 +12,15 @@ const config: Config = {
       colors: {
         ...colors,
       },
+      borderWidth: {
+        '6': '6px',
+      },
+      fontSize: {
+        '2xs': ['10px', '14px'],
+      },
+      animation: {
+        'spin-slow': 'spin 2s linear infinite',
+      },
     },
   },
   plugins: [],

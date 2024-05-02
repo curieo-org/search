@@ -6,6 +6,7 @@ import ShiftLeft from '../icons/shift-left'
 import ShiftRight from '../icons/shift-right'
 import { Span } from '../lib/typography'
 import { useRouter } from 'next/navigation'
+import EngineIcon from '../icons/engine'
 
 type NavmenuFooterProps = HTMLAttributes<HTMLDivElement>
 
@@ -37,13 +38,14 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
         <ShiftRight size={35} className="cursor-pointer" onClick={toggleNavmenuCollaped} />
       ) : (
         <div>
-          <ShiftLeft size={35} className="float-right mr-2 cursor-pointer" onClick={toggleNavmenuCollaped} />
+          <ShiftLeft size={35} className="float-right mr-0 cursor-pointer" onClick={toggleNavmenuCollaped} />
         </div>
       )}
       <div className="my-2 h-px w-full bg-custom-gray/25"></div>
-      <div className="flex items-center gap-x-2 cursor-pointer" onClick={handleNavigateToSettingsPage}>
-        <img src="/images/sample-user.png" className="h-12 w-auto" />
+      <div className="relative flex items-center gap-x-2 cursor-pointer" onClick={handleNavigateToSettingsPage}>
+        <img src="/images/sample-user.png" className="h-10 w-auto" />
         {!isNavmenuCollaped && <Span className="font-medium">Musharof</Span>}
+        {!isNavmenuCollaped && <EngineIcon size={18} className="absolute right-2" />}
       </div>
     </div>
   )

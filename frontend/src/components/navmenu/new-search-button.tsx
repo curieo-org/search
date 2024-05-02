@@ -21,7 +21,7 @@ export default function NewSearchButton(props: HTMLAttributes<HTMLButtonElement>
       className={twMerge(
         classNames(
           'w-full rounded-full bg-background-light dark:bg-foreground-light text-foreground-dark dark:text-background-light hover:ring-2 hover:ring-custom-navy-blue dark:hover:bg-foreground-hover',
-          [isNavmenuCollaped ? 'justify-center' : 'justify-start']
+          [isNavmenuCollaped ? 'justify-center mx-2 w-auto' : 'justify-start']
         ),
         props.className
       )}

@@ -4,9 +4,11 @@ const metadata = {
 }
 
 const urls = [
-  'https://medlineplus.gov/druginfo/meds/a688016.html',
-  'www.webmd.com/drugs/2/drug-7748/ciprofloxacin-oral/details',
-  'www.drugs.com/ciprofloxacin.html',
+  'https://www.webmd.com/drugs/2/drug-7748/ciprofloxacin-oral/details',
+  'https://www.webmd.com/drugs/2/drug-7748/ciprofloxacin-oral/details',
+  'https://www.webmd.com/drugs/2/drug-7748/ciprofloxacin-oral/details',
+  //'https://medlineplus.gov/druginfo/meds/a688016.html',
+  //'https://www.drugs.com/ciprofloxacin.html',
 ]
 
 const sources = Array(10)
@@ -28,6 +30,7 @@ const searchResult = {
 }
 
 export type SearchResult = typeof searchResult
+export type Source = (typeof searchResult.sources)[0]
 
 export const searchResults = Array(15)
   .fill(0)

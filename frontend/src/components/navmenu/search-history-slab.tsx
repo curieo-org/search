@@ -11,8 +11,8 @@ type SearchHistorySlabProps = HTMLAttributes<HTMLDivElement> & {
 export default function SearchHistorySlab(props: SearchHistorySlabProps) {
   return (
     <div className={twMerge('w-full', props.className)}>
-      <span className="text-input-placeholder text-sm ml-6">{props.title}</span>
-      <div className="flex flex-col mt-2">
+      <span className="text-input-placeholder text-2xs ml-6">{props.title}</span>
+      <div className="flex flex-col mt-0.5">
         {props.searchHistoryList.map(searchResult => (
           <SearchHistoryButton
             key={`search-history-nav-${searchResult.search_history_id}`}

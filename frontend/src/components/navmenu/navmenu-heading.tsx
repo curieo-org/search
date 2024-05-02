@@ -21,7 +21,7 @@ export default function NavmenuHeading(props: NavmenuHeadingProps) {
         props.className
       )}
     >
-      <img src="/images/curieo-logo.svg" className="h-8 w-8" />
+      <img src="/images/curieo-logo.svg" className="h-10 w-auto animate-spin-slow" />
       {!isNavmenuCollaped && <Span className="text-xl font-semibold">{appName}</Span>}
     </div>
   )
