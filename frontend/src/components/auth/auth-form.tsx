@@ -31,13 +31,15 @@ export default function AuthForm(props: AuthFormProps) {
 
   const handleAuth = () => {
     setIsLoading(true)
-    authHandler({ email, password })
-      .then(res => {
-        authToast(res)
-        router.push('/search')
-      })
-      .catch(err => toast.error(err.message))
-      .finally(() => setIsLoading(false))
+    authToast({ email, user_id: email })
+    router.push('/search')
+    // authHandler({ email, password })
+    //   .then(res => {
+    //     authToast(res)
+    //     router.push('/search')
+    //   })
+    //   .catch(err => toast.error(err.message))
+    //   .finally(() => setIsLoading(false))
   }
 
   const handleContinueWithGoogle = () => {}
