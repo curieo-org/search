@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const AxiosClient = axios.create({
   baseURL: process.env.API_BASE_URL,
+  withCredentials: true,
 })
 
 const onRequest = async (request: any) => {
