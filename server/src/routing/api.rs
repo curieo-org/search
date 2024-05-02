@@ -7,17 +7,16 @@ use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
 use crate::auth::models::PostgresBackend;
+use crate::auth::redis_store::RedisStore;
 use crate::startup::AppState;
 use crate::{auth, health_check, search, users};
 
 pub fn router(state: AppState) -> color_eyre::Result<Router> {
-    //sqlx::migrate!().run(&db).await?;
-
     // Session layer.
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
     // as a request extension.
-    let session_store = MemoryStore::default();
+    let session_store = RedisStore::new(state.cache);
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(false)
         .with_same_site(SameSite::Lax) // Ensure we send the cookie from the OAuth redirect.

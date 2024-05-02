@@ -4,7 +4,7 @@ use axum::extract::FromRef;
 use bb8::Pool;
 use bb8_redis::bb8;
 use bb8_redis::RedisConnectionManager;
-use redis::AsyncCommands;
+use redis::{AsyncCommands, SetOptions};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -104,6 +104,32 @@ impl CachePool {
     pub async fn try_set<T: Serialize>(&self, key: &str, value: &T) -> Result<(), CacheError> {
         if let Ok(mut conn) = self.pool.get().await {
             conn.set(key, serde_json::to_string(value)?).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn set_options<T: Serialize>(&self, key: &str, value: &T, opts: SetOptions) {
+        if let Err(e) = self.try_set_options(key, value, opts).await {
+            tracing::error!("Failed to set cache key {}: {}", key, e);
+        }
+    }
+
+    pub async fn try_set_options<T: Serialize>(
+        &self,
+        key: &str,
+        value: &T,
+        opts: SetOptions,
+    ) -> Result<(), CacheError> {
+        if let Ok(mut conn) = self.pool.get().await {
+            conn.set_options(key, serde_json::to_string(value)?, opts)
+                .await?;
+        }
+        Ok(())
+    }
+
+    pub async fn del(&self, key: &str) -> Result<(), CacheError> {
+        if let Ok(mut conn) = self.pool.get().await {
+            conn.del(key).await?;
         }
         Ok(())
     }
