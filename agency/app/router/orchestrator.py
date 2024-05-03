@@ -9,9 +9,9 @@ from llama_index.llms.together import TogetherLLM
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
+from app.rag.utils.models import SearchResultRecord
 from app.services.search_utility import setup_logger
 from app.settings import Settings
-from app.rag.utils.models import SearchResultRecord
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
