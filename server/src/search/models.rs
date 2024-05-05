@@ -1,9 +1,9 @@
 use crate::proto::Source;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use sqlx::types::time;
 use sqlx::FromRow;
 use std::fmt::Debug;
+use time;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum RouteCategory {
@@ -96,6 +96,8 @@ pub struct SearchHistory {
     pub sources: Sources,
     pub reaction: Option<bool>,
 
+    #[serde(with = "time::serde::rfc3339")]
     pub created_at: time::OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339")]
     pub updated_at: time::OffsetDateTime,
 }

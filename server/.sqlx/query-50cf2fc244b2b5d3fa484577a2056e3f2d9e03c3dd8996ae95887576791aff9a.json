@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select * from search_history where user_id = $1 and search_history_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "search_history_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "session_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "query",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "result",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "sources",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "reaction",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "50cf2fc244b2b5d3fa484577a2056e3f2d9e03c3dd8996ae95887576791aff9a"
+}
