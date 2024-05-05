@@ -10,16 +10,19 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.32.0",
+    "autoprefixer": "^10.4.19",
     "axios": "^1.6.8",
     "date-fns": "^3.6.0",
     "lodash": "^4.17.21",
     "next": "14.2.3",
     "next-themes": "^0.3.0",
+    "postcss": "^8.4.38",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.1.0",
     "react-toastify": "^10.0.5",
     "spinners-react": "^1.0.7",
+    "tailwindcss": "^3.4.3",
     "uuid": "^9.0.1",
     "zod": "^3.23.4",
     "zustand": "^4.5.2"
@@ -33,9 +36,7 @@
     "classnames": "^2.5.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
-    "postcss": "^8",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
 }
