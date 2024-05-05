@@ -1,5 +1,5 @@
-import { PageContent } from "./_components/page-content";
+import SpinnerLoading from '@/components/util/spinner-loading'
 
 export default function Home() {
-  return <PageContent />;
+  return <SpinnerLoading />
 }
