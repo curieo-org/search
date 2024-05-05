@@ -5,6 +5,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import _ from 'lodash'
 import { ThemeProvider } from 'next-themes'
 import { toast } from 'react-toastify'
+import posthog from "posthog-js"
+import { PostHogProvider } from 'posthog-js/react'
+
+const posthog_enabled = process.env.NEXT_PUBLIC_POSTHOG_KEY != null
+
+if (typeof window !== 'undefined' && posthog_enabled) {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY || '', {
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_API_HOST || '',
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || '',
+    capture_pageview: false,
+  })
+}
+
+export function PosthogProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
