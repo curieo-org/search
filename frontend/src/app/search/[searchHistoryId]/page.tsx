@@ -50,7 +50,7 @@ export default function SearchResult() {
     return <ErrorPage message="Failed to fetch search result. Please try again later..." />
   } else {
     return (
-      <div className="w-full flex">
+      <div className="w-full h-full flex">
         <div className="w-full flex flex-col justify-between">
           <div className="w-full px-6 py-10 lg:px-12 xl:px-20 xl:py-20 mx-auto xl:max-w-[880px] transition-all duration-300">
             <SearchTitle className="mb-6" title={searchResult.query} />

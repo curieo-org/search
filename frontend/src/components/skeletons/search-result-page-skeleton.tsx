@@ -19,7 +19,7 @@ export default function SearchResultPageSkeleton(props: SearchResultPageSkeleton
           <LayersIcon className="text-typography-light dark:text-typography-dark" size={20} />
           <H2 className="font-medium">Sources</H2>
         </div>
-        <div className="flex flex-col gap-y-3">
+        <div className="flex flex-col gap-y-3 pr-3">
           {Array(5)
             .fill(0)
             .map((item, index) => (
