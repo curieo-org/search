@@ -1,6 +1,6 @@
 'use client'
 
-import { emailErrorMessage, passwordErrorMessage } from '@/constants/messages'
+import { emailErrorMessage, passwordErrorMessage, welcomeMessage } from '@/constants/messages'
 import { loginPagePath } from '@/constants/route'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useLoginQuery } from '@/queries/auth/login-query'
@@ -8,7 +8,7 @@ import { useRegisterQuery } from '@/queries/auth/register-query'
 import { useAuthFormStore } from '@/stores/auth/auth-form-store'
 import { AuthResponse } from '@/types/auth'
 import { useRouter } from 'next/navigation'
-import { HTMLAttributes, useState } from 'react'
+import { HTMLAttributes, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { z } from 'zod'
 import GoogleIcon from '../icons/google'
@@ -26,6 +26,8 @@ export default function AuthForm(props: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { updateAuthStatus } = useAppContext()
+
+  useEffect(() => updateAuthStatus('loading'), [])
 
   const login = useLoginQuery()
   const register = useRegisterQuery()
@@ -46,7 +48,7 @@ export default function AuthForm(props: AuthFormProps) {
 
   const authHandler = props.authPurpose === 'register' ? register : login
   const handleAuthToast = (res: AuthResponse) =>
-    props.authPurpose === 'register' ? toast.success('You have registered successfully') : toast.success(`Welcome back`)
+    props.authPurpose === 'register' ? toast.success('You have registered successfully') : toast.success(welcomeMessage)
   const handleAuthRedirect = () =>
     props.authPurpose === 'register' ? router.push(loginPagePath) : updateAuthStatus('authenticated')
 

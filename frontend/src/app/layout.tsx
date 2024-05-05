@@ -1,5 +1,6 @@
 import App from '@/components/wrappers/app'
 import Providers from '@/components/wrappers/providers'
+import { appDescription, appTitle } from '@/constants/app'
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
@@ -9,8 +10,8 @@ import 'react-toastify/dist/ReactToastify.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Curieo Frontend',
-  description: 'One stop search engine to fast-track your research.',
+  title: appTitle,
+  description: appDescription,
 }
 
 export type LayoutProps = Readonly<{

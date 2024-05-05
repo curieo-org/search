@@ -1,3 +1,5 @@
+export const welcomeMessage = 'Welcome to Curieo Search'
+
 export const logoutMessage = 'User logged out successfully'
 
 export const searchLoadingMessage = 'Your search result is being fetched. Please wait...'

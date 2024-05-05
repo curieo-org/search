@@ -1,7 +1,7 @@
 'use client'
 
 import { LayoutProps } from '@/app/layout'
-import { profileRefreshTime } from '@/constants/app'
+import { profileRefreshTime } from '@/constants/config'
 import {
   authPages,
   dynamicAppPaths,
@@ -118,11 +118,18 @@ function AppContextProvider({ children }: LayoutProps) {
     return () => clearInterval(profileRefreshInterval)
   }, [])
 
+  useEffect(() => refreshProfile(), [profileRefreshFlag])
   useEffect(() => {
+    if (authStatus === 'loading') {
+      refreshProfile()
+    }
+  }, [authStatus])
+
+  function refreshProfile() {
     fetchUserProfile()
       .then(res => setAuthStatus('authenticated'))
       .catch(err => setAuthStatus('unauthenticated'))
-  }, [profileRefreshFlag])
+  }
 
   const updateAuthStatus = (authStatus: AuthStatus) => setAuthStatus(authStatus)
 

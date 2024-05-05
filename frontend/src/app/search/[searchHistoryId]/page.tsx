@@ -4,9 +4,8 @@ import SearchInput from '@/components/search/search-input'
 import SearchResponse from '@/components/search/search-response'
 import SearchTitle from '@/components/search/search-title'
 import SourcesMenu from '@/components/search/sources-menu'
+import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
 import ErrorPage from '@/components/util/error-page'
-import SpinnerLoading from '@/components/util/spinner-loading'
-import { searchLoadingMessage } from '@/constants/messages'
 import { useFetchSearchByIdQuery } from '@/queries/search/fetch-search-by-id-query'
 import { useSearchQuery } from '@/queries/search/search-query'
 import { useSearchStore } from '@/stores/search/search-store'
@@ -45,10 +44,8 @@ export default function SearchResult() {
     }
   }, [isNewSearchSuccess])
 
-  if (isNewSearchResultLoading) {
-    return <SpinnerLoading message={searchLoadingMessage} />
-  } else if (isPageDataLoading) {
-    return <SpinnerLoading />
+  if (isNewSearchResultLoading || isPageDataLoading) {
+    return <SearchResultPageSkeleton />
   } else if (isErrorInPageData || !searchResult) {
     return <ErrorPage message="Failed to fetch search result. Please try again later..." />
   } else {

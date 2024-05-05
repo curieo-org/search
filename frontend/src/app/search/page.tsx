@@ -2,17 +2,17 @@
 
 import { P } from '@/components/lib/typography'
 import SearchInput from '@/components/search/search-input'
-import SpinnerLoading from '@/components/util/spinner-loading'
-import { searchLoadingMessage } from '@/constants/messages'
+import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
 import { useSearchQuery } from '@/queries/search/search-query'
 import { useSearchStore } from '@/stores/search/search-store'
 import { useRouter } from 'next/navigation'
 import { Fragment, useEffect } from 'react'
+import { toast } from 'react-toastify'
 
 export default function Search() {
   const router = useRouter()
   const { reset } = useSearchStore()
-  const { data, isLoading, isSuccess, refetch: fetchSearchResult } = useSearchQuery()
+  const { data, isLoading, isSuccess, isError, refetch: fetchSearchResult } = useSearchQuery()
   const handleSearch = () => {
     fetchSearchResult()
   }
@@ -24,10 +24,16 @@ export default function Search() {
     }
   }, [isSuccess])
 
+  useEffect(() => {
+    if (isError) {
+      toast.error('Failed to fetch search result. Please try again later...')
+    }
+  }, [isError])
+
   return (
     <Fragment>
       {isLoading ? (
-        <SpinnerLoading message={searchLoadingMessage} />
+        <SearchResultPageSkeleton />
       ) : (
         <div className="w-full h-[90vh] flex justify-center items-center">
           <div className="w-full flex flex-col items-center px-4">

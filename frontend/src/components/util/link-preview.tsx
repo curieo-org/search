@@ -2,9 +2,10 @@
 
 import { handleOpenLinkInNewTab } from '@/helpers/navigation'
 import { HTMLAttributes, MouseEvent, useEffect, useState } from 'react'
-import { H3, P } from '../lib/typography'
-import TextLink from './text-link'
 import { twMerge } from 'tailwind-merge'
+import { H3, P } from '../lib/typography'
+import SourceSkeleton from '../skeletons/source-skeleton'
+import TextLink from './text-link'
 
 type LinkPreviewProps = HTMLAttributes<HTMLDivElement> & {
   url: string
@@ -45,7 +46,7 @@ export default function LinkPreview(props: LinkPreviewProps) {
   }
 
   if (loading) {
-    return <p>Loading...</p>
+    return <SourceSkeleton className={props.className} />
   }
 
   if (!previewData) {

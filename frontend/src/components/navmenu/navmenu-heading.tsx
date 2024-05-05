@@ -1,4 +1,3 @@
-import { appName } from '@/constants/app'
 import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
 import classNames from 'classnames'
 import { HTMLAttributes, useState } from 'react'
@@ -38,7 +37,7 @@ export default function NavmenuHeading(props: NavmenuHeadingProps) {
           setMouseLeft(true)
         }}
       />
-      {!isNavmenuCollaped && <Span className="text-xl font-semibold">{appName}</Span>}
+      {!isNavmenuCollaped && <Span className="text-xl font-semibold">Curieo</Span>}
     </div>
   )
 }
