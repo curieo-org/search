@@ -1,3 +1,4 @@
+import { searchPagePath } from '@/constants/route'
 import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
 import classNames from 'classnames'
 import { useRouter } from 'next/navigation'
@@ -13,14 +14,14 @@ export default function NewSearchButton(props: HTMLAttributes<HTMLButtonElement>
   } = useNavmenuStore()
 
   const handleNavigateToNewSearchPage = () => {
-    router.push('/search')
+    router.push(searchPagePath)
   }
 
   return (
     <Button
       className={twMerge(
         classNames(
-          'w-full rounded-full bg-background-light dark:bg-foreground-light text-foreground-dark dark:text-background-light hover:ring-2 hover:ring-custom-navy-blue dark:hover:bg-foreground-hover',
+          'w-full rounded-2xl bg-gray-100 dark:bg-custom-black-ash text-typography-light dark:text-typography-dark border-l-0 border-custom-black-ash hover:border-l-2 hover:border-custom-violet-600/50 dark:hover:drop-shadow-xs dark:hover:bg-gradient-dark',
           [isNavmenuCollaped ? 'justify-center mx-2 w-auto' : 'justify-start']
         ),
         props.className

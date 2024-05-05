@@ -2,14 +2,13 @@ export const colors = {
   primary: '#9655FD',
   'primary-light': '#B268FF',
   'primary-dark': '#6434E2',
-  foreground: {
-    light: '#151515',
-    dark: '#111110',
-    hover: '#100E11',
-  },
   background: {
     light: '#FFFFFF',
-    dark: '#F8FAFC',
+    dark: '#151515',
+  },
+  typography: {
+    light: '#151515',
+    dark: '#FFFFFF',
   },
   input: {
     default: '#111928',
@@ -24,6 +23,7 @@ export const colors = {
     'royal-blue': '#3758F9',
     violet: {
       light: '#CDB5FD',
+      '600': '#6D3AE6',
     },
   },
 }

@@ -1,12 +1,13 @@
+import { useFetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
 import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
 import classNames from 'classnames'
+import { useRouter } from 'next/navigation'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
+import EngineIcon from '../icons/engine'
 import ShiftLeft from '../icons/shift-left'
 import ShiftRight from '../icons/shift-right'
 import { Span } from '../lib/typography'
-import { useRouter } from 'next/navigation'
-import EngineIcon from '../icons/engine'
 
 type NavmenuFooterProps = HTMLAttributes<HTMLDivElement>
 
@@ -16,6 +17,7 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
     state: { isNavmenuCollaped },
     toggleNavmenuState,
   } = useNavmenuStore()
+  const { data: userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useFetchUserProfile()
 
   const toggleNavmenuCollaped = () => {
     toggleNavmenuState('isNavmenuCollaped')
@@ -43,8 +45,11 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
       )}
       <div className="my-2 h-px w-full bg-custom-gray/25"></div>
       <div className="relative flex items-center gap-x-2 cursor-pointer" onClick={handleNavigateToSettingsPage}>
-        <img src="/images/sample-user.png" className="h-10 w-auto" />
-        {!isNavmenuCollaped && <Span className="font-medium">Musharof</Span>}
+        <img
+          src={userProfile?.profile_image ? userProfile.profile_image : '/images/placeholder-user.png'}
+          className="h-8 lg:h-10 w-auto"
+        />
+        {!isNavmenuCollaped && <Span className="text-sm lg:text-base font-medium">{userProfile?.name}</Span>}
         {!isNavmenuCollaped && <EngineIcon size={18} className="absolute right-2" />}
       </div>
     </div>

@@ -12,11 +12,11 @@ export default function PageWithNavMenu({ children }: LayoutProps) {
 
   return (
     <div className="relative flex">
-      <div className={classNames(['hidden md:block', isNavmenuCollaped ? 'min-w-20' : 'min-w-72'])}>
+      <div className={classNames(['hidden md:block', isNavmenuCollaped ? 'min-w-20' : 'min-w-60 xl:min-w-72'])}>
         <Navmenu />
       </div>
 
-      <div className="w-full pb-5">{children}</div>
+      <div className="w-full pb-4">{children}</div>
     </div>
   )
 }

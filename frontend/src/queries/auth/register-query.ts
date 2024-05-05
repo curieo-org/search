@@ -7,7 +7,11 @@ export function useRegisterQuery() {
 
   function register(params: AuthParams): Promise<AuthResponse> {
     return new Promise(async function (resolve, reject) {
-      AxiosClient.post('/auth/register', { ...params })
+      const payload = new URLSearchParams()
+      payload.append('email', params.email.trim())
+      payload.append('username', params.email.trim())
+      payload.append('password', params.password)
+      AxiosClient.post('/auth/register', payload)
         .then(res => {
           setAuthResponseState('authResponse', res.data as AuthResponse)
           resolve(res.data as AuthResponse)

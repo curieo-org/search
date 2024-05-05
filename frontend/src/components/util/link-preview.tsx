@@ -19,7 +19,6 @@ export default function LinkPreview(props: LinkPreviewProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(props.url)
         const response = await fetch(props.url)
         const data = await response.text()
         const parser = new DOMParser()
@@ -60,8 +59,8 @@ export default function LinkPreview(props: LinkPreviewProps) {
 
   return (
     <div onClick={handleOpenLink} className={twMerge('cursor-pointer', props.className)}>
-      <H3 className="text-sm mb-2 font-semibold line-clamp-2">{previewData.title}</H3>
-      <P className="text-2xs line-clamp-4">{previewData.description}</P>
+      <H3 className="mb-2 text-sm text-opacity-80 font-semibold line-clamp-2">{previewData.title}</H3>
+      <P className="text-2xs text-opacity-70 line-clamp-4">{previewData.description}</P>
     </div>
   )
 }

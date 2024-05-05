@@ -1,5 +1,5 @@
-import { SearchResult } from '@/develop/dummy-data/search-result'
 import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
+import { SearchResult } from '@/types/search'
 import classNames from 'classnames'
 import { usePathname, useRouter } from 'next/navigation'
 import { HTMLAttributes } from 'react'
@@ -30,8 +30,11 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
     <Button
       className={twMerge(
         classNames(
-          'w-full h-auto rounded-md font-normal text-xs px-2 hover:bg-custom-black-ash bg-transparent text-background-light',
-          [isNavmenuCollaped ? 'justify-center' : 'justify-start text-start pl-6']
+          'w-full h-auto rounded-md font-normal text-xs hover:bg-white/3 text-typography-light dark:text-typography-dark',
+          [
+            isNavmenuCollaped ? 'justify-center' : 'justify-start text-start pl-5 xl:pl-6',
+            isActive ? 'bg-white/2' : 'bg-transparent',
+          ]
         ),
         props.className
       )}

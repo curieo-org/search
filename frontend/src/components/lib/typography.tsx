@@ -1,7 +1,8 @@
 import React, { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-const textColorClasses = 'text-foreground-light dark:text-background-dark'
+const textColorClasses =
+  'text-typography-light dark:text-typography-dark text-sm xl:text-base transition-all duration-300'
 
 export function P(props: HTMLAttributes<HTMLParagraphElement>) {
   return <p className={twMerge(textColorClasses, props.className)} {...props} />

@@ -1,14 +1,5 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import SpinnerLoading from '@/components/util/spinner-loading'
 
 export default function Home() {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.push('/authentication')
-  }, [])
-
-  return <div className="w-full p-24"></div>
+  return <SpinnerLoading />
 }

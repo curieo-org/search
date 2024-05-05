@@ -9,37 +9,46 @@ const defaultTextInputClasses =
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   button?: ReactNode
   containerClass?: string
+  innerContainerClass?: string
 }
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, containerClass, button, ...props }, ref) => {
+  ({ className, containerClass, innerContainerClass, button, ...props }, ref) => {
     const hasButton = !!button
 
     return (
       <div className={twMerge('relative w-full', containerClass)}>
-        <textarea className={twMerge(defaultTextInputClasses, className)} ref={ref} {...props} />
-        {!!button && button}
+        <div className={twMerge('w-full', innerContainerClass)}>
+          <textarea className={twMerge(defaultTextInputClasses, className)} ref={ref} {...props} />
+          {!!button && button}
+        </div>
       </div>
     )
   }
 )
 Textarea.displayName = 'Textarea'
 
-export type InputProps = InputHTMLAttributes<HTMLInputElement> & { icon?: ReactNode; containerClass?: string }
-const Input = forwardRef<HTMLInputElement, InputProps>(({ className, containerClass, type, icon, ...props }, ref) => {
-  const hasIcon = !!icon
+export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+  icon?: ReactNode
+  containerClass?: string
+  errorMessage?: string
+}
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className, containerClass, errorMessage, icon, ...props }, ref) => {
+    const hasIcon = !!icon
 
-  return (
-    <div className={twMerge('relative w-full', containerClass)}>
-      <input
-        type={type}
-        className={twMerge(defaultTextInputClasses, classNames('h-12', { 'pr-10': hasIcon }), className)}
-        ref={ref}
-        {...props}
-      />
-      <div className="absolute right-4 top-5">{!!icon && icon}</div>
-    </div>
-  )
-})
+    return (
+      <div className={twMerge('relative w-full', containerClass)}>
+        <input
+          className={twMerge(defaultTextInputClasses, classNames('h-12', { 'pr-10': hasIcon }), className)}
+          ref={ref}
+          {...props}
+        />
+        <div className="absolute right-4 top-5">{!!icon && icon}</div>
+        {errorMessage && <span className="text-xs italic text-red-600">{errorMessage}</span>}
+      </div>
+    )
+  }
+)
 Input.displayName = 'Input'
 
 const PasswordInput = forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => {

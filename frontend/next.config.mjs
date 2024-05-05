@@ -1,11 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    API_BASE_URL: process.env.API_BASE_URL,
-  },
+  reactStrictMode: true,
   output: 'standalone',
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/backend-api/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        },
+        // {
+        //     source: "/ingest/static/:path*",
+        //     destination: "https://us-assets.i.posthog.com/static/:path*",
+        // },
+        // {
+        //     source: "/ingest/:path*",
+        //     destination: "https://us.i.posthog.com/:path*",
+        // },
+      ],
+    }
+  },
 }
 
 export default nextConfig

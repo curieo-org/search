@@ -1,16 +1,23 @@
+'use client'
+
+import { useFetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
 import { HTMLAttributes } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { Span } from '../lib/typography'
 import SettingsInfoItem from './settings-info-item'
 
 type ProfileInfoProps = HTMLAttributes<HTMLDivElement>
 
 export default function ProfileInfo(props: ProfileInfoProps) {
+  const { data: userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useFetchUserProfile()
   return (
-    <div className="flex flex-col border border-foreground-dark/20 dark:border-background-light/20 rounded w-2/5">
-      <div className="bg-custom-black-ash px-4 py-1 h-8 text-base text-custom-ash">Profile</div>
-      <div className="flex flex-col divide-y divide-foreground-dark/20 dark:divide-background-light/20">
-        <SettingsInfoItem label="Full name" value="Iana Ivashkina" />
-        <SettingsInfoItem label="Title" value="UX Designer" />
-        <SettingsInfoItem label="Company" value="Curieo" />
+    <div className={twMerge('flex flex-col w-full', props.className)}>
+      <Span className="mb-4 text-custom-ash">Profile</Span>
+      <div className="mb-2 w-full h-px bg-custom-gray/25"></div>
+      <div className="px-4 py-3 flex flex-col rounded-2xl bg-background-dark/3 dark:bg-background-light/3">
+        <SettingsInfoItem label="Full name" value={userProfile?.name ?? ''} />
+        <SettingsInfoItem label="Title" value={userProfile?.title ?? ''} />
+        <SettingsInfoItem label="Company" value={userProfile?.company ?? ''} />
       </div>
     </div>
   )

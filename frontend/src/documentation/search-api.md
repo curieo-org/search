@@ -11,6 +11,8 @@
     - [Params](#params)
       - [POST Login](#post-login)
     - [Params](#params-1)
+    - [GET Logout](#get-logout)
+      - [GET Profile](#get-profile)
       - [GET Search](#get-search)
     - [Params](#params-2)
   - [GET Search History](#get-search-history)
@@ -69,6 +71,34 @@ POST /auth/login
 
 ```json
 
+```
+
+### GET Logout
+
+GET /auth/logout
+
+> Response Examples
+
+```json
+
+```
+
+#### GET Profile
+
+GET /users/me
+
+> Response Examples
+
+```json
+{
+  "user_id": "5345b65c-012b-11ef-84c9-23b145a771ba",
+  "email": "username@email.com",
+  "username": "username",
+  "name": "Username",
+  "profile_image": "http://google.com",
+  "title": "Title",
+  "company": "Company Name"
+}
 ```
 
 #### GET Search

@@ -19,8 +19,8 @@ export default function Navmenu(props: NavmenuProps) {
       <div className="h-screen w-full">
         <div
           className={classNames(
-            `flex h-full w-full flex-col justify-between bg-background-dark dark:bg-foreground-dark border-r border-foreground-dark/10 dark:border-background-dark/10 rounded-r-2xl`,
-            [isNavmenuCollaped ? 'items-center' : 'items-start px-4']
+            `flex h-full w-full flex-col justify-between bg-background-dark/2 dark:bg-white/2 border-r border-background-dark/10 dark:border-white/10 rounded-r-2xl`,
+            [isNavmenuCollaped ? 'items-center' : 'items-start px-3 xl:px-4']
           )}
         >
           <div className="w-full flex flex-col">
@@ -29,7 +29,7 @@ export default function Navmenu(props: NavmenuProps) {
             <HistoryButton className="mb-2" />
             {!isNavmenuCollaped && !isHistoryCollapsed && <SearchHistoryNav />}
           </div>
-          <NavmenuFooter />
+          <NavmenuFooter className="sticky bottom-0 backdrop-blur-sm" />
         </div>
       </div>
     </div>

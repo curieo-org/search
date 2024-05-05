@@ -29,9 +29,6 @@ const searchResult = {
   updated_at: [2024, 99, 10, 52, 39, 279568000, 0, 0, 0],
 }
 
-export type SearchResult = typeof searchResult
-export type Source = (typeof searchResult.sources)[0]
-
 export const searchResults = Array(15)
   .fill(0)
   .map((item, index) => {

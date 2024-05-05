@@ -1,4 +1,4 @@
-import { SearchResult } from '@/develop/dummy-data/search-result'
+import { SearchResult } from '@/types/search'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 import SearchHistoryButton from './search-history-button'

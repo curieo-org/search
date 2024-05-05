@@ -1,45 +1,67 @@
 'use client'
 
+import { emailErrorMessage, passwordErrorMessage } from '@/constants/messages'
+import { loginPagePath } from '@/constants/route'
+import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useLoginQuery } from '@/queries/auth/login-query'
 import { useRegisterQuery } from '@/queries/auth/register-query'
-import { useAuthStore } from '@/stores/auth/auth-store'
+import { useAuthFormStore } from '@/stores/auth/auth-form-store'
 import { AuthResponse } from '@/types/auth'
 import { useRouter } from 'next/navigation'
 import { HTMLAttributes, useState } from 'react'
 import { toast } from 'react-toastify'
+import { z } from 'zod'
 import GoogleIcon from '../icons/google'
 import { Button } from '../lib/button'
 import { Input, PasswordInput } from '../lib/form'
 import { H1, Span } from '../lib/typography'
+import { useAppContext } from '../wrappers/app'
 // import MicrosoftIcon from '../icons/microsoft'
 
-type AuthFormProps = HTMLAttributes<HTMLDivElement> & {}
+type AuthFormProps = HTMLAttributes<HTMLDivElement> & {
+  authPurpose: 'register' | 'login'
+}
 
 export default function AuthForm(props: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { updateAuthStatus } = useAppContext()
+
   const login = useLoginQuery()
   const register = useRegisterQuery()
-  const router = useRouter()
   const {
-    state: { purpose, email, password },
-    setAuthState,
-  } = useAuthStore()
+    state: { email, password },
+    setAuthFormState,
+    reset,
+  } = useAuthFormStore()
 
-  const authHandler = purpose === 'register' ? register : login
-  const authToast = (res: AuthResponse) =>
-    purpose === 'register' ? toast.success('You have registered successfully') : toast.success(`Welcome ${res.email}`)
+  const { errorMessage: emailError, isError: isEmailError } = useInputValidation(
+    email,
+    z.string().email({ message: emailErrorMessage })
+  )
+  const { errorMessage: passwordError, isError: isPasswordError } = useInputValidation(
+    password,
+    z.string().min(6, { message: passwordErrorMessage })
+  )
+
+  const authHandler = props.authPurpose === 'register' ? register : login
+  const handleAuthToast = (res: AuthResponse) =>
+    props.authPurpose === 'register' ? toast.success('You have registered successfully') : toast.success(`Welcome back`)
+  const handleAuthRedirect = () =>
+    props.authPurpose === 'register' ? router.push(loginPagePath) : updateAuthStatus('authenticated')
 
   const handleAuth = () => {
     setIsLoading(true)
-    authToast({ email, user_id: email })
-    router.push('/search')
-    // authHandler({ email, password })
-    //   .then(res => {
-    //     authToast(res)
-    //     router.push('/search')
-    //   })
-    //   .catch(err => toast.error(err.message))
-    //   .finally(() => setIsLoading(false))
+    authHandler({ email, password })
+      .then(res => {
+        handleAuthToast(res)
+        handleAuthRedirect()
+      })
+      .catch(err => toast.error(err.message))
+      .finally(() => {
+        setIsLoading(false)
+        reset()
+      })
   }
 
   const handleContinueWithGoogle = () => {}
@@ -47,23 +69,40 @@ export default function AuthForm(props: AuthFormProps) {
   const handleContinueWithMicrosoft = () => {}
 
   const handleToggleAuthPurpose = () => {
-    setAuthState('purpose', purpose === 'register' ? 'login' : 'register')
+    props.authPurpose === 'register' ? router.push(loginPagePath) : router.push('/register')
   }
 
   return (
     <div className="w-96 flex flex-col items-center">
       <img src="/images/curieo-logo.svg" className="mb-6" />
-      <H1 className="text-3xl mb-6">{purpose === 'register' ? 'Create your account' : 'Welcome back'}</H1>
-      <Input placeholder="Email" className="mb-4" value={email} onChange={e => setAuthState('email', e.target.value)} />
-      <PasswordInput className="mb-4" value={password} onChange={e => setAuthState('password', e.target.value)} />
-      <Button label="Continue" className="w-full mb-4" onClick={handleAuth} isLoading={isLoading} />
+      <H1 className="text-3xl mb-6">{props.authPurpose === 'register' ? 'Create your account' : 'Welcome back'}</H1>
+      <Input
+        containerClass="mb-4"
+        placeholder="Email"
+        value={email}
+        onChange={e => setAuthFormState('email', e.target.value)}
+        errorMessage={email.length > 0 ? emailError : undefined}
+      />
+      <PasswordInput
+        containerClass="mb-4"
+        value={password}
+        onChange={e => setAuthFormState('password', e.target.value)}
+        errorMessage={password.length > 0 ? passwordError : undefined}
+      />
+      <Button
+        label="Continue"
+        className="w-full mb-4"
+        onClick={handleAuth}
+        isLoading={isLoading}
+        disabled={isEmailError || isPasswordError}
+      />
       <div className="flex items-center mb-6">
         <Span className="font-medium">
-          {purpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}
+          {props.authPurpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}
         </Span>
         <Button
           className="bg-transparent hover:bg-transparent text-primary"
-          label={purpose === 'register' ? 'Login' : 'Sign up'}
+          label={props.authPurpose === 'register' ? 'Login' : 'Sign up'}
           onClick={handleToggleAuthPurpose}
         />
       </div>
@@ -75,13 +114,13 @@ export default function AuthForm(props: AuthFormProps) {
       <Button
         label="Google"
         iconLeft={<GoogleIcon size={20} />}
-        className="w-full mb-2 bg-transparent hover:bg-transparent rounded-md border hover:border-2 border-foreground-dark dark:border-background-light"
+        className="w-full mb-2 bg-transparent hover:bg-transparent rounded-md border hover:border-2 border-background-dark dark:border-background-light"
         onClick={handleContinueWithGoogle}
       />
       {/* <Button
         label="Microsoft"
         iconLeft={<MicrosoftIcon size={20} />}
-        className="w-full bg-transparent hover:bg-transparent rounded-md border hover:border-2 border-foreground-dark dark:border-background-light"
+        className="w-full bg-transparent hover:bg-transparent rounded-md border hover:border-2 border-background-dark dark:border-background-light"
         onClick={handleContinueWithMicrosoft}
       /> */}
     </div>

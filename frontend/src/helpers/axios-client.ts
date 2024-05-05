@@ -1,7 +1,8 @@
+import { loginPagePath } from '@/constants/route'
 import axios from 'axios'
 
 const AxiosClient = axios.create({
-  baseURL: process.env.API_BASE_URL,
+  baseURL: '/backend-api',
   withCredentials: true,
 })
 
@@ -19,7 +20,7 @@ const onResponse = (response: any) => {
 
 const onResponseError = async (error: any) => {
   if (error.response.status === 405) {
-    window.location.pathname = '/authentication'
+    window.location.pathname = loginPagePath
   }
   return Promise.reject(error)
 }
