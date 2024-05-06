@@ -38,6 +38,10 @@ spec:
           value: {{ .Values.database.port }}
         - name: DB
           value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/curieo
+        - name: CACHE__URL
+          value: redis://{{ .Values.redis.host }}    
+        - name: AGENCY_API
+          value: http://{{ .Values.agency.host }}               
         image: {{ .Values.service.image }}
         imagePullPolicy: Always
         ports:
