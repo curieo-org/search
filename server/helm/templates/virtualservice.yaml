@@ -13,6 +13,6 @@ spec:
         - port: 80
       route:
         - destination:
-            host: istio-ingressgateway.istio-system.svc.cluster.local
+            host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             port:
               number: 80
