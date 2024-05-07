@@ -7,12 +7,12 @@ import Navmenu from '../navmenu/navmenu'
 
 export default function PageWithNavMenu({ children }: LayoutProps) {
   const {
-    state: { isNavmenuCollaped },
+    state: { isNavmenuCollapsed },
   } = useNavmenuStore()
 
   return (
     <div className="relative flex">
-      <div className={classNames(['hidden md:block', isNavmenuCollaped ? 'min-w-20' : 'min-w-60 xl:min-w-72'])}>
+      <div className={classNames(['hidden md:block', isNavmenuCollapsed ? 'w-20' : 'w-72 xl:w-[360px]'])}>
         <Navmenu />
       </div>
 

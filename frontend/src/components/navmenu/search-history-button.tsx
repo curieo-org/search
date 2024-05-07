@@ -15,7 +15,7 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
   const pathname = usePathname()
 
   const {
-    state: { isNavmenuCollaped },
+    state: { isNavmenuCollapsed },
   } = useNavmenuStore()
 
   const searchResultPagePath = `/search/${props.searchResult.search_history_id}`
@@ -32,7 +32,7 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
         classNames(
           'w-full h-auto rounded-md font-normal text-xs hover:bg-white/3 text-typography-light dark:text-typography-dark',
           [
-            isNavmenuCollaped ? 'justify-center' : 'justify-start text-start pl-5 xl:pl-6',
+            isNavmenuCollapsed ? 'justify-center' : 'justify-start text-start pl-5 xl:pl-6',
             isActive ? 'bg-white/2' : 'bg-transparent',
           ]
         ),

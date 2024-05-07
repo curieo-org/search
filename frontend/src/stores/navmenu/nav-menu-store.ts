@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 type NavmenuState = {
-  isNavmenuCollaped: boolean
+  isNavmenuCollapsed: boolean
   isHistoryCollapsed: boolean
 }
 
@@ -13,7 +13,7 @@ type NavmenuStore = {
 }
 
 const initialState: NavmenuState = {
-  isNavmenuCollaped: false,
+  isNavmenuCollapsed: false,
   isHistoryCollapsed: false,
 }
 
