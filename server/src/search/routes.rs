@@ -2,7 +2,8 @@ use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::search::services;
 use crate::search::{
-    SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
+    SearchHistoryByIdRequest, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
+    TopSearchRequest,
 };
 use crate::startup::AppState;
 use crate::users::User;
@@ -32,6 +33,20 @@ async fn get_search_handler(
     cache
         .zincr("search_queries", &search_query.query, 1)
         .await?;
+
+    Ok((StatusCode::OK, Json(search_history)))
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn get_one_search_history_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Query(search_history_request): Query<SearchHistoryByIdRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    let search_history =
+        services::get_one_search_history(&pool, &user_id, &search_history_request).await?;
 
     Ok((StatusCode::OK, Json(search_history)))
 }
@@ -77,6 +92,7 @@ async fn update_search_reaction_handler(
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(get_search_handler))
+        .route("/one", get(get_one_search_history_handler))
         .route("/history", get(get_search_history_handler))
         .route("/top", get(get_top_searches_handler))
         .route("/reaction", patch(update_search_reaction_handler))

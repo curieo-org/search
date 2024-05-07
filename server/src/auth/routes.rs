@@ -125,13 +125,13 @@ pub async fn oauth_callback_handler(
 }
 
 #[tracing::instrument(level = "debug", skip_all)]
-async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<Response> {
+async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     auth_session
         .logout()
         .await
         .map_err(|e| eyre!("Failed to logout: {}", e))?;
 
-    Ok(Redirect::to("/login").into_response())
+    Ok(())
 }
 
 pub fn routes() -> Router<AppState> {

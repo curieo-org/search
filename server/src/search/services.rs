@@ -2,8 +2,8 @@ use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{SearchRequest, SearchResponse};
 use crate::search::{
-    SearchHistory, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
-    TopSearchRequest,
+    SearchHistory, SearchHistoryByIdRequest, SearchHistoryRequest, SearchQueryRequest,
+    SearchReactionRequest, TopSearchRequest,
 };
 use color_eyre::eyre::eyre;
 use rand::Rng;
@@ -58,6 +58,24 @@ pub async fn insert_search_history(
         search_query.query,
         search_response.result,
         serde_json::to_value(&search_response.sources).map_err(|e| eyre!("Serialization failed: {e}"))?
+    )
+    .fetch_one(pool)
+    .await?;
+
+    return Ok(search_history);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn get_one_search_history(
+    pool: &PgPool,
+    user_id: &Uuid,
+    search_history_by_id_request: &SearchHistoryByIdRequest,
+) -> crate::Result<SearchHistory> {
+    let search_history = sqlx::query_as!(
+        SearchHistory,
+        "select * from search_history where user_id = $1 and search_history_id = $2",
+        user_id,
+        search_history_by_id_request.search_history_id
     )
     .fetch_one(pool)
     .await?;
