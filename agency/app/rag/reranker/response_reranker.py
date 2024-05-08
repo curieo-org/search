@@ -6,9 +6,10 @@ from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.callbacks import CBEventType, EventPayload
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
+from pydantic import SecretStr
 
 from app.services.search_utility import setup_logger
-from app.settings import RerankSettings
+from app.settings import RerankingSettings
 
 TAG_RE = re.compile(r"<[^>]+>")
 
@@ -29,19 +30,39 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         description="The model to use when calling AI API",
     )
     api: str
+    auth_token: SecretStr
     top_count: int
     _session: Any = PrivateAttr()
 
-    def __init__(self, *, api: str, top_count: int, model: str, top_n: int = 2):
-        super().__init__(top_n=top_n, model=model, api=api, top_count=top_count)
+    def __init__(
+        self,
+        *,
+        api: str,
+        auth_token: SecretStr,
+        top_count: int,
+        model: str,
+        top_n: int = 2,
+    ):
+        super().__init__(
+            top_n=top_n,
+            model=model,
+            api=api,
+            auth_token=auth_token,
+            top_count=top_count,
+        )
         self.model = model
         self._session = requests.Session()
 
     @classmethod
     def from_settings(
-        cls, *, settings: RerankSettings
+        cls, *, settings: RerankingSettings
     ) -> "TextEmbeddingInferenceRerankEngine":
-        return cls(api=settings.api, top_count=settings.top_count, model=settings.model)
+        return cls(
+            api=settings.api,
+            auth_token=settings.auth_token,
+            top_count=settings.top_count,
+            model=settings.model,
+        )
 
     @classmethod
     def class_name(cls) -> str:
@@ -82,6 +103,9 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
                     "query": query_bundle.query_str,
                     "truncate": True,
                     "texts": texts,
+                },
+                headers={
+                    "Authorization": f"Bearer {self.auth_token.get_secret_value()}"
                 },
             ).json()
 

@@ -28,6 +28,16 @@ class BraveSettings(BaseSettings):
     api_root: str = "https://api.search.brave.com/res/v1/web/search"
     subscription_key: SecretStr
     result_count: int = 10
+    goggles_id: SecretStr
+    result_filter: list[str] = [
+        "discussions",
+        "faq",
+        "summarizer",
+        "infobox",
+        "news",
+        "query",
+        "web",
+    ]
 
 
 class TogetherPromptConfig(BaseSettings):
@@ -56,8 +66,9 @@ class EmbeddingSettings(BaseSettings):
     chunk_size: int = 512
 
 
-class RerankSettings(BaseSettings):
+class RerankingSettings(BaseSettings):
     api: str = "http://127.0.0.1:8081/rerank"
+    auth_token: SecretStr
     model: str = "BAAI/bge-reranker-large"
     revision: str = "refs/pr/4"
     chunk_size: int = 512
@@ -96,7 +107,8 @@ class SentrySettings(BaseSettings):
     dsn: SecretStr
     enable_tracing: bool = False
     environment: str = "development"
-    phoenix_api: str = "http://127.0.0.1:6007/v1/traces"
+    phoenix_api: str = "http://127.0.0.1:6006/v1/traces"
+    phoenix_project_name: str = "Curieo Search Agency"
 
 
 class GroqSettings(BaseSettings):
@@ -163,7 +175,7 @@ class Settings(BaseSettings):
     groq: GroqSettings
     dspy: DspySettings = DspySettings()
     embedding: EmbeddingSettings = EmbeddingSettings()
-    reranking: RerankSettings = RerankSettings()
+    reranking: RerankingSettings
     qdrant: QdrantSettings
     llama_index: LlamaIndexSettings = LlamaIndexSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()

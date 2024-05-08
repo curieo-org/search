@@ -6,8 +6,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("cargo:rerun-if-changed=migrations");
 
     // build the proto files
-    let proto_dir = ["../protos"];
-    let proto_files = ["../protos/agency.proto"];
+    let proto_dir = ["./protos"];
+    let proto_files = ["./protos/agency.proto"];
 
     tonic_build::configure()
         .build_server(false)

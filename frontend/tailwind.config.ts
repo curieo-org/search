@@ -1,46 +1,49 @@
-import type { Config } from "tailwindcss"
-const colors = require("tailwindcss/colors")
+import type { Config } from 'tailwindcss'
+import { colors } from './src/styles/colors'
 
 const config: Config = {
-  darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
-  future: {
-    hoverOnlyWhenSupported: true,
-  },
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
-        gray: {
-          ...colors.neutral,
-        },
+        ...colors,
       },
-      transitionDuration: {
-        "1200": "1200ms",
-        "1500": "1500ms",
+      borderWidth: {
+        '6': '6px',
       },
-      keyframes: {
-        shimmer: {
-          "0%": {
-            transform: "translateX(-100%)",
-          },
-          "100%": {
-            transform: "translateX(100%)",
-          },
-        },
+      borderRadius: {
+        '2.5xl': '20px',
+      },
+      fontSize: {
+        '2xs': ['10px', '14px'],
+      },
+      opacity: {
+        2: '0.02',
+        3: '0.03',
+        4: '0.04',
+        25: '0.25',
+        75: '0.75',
+      },
+      dropShadow: {
+        xs: ['0 4px 10px rgba(0, 0, 0, 0.25)', '0 0 2px rgba(109, 58, 230, 0.7)'],
+      },
+      backgroundImage: {
+        'gradient-dark': 'linear-gradient(to top, rgba(0, 0, 0, 0.1), rgba(47, 47, 47, 0.1))',
+        'gradient-source-card': 'linear-gradient(to bottom, rgba(31, 31, 31, 0.05), rgba(255, 255, 255, 0.02))',
       },
       animation: {
-        shimmer: "shimmer 2s ease-in-out infinite",
+        'spin-once': 'spin 1s linear',
+        'spin-once-reverse': 'spin-reverse 1s linear',
+        'spin-slow': 'spin 2s linear infinite',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
+  darkMode: 'class',
 }
 
 export default config

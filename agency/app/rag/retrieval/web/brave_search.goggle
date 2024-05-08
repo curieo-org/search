@@ -1,0 +1,60 @@
+! name: Life Science Goggle - A filter for the Brave search engine
+!
+! description: Rerank results to boost the well-respected research and development websites for medical, life science, drug, etc. Also remove social media, newsletters, and other irrelevant websites.
+!
+! public: false
+! author: Curieo Technologies B.V.
+
+! Boost
+$boost=10,site=www.sciencedirect.com
+$boost=9,site=www.thelancet.com
+$boost=9,site=www.drugs.com
+$boost=9,site=www.lifescience.net
+$boost=9,site=www.ncbi.nlm.nih.gov
+$boost=9,site=go.drugbank.com
+$boost=8,site=www.nejm.org
+$boost=9,site=eurjmedres.biomedcentral.com
+$boost=7,site=www.nature.com
+$boost=7,site=health.harvard.edu
+$boost=10,site=health.clevelandclinic.org
+$boost=10,site=hopkinsmedicine.org
+$boost=9,site=www.ahajournals.org
+$boost=10,site=webmd.com
+$boost=10,site=mayoclinic.org
+$boost=9,site=healthline.com
+$boost=10,site=ama-assn.org
+$boost=10,site=medscape.com
+$boost=8,site=www.acc.org
+$boost=8,site=www.cancer.org
+$boost=9,site=www.medpagetoday.com
+$boost=8,site=merckmanuals.com
+$boost=8,site=rheumatology.org
+$boost=10,site=medlineplus.gov
+$boost=8,site=bestpractice.bmj.com
+$boost=8,site=www.cdc.gov
+$boost=8,site=patient.info
+$boost=8,site=health.gov
+$boost=8,site=www.nimh.nih.gov
+$boost=7,site=www.genome.gov
+$boost=9,site=www.nhlbi.nih.gov
+$boost=8,site=www.nia.nih.gov
+$boost=8,site=health.gov
+$boost=8,site=www.bhf.org.uk
+$boost=10,site=www.nhs.uk
+$boost=8,site=www.cancerresearchuk.org
+
+! Discard
+$discard,site=www.facebook.com
+$discard,site=www.twitter.com
+$discard,site=www.instagram.com
+$discard,site=www.pinterest.com
+$discard,site=www.linkedin.com
+$discard,site=www.youtube.com
+$discard,site=www.reddit.com
+$discard,site=www.tiktok.com
+$discard,site=www.medium.com
+$discard,site=www.substack.com
+$discard,site=www.tumblr.com
+$discard,site=www.quora.com
+$discard,site=www.wikipedia.org
+$discard,site=www.nytimes.com
