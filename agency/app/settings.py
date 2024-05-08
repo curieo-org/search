@@ -60,19 +60,22 @@ class OpenAISettings(BaseSettings):
 
 
 class EmbeddingSettings(BaseSettings):
-    api: str = "http://127.0.0.1:8080"
-    model: str = "BAAI/bge-large-en-v1.5"
-    revision: str = "refs/pr/5"
-    chunk_size: int = 512
+    api: str = "http://text-embedding.dev.curieo.org"
+    api_key: SecretStr
+    embed_batch_size: int = 4
+
+
+class SpladeEmbeddingSettings(BaseSettings):
+    api: str = "http://text-splade-query.dev.curieo.org"
+    api_key: SecretStr
+    embed_batch_size: int = 4
 
 
 class RerankingSettings(BaseSettings):
-    api: str = "http://127.0.0.1:8081/rerank"
+    api: str = "http://text-rerank.dev.curieo.org/rerank"
     auth_token: SecretStr
-    model: str = "BAAI/bge-reranker-large"
-    revision: str = "refs/pr/4"
-    chunk_size: int = 512
     top_count: int = 5
+    model: str = ""
 
 
 class TableInfoDirSettings(BaseSettings):
@@ -116,11 +119,11 @@ class GroqSettings(BaseSettings):
 
 
 class QdrantSettings(BaseSettings):
-    api_key: SecretStr
     api_port: int = 6333
-    api_url: str = "localhost"
+    api_url: str = "https://qdrant.dev.curieo.org"
+    collection_name: str = "pubmed_hybrid_vector_dbv4"
+    api_key: SecretStr
 
-    collection_name: str = "pubmed_hybrid_vector_db"
     top_k: int = 20
     sparse_top_k: int = 3
 
@@ -130,7 +133,8 @@ class QdrantSettings(BaseSettings):
 
 
 class LlamaIndexSettings(BaseSettings):
-    relevance_criteria: float = 0.7
+    parent_relevance_criteria: float = 0.1
+    child_relevance_criteria: float = 0.1
 
 
 class DspySettings(BaseSettings):
@@ -162,7 +166,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
-    postgres_engine: SecretStr
+    #postgres_engine: SecretStr
     project: ProjectSettings = ProjectSettings()
     search: SearchSettings = SearchSettings()
     brave: BraveSettings
@@ -174,7 +178,8 @@ class Settings(BaseSettings):
     sentry: SentrySettings
     groq: GroqSettings
     dspy: DspySettings = DspySettings()
-    embedding: EmbeddingSettings = EmbeddingSettings()
+    embedding: EmbeddingSettings
+    spladeembedding: SpladeEmbeddingSettings
     reranking: RerankingSettings
     qdrant: QdrantSettings
     llama_index: LlamaIndexSettings = LlamaIndexSettings()
