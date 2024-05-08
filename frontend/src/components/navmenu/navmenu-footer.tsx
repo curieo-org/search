@@ -14,13 +14,13 @@ type NavmenuFooterProps = HTMLAttributes<HTMLDivElement>
 export default function NavmenuFooter(props: NavmenuFooterProps) {
   const router = useRouter()
   const {
-    state: { isNavmenuCollaped },
+    state: { isNavmenuCollapsed },
     toggleNavmenuState,
   } = useNavmenuStore()
   const { data: userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useFetchUserProfile()
 
   const toggleNavmenuCollaped = () => {
-    toggleNavmenuState('isNavmenuCollaped')
+    toggleNavmenuState('isNavmenuCollapsed')
   }
 
   const handleNavigateToSettingsPage = () => {
@@ -31,12 +31,12 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
     <div
       className={twMerge(
         classNames('w-full flex flex-col mb-4', {
-          'items-center': isNavmenuCollaped,
+          'items-center': isNavmenuCollapsed,
         }),
         props.className
       )}
     >
-      {isNavmenuCollaped ? (
+      {isNavmenuCollapsed ? (
         <ShiftRight size={35} className="cursor-pointer" onClick={toggleNavmenuCollaped} />
       ) : (
         <div>
@@ -49,8 +49,8 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
           src={userProfile?.profile_image ? userProfile.profile_image : '/images/placeholder-user.png'}
           className="h-8 lg:h-10 w-auto"
         />
-        {!isNavmenuCollaped && <Span className="text-sm lg:text-base font-medium">{userProfile?.name}</Span>}
-        {!isNavmenuCollaped && <EngineIcon size={18} className="absolute right-2" />}
+        {!isNavmenuCollapsed && <Span className="text-sm lg:text-base font-medium">{userProfile?.name}</Span>}
+        {!isNavmenuCollapsed && <EngineIcon size={18} className="absolute right-2" />}
       </div>
     </div>
   )

@@ -10,14 +10,14 @@ export default function NavmenuHeading(props: NavmenuHeadingProps) {
   const [mouseEntered, setMouseEntered] = useState(false)
   const [mouseLeft, setMouseLeft] = useState(false)
   const {
-    state: { isNavmenuCollaped },
+    state: { isNavmenuCollapsed },
   } = useNavmenuStore()
 
   return (
     <div
       className={twMerge(
         classNames('flex items-center gap-x-2 my-6 xl:my-8', {
-          'justify-center': isNavmenuCollaped,
+          'justify-center': isNavmenuCollapsed,
         }),
         props.className
       )}
@@ -37,7 +37,7 @@ export default function NavmenuHeading(props: NavmenuHeadingProps) {
           setMouseLeft(true)
         }}
       />
-      {!isNavmenuCollaped && <Span className="text-xl font-semibold">Curieo</Span>}
+      {!isNavmenuCollapsed && <Span className="text-xl font-semibold">Curieo</Span>}
     </div>
   )
 }

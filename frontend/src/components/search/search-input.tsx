@@ -28,14 +28,14 @@ export default function SearchInput(props: SearchInputProps) {
       innerContainerClass={classNames(
         'rounded-2xl bg-background-light/80 dark:bg-background-dark/80 border border-background-dark/40 dark:border-background-light/40 pr-2 focus-within:border-0 focus-within:outline-none focus-within:ring-2 focus-within:ring-custom-violet-600/50 focus-within:ring-offset-0',
         {
-          'py-2': searchQuery.length !== 0,
+          'py-2': lineCount >= 2,
         }
       )}
       className={classNames(
-        'pl-4 pr-16 rounded-2xl border-none focus-visible:ring-0 bg-background-light/80 dark:bg-background-dark/80 text-typography-light dark:text-typography-dark placeholder:text-typography-light/40 dark:placeholder:text-typography-dark/40 text-sm xl:text-base',
+        'pl-4 pr-20 rounded-2xl font-light border-none focus-visible:ring-0 bg-background-light/80 dark:bg-background-dark/80 text-typography-light dark:text-typography-dark placeholder:text-typography-light/40 dark:placeholder:text-typography-dark/40 text-sm xl:text-base',
         {
-          'h-16 pt-5': lineCount === 0,
-          'h-20': lineCount === 1 || lineCount === 2,
+          'h-16 pt-5': lineCount === 0 || lineCount === 1,
+          'h-20': lineCount === 2,
           'h-28': lineCount === 3,
           'h-36': lineCount === 4,
           'h-40': lineCount === 5,
@@ -52,11 +52,11 @@ export default function SearchInput(props: SearchInputProps) {
       button={
         <Button
           className={classNames(
-            'absolute right-6 h-10 px-4 py-0 border border-background-dark/30 dark:border-background-light/30 transition-all duration-700',
+            'absolute right-8 h-10 px-4 py-0 border border-background-dark/30 dark:border-background-light/30 transition-all duration-700',
             {
               'top-6 bg-transparent hover:bg-transparent cursor-auto': searchQuery.length === 0,
-              'bottom-5 bg-primary/75': searchQuery.length !== 0,
-              'right-7': lineCount >= 10,
+              'top-6 bg-primary/75': lineCount === 1,
+              'bottom-5 bg-primary/75': lineCount >= 2,
             }
           )}
           iconLeft={<PaperPlaneIcon className="text-white/80" />}
