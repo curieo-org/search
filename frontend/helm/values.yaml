@@ -1,0 +1,17 @@
+# Default values for search-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+service:
+  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-frontend:1.0
+  replica_count: 1
+  port: 3000
+  dns_zone: dev.curieo.org
+
+resources:
+  limits:
+    cpu: 2
+    memory: 2Gi
+  requests:
+    memory: 512Mi
+    cpu: 1
