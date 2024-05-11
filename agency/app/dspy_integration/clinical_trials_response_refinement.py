@@ -17,11 +17,10 @@ class ResponseSynthesizerModule(dspy.Module):
         super().__init__()
         self.generate_answer = dspy.ChainOfThought(ResponseSynthesizerModuleQA)
 
-    def forward(self, question, sql, database_output):
+    def forward(self, question, sql, database_output) -> dspy.Prediction:
         prediction = self.generate_answer(
             question=question, sql=sql, database_output=database_output,
         )
         return dspy.Prediction(answer=prediction.answer)
-
 
 # /Users/som/Downloads/code/search/backend/.venv/lib/python3.11/site-packages/dsp/primitives/predict.py

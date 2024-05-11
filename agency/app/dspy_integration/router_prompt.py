@@ -1,3 +1,4 @@
+# ruff: noqa: D205
 import dspy
 
 
@@ -52,6 +53,6 @@ class RouterModule(dspy.Module):
         super().__init__()
         self.generate_answer = dspy.ChainOfThought(RouterModuleQA)
 
-    def forward(self, question):
+    def forward(self, question) -> dspy.Prediction:
         prediction = self.generate_answer(question=question)
         return dspy.Prediction(answer=prediction.answer)

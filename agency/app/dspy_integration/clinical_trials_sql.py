@@ -15,6 +15,6 @@ class SqlModule(dspy.Module):
         super().__init__()
         self.generate_answer = dspy.ChainOfThought(SqlModuleQA)
 
-    def forward(self, question, context):
+    def forward(self, question, context) -> dspy.Prediction:
         prediction = self.generate_answer(question=question, context=context)
         return dspy.Prediction(answer=prediction.answer)
