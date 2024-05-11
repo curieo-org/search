@@ -1,15 +1,13 @@
 import os
 import re
 from pathlib import Path
-from typing import List
 
 import dspy
 from llama_index.core import SQLDatabase, VectorStoreIndex
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.indices.struct_store.sql_retriever import SQLRetriever
 from llama_index.core.objects import ObjectIndex, SQLTableNodeMapping, SQLTableSchema
-from llama_index.core.query_pipeline import FnComponent, InputComponent
-from llama_index.core.query_pipeline import QueryPipeline as QP
+from llama_index.core.query_pipeline import FnComponent, InputComponent, QueryPipeline
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -37,9 +35,7 @@ class TableInfo(BaseModel):
 
 
 class ClinicalTrialText2SQLEngine:
-    """This class implements the logic to convert the user prompt to sql query.
-    Then it executes the sql query in the database and return the result.
-    """
+    """Converts user prompt to sql query and executes against db, returns the result."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -118,24 +114,24 @@ class ClinicalTrialText2SQLEngine:
         if not results_list:
             return None
 
-        elif len(results_list) == 1:
+        if len(results_list) == 1:
             path = results_list[0]
-            with open(path) as source:
+            with Path(path).open("r") as source:
                 return TableInfo.parse_raw(source.read())
         else:
             raise ValueError(f"More than one file matching index: {list(results_gen)}")
 
-    def get_all_table_info(self):
+    def get_all_table_info(self) -> list[TableInfo]:
         file_counts = len(os.listdir(self.settings.table_info_dir.clinical_trials))
         table_infos = []
 
         for i in range(file_counts):
-            table_info = self._get_table_info_with_index(i)
-            table_infos.append(table_info)
+            if table_info := self._get_table_info_with_index(i):
+                table_infos.append(table_info)
         logger.info(f"get_all_table_info table_infos: {len(table_infos)}")
         return table_infos
 
-    def get_table_context_str(self, table_schema_objs: List[SQLTableSchema]):
+    def get_table_context_str(self, table_schema_objs: list[SQLTableSchema]) -> str:
         """Get table context string."""
         context_strs = []
         for table_schema_obj in table_schema_objs:
@@ -147,14 +143,15 @@ class ClinicalTrialText2SQLEngine:
                 table_opt_context += table_schema_obj.context_str
                 table_info += table_opt_context
             context_strs.append(table_info)
+
         return "\n\n".join(context_strs)
 
-    def get_sql_query(self, question, context):
+    def get_sql_query(self, question, context) -> dspy.Prediction:
         return self.sql_module(question=question, context=context).answer
 
     def extract_sql(self, question: str, llm_response: str) -> str | None:
         # First try to extract SQL code blocks enclosed in triple backticks
-        # old_pattern = r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
+        # Old pattern: r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
         pattern = r"(?si)SELECT.*?;"
         sql_match = re.search(pattern, llm_response, re.DOTALL | re.IGNORECASE)
 
@@ -166,11 +163,9 @@ class ClinicalTrialText2SQLEngine:
                 f"Output from LLM: {llm_response} \nExtracted SQL: {retrieved_sql}",
             )
             return retrieved_sql
-        else:
-            # Handle the case where no SQL pattern is matched
-            logger.info(f"No SQL pattern matched in LLM response: {llm_response}")
-            # Return an appropriate response, such as an empty list or a message indicating no SQL was found
-            return None
+
+        logger.info(f"No SQL pattern matched in LLM response: {llm_response}")
+        return None
 
     @staticmethod
     def replace_title_value(sql_command: str, title_names: list[str]) -> str:
@@ -194,10 +189,11 @@ class ClinicalTrialText2SQLEngine:
             ],
         )
 
-    def retrieve_input_title_name(self, question, context):
+    def retrieve_input_title_name(self, question, context) -> dspy.OutputField:
         return self.sql_module(question=question, context=context).answer
 
-    def get_synthesized_response(self, question, sql, database_output):
+    def get_synthesized_response(self, question, sql,
+                                 database_output) -> dspy.OutputField:
         if len(database_output) > 0:
             database_output = database_output[0].text
         with dspy.context(lm=self.response_llm):
@@ -205,8 +201,8 @@ class ClinicalTrialText2SQLEngine:
                 question=question, sql=sql, database_output=database_output,
             ).answer
 
-    def build_query_pipeline(self):
-        qp = QP(
+    def build_query_pipeline(self) -> QueryPipeline:
+        qp = QueryPipeline(
             modules={
                 "input": InputComponent(),
                 "table_retriever": self.obj_retriever,
