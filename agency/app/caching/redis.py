@@ -65,7 +65,7 @@ _redis_cache: RedisCache | None = None
 
 
 def get_redis_cache() -> RedisCache:
-    global _redis_cache
+    global _redis_cache  # noqa: PLW0602
     if not _redis_cache:
         raise ValueError("Redis client has not been initialized")
 
@@ -74,7 +74,7 @@ def get_redis_cache() -> RedisCache:
 
 def init_redis_cache(settings: RedisSettings) -> RedisCache:
     """Initializes Redis client. Ensures it is only done once."""
-    global _redis_cache
+    global _redis_cache  # noqa: PLW0603
     if not _redis_cache:
         _redis_cache = RedisCache(
             url=settings.url.get_secret_value(),

@@ -42,14 +42,14 @@ class NebulaGraph:
 
     def create_new_session(self) -> Session:
         current_session = self.get_connection_pool().get_session(
-            str(self.user), str(self.password),
+            self.user, self.password,
         )
         current_session.execute(f"USE {self.space}")
         return current_session
 
     @contextmanager
     def session_ctx(self) -> Generator[Session, Any, Any]:
-        session: None | Session = None
+        session: Session | None = None
         try:
             session = self.get_session()
             yield session
@@ -68,7 +68,9 @@ class NebulaGraph:
 
     @staticmethod
     def result_to_dict(result: ResultSet) -> dict[str, list]:
-        assert result.is_succeeded()
+        if not result.is_succeeded():
+            return {}
+
         columns = result.keys()
         result_dict: dict[str, list] = {}
 
@@ -77,8 +79,6 @@ class NebulaGraph:
             col_list = result.column_values(col_name)
             if len(col_list) > 0:
                 result_dict[col_name] = [x.cast() for x in col_list]
-
-        assert len(result_dict) > 0
 
         return result_dict
 
@@ -92,7 +92,7 @@ _nebula_graph_client: NebulaGraph | None = None
 
 
 def get_nebula_graph_client(settings: NebulaGraphSettings) -> NebulaGraph:
-    global _nebula_graph_client
+    global _nebula_graph_client  # noqa: PLW0603
 
     if not _nebula_graph_client:
         _nebula_graph_client = NebulaGraph(
