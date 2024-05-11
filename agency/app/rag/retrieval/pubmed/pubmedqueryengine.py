@@ -1,5 +1,3 @@
-from typing import List
-
 from llama_index.core import VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.schema import NodeWithScore
@@ -15,9 +13,7 @@ logger = setup_logger("PubmedSearchQueryEngine")
 
 
 class PubmedSearchQueryEngine:
-    """This class implements the logic of call pubmed vector database.
-    It calls the pubmed vector database and processes the data and returns the result.
-    """
+    """Calls the pubmed database, processes the data and returns the result."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -50,7 +46,7 @@ class PubmedSearchQueryEngine:
             ),
         )
 
-    async def call_pubmed_vectors(self, search_text: str) -> List[NodeWithScore]:
+    async def call_pubmed_vectors(self, search_text: str) -> list[NodeWithScore]:
         logger.info("PubmedSearchQueryEngine.call_pubmed_vectors query: " + search_text)
 
         try:
