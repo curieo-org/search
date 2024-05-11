@@ -1,5 +1,5 @@
 import re
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import requests
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
@@ -17,12 +17,7 @@ logger = setup_logger("TextEmbeddingInferenceRerankEngine")
 
 
 class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
-    """The class extends the BaseNodePostprocessor class, aimed at reranking nodes
-    (elements) based on text embedding inference. This class is part of a larger
-    framework, likely for processing and analyzing data within a specific domain,
-    such as document retrieval or search engine optimization. Here's an overview of
-    the class and its components:
-    """
+    """Text-embedding reranking post-processor."""
 
     model: str = Field(
         default="BAAI/bge-reranker-large",
@@ -69,11 +64,14 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
 
     def _postprocess_nodes(
         self,
-        nodes: List[NodeWithScore],
+        nodes: list[NodeWithScore],
         query_bundle: Optional[QueryBundle] = None,
-    ) -> List[NodeWithScore]:
-        """This method takes a list of nodes (each represented by a NodeWithScore object)
-        and an optional QueryBundle object.
+    ) -> list[NodeWithScore]:
+        """Post-processing reranking of response nodes.
+
+        This method takes a list of nodes represented by a NodeWithScore object and an
+        optional QueryBundle object.
+
         It performs the reranking operation by:
         -- Validating the input.
         -- Extracting text from each node, removing HTML tags.
