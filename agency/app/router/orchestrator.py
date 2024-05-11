@@ -18,8 +18,7 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 
 class Orchestrator:
-    """
-    Orchestrator is responsible for routing the search engine query.
+    """Orchestrator is responsible for routing the search engine query.
     It routes the query into three routes now.The first one is clinical trails, second one is drug related information,
     and third one is pubmed brave.
     """

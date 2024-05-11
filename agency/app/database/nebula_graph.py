@@ -59,7 +59,7 @@ class NebulaGraph:
             if session:
                 session.release()
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self._current_session:
             self._current_session.release()
 

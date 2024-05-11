@@ -20,8 +20,7 @@ logger = setup_logger("DrugChEMBLText2CypherEngine")
 
 
 class DrugChEMBLText2CypherEngine:
-    """
-    This class implements the logic to convert the user prompt to cypher query.
+    """This class implements the logic to convert the user prompt to cypher query.
     Then it executes the cypher query in the graph database and return the result.
     """
 

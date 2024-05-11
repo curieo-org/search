@@ -17,8 +17,7 @@ class ResponseSynthesisRecord(pydantic.BaseModel):
 
 
 class ResponseSynthesisEngine:
-    """
-    This class implements the logic to call the llm service in the last layer and
+    """This class implements the logic to call the llm service in the last layer and
     returns the results.
     It uses the preprocessed service and prompt template. It returns the output in a
     list format.

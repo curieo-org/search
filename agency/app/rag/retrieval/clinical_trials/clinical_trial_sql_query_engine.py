@@ -18,7 +18,7 @@ from qdrant_client import QdrantClient
 from sqlalchemy import create_engine
 
 from app.dspy_integration.clinical_trials_response_refinement import ResponseSynthesizerModule
-from app.dspy_integration.clinical_trials_sql import SQL_module
+from app.dspy_integration.clinical_trials_sql import SqlModule
 from app.services.search_utility import setup_logger
 from app.settings import Settings
 
@@ -26,9 +26,7 @@ logger = setup_logger("ClinicalTrialText2SQLEngine")
 
 
 class TableInfo(BaseModel):
-    """
-    Information regarding a structured table.
-    """
+    """Information regarding a structured table."""
 
     table_name: str = Field(
         ..., description="table name (must be underscores and NO spaces)",
@@ -39,8 +37,7 @@ class TableInfo(BaseModel):
 
 
 class ClinicalTrialText2SQLEngine:
-    """
-    This class implements the logic to convert the user prompt to sql query.
+    """This class implements the logic to convert the user prompt to sql query.
     Then it executes the sql query in the database and return the result.
     """
 
@@ -60,7 +57,7 @@ class ClinicalTrialText2SQLEngine:
         dspy.settings.configure(lm=self.sql_llm)
 
         dspy_settings = settings.dspy
-        self.sql_module = SQL_module()
+        self.sql_module = SqlModule()
         self.sql_module.load(dspy_settings.clinical_trial_sql_program)
 
         self.response_synthesizer = ResponseSynthesizerModule()
@@ -153,8 +150,7 @@ class ClinicalTrialText2SQLEngine:
         return "\n\n".join(context_strs)
 
     def get_sql_query(self, question, context):
-        sql_query = self.sql_module(question=question, context=context).answer
-        return sql_query
+        return self.sql_module(question=question, context=context).answer
 
     def extract_sql(self, question: str, llm_response: str) -> str | None:
         # First try to extract SQL code blocks enclosed in triple backticks
@@ -185,8 +181,7 @@ class ClinicalTrialText2SQLEngine:
         # Replacement pattern using IN clause
         replacement = f"title IN ({quoted_titles_for_sql})"
         # Perform the substitution
-        updated_sql_command = re.sub(pattern, replacement, sql_command)
-        return updated_sql_command
+        return re.sub(pattern, replacement, sql_command)
 
     def get_relevant_tiles(self, question, sql_query) -> str:
         return self.replace_title_value(
@@ -200,17 +195,15 @@ class ClinicalTrialText2SQLEngine:
         )
 
     def retrieve_input_title_name(self, question, context):
-        sql_query = self.sql_module(question=question, context=context).answer
-        return sql_query
+        return self.sql_module(question=question, context=context).answer
 
     def get_synthesized_response(self, question, sql, database_output):
         if len(database_output) > 0:
             database_output = database_output[0].text
         with dspy.context(lm=self.response_llm):
-            response = self.response_synthesizer(
+            return self.response_synthesizer(
                 question=question, sql=sql, database_output=database_output,
             ).answer
-        return response
 
     def build_query_pipeline(self):
         qp = QP(

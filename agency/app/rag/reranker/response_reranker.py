@@ -17,8 +17,7 @@ logger = setup_logger("TextEmbeddingInferenceRerankEngine")
 
 
 class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
-    """
-    The class extends the BaseNodePostprocessor class, aimed at reranking nodes
+    """The class extends the BaseNodePostprocessor class, aimed at reranking nodes
     (elements) based on text embedding inference. This class is part of a larger
     framework, likely for processing and analyzing data within a specific domain,
     such as document retrieval or search engine optimization. Here's an overview of
@@ -73,8 +72,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         nodes: List[NodeWithScore],
         query_bundle: Optional[QueryBundle] = None,
     ) -> List[NodeWithScore]:
-        """
-        This method takes a list of nodes (each represented by a NodeWithScore object)
+        """This method takes a list of nodes (each represented by a NodeWithScore object)
         and an optional QueryBundle object.
         It performs the reranking operation by:
         -- Validating the input.
@@ -84,7 +82,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         -- Processing the APIs response to update the nodes' scores based on reranking
            results.
         -- Returning the top N reranked nodes, according to the class's top_n attribute
-           and possibly constrained by top_count
+           and possibly constrained by top_count.
         """
         if query_bundle is None:
             raise ValueError("Missing query bundle in extra info.")

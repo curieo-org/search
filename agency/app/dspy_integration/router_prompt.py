@@ -19,7 +19,8 @@ class RouterModuleQA(dspy.Signature):
     Communication and Education, Synthetic Biology, Systems Biology, Zoology': '2',
     '3. useful only for retrieving the drug related information like molecular
     weights,similarities,smile codes, target medicines, effects on other medicine':
-    '3'}"""
+    '3'}.
+    """
 
     question = dspy.InputField(desc="Question to be routed to route")
     answer = dspy.OutputField(
@@ -44,7 +45,8 @@ class RouterModule(dspy.Module):
     Plant Biology, Scientific Communication and Education, Synthetic Biology,
     Systems Biology, Zoology': '2', '3. useful only for retrieving the drug related
     information like molecular weights,similarities,smile codes, target medicines,
-    effects on other medicine': '3'}"""
+    effects on other medicine': '3'}.
+    """
 
     def __init__(self):
         super().__init__()

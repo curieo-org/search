@@ -15,8 +15,7 @@ logger = setup_logger("PubmedSearchQueryEngine")
 
 
 class PubmedSearchQueryEngine:
-    """
-    This class implements the logic of call pubmed vector database.
+    """This class implements the logic of call pubmed vector database.
     It calls the pubmed vector database and processes the data and returns the result.
     """
 
