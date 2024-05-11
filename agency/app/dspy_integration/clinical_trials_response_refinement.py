@@ -19,7 +19,7 @@ class ResponseSynthesizerModule(dspy.Module):
 
     def forward(self, question, sql, database_output):
         prediction = self.generate_answer(
-            question=question, sql=sql, database_output=database_output
+            question=question, sql=sql, database_output=database_output,
         )
         return dspy.Prediction(answer=prediction.answer)
 

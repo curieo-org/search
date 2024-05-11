@@ -35,10 +35,10 @@ class ResponseSynthesisEngine:
         return response_text.replace("\n", "")
 
     def get_prompt_v3(
-        self, search_text: str, reranked_results: collections.defaultdict[list]
+        self, search_text: str, reranked_results: collections.defaultdict[list],
     ):
         logger.info(
-            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}"
+            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}",
         )
 
         context_str = ""
@@ -68,12 +68,12 @@ class ResponseSynthesisEngine:
         return prompt, urls
 
     async def call_llm_service_api(
-        self, search_text: str, reranked_results: collections.defaultdict[list]
+        self, search_text: str, reranked_results: collections.defaultdict[list],
     ) -> ResponseSynthesisRecord:
         logger.info("call_llm_service_api. search_text: " + search_text)
         logger.info(
             "call_llm_service_api. reranked_results length: "
-            + str(len(reranked_results))
+            + str(len(reranked_results)),
         )
 
         try:
@@ -96,16 +96,16 @@ class ResponseSynthesisEngine:
                     "top_k": 50,
                     "repetition_penalty": 1,
                     "n": 1,
-                }
+                },
             )
 
             response = requests.request(
-                "POST", self.together.api_root, headers=headers, data=payload
+                "POST", self.together.api_root, headers=headers, data=payload,
             )
 
         except Exception as ex:
             logger.exception(
-                "call_llm_service_api Exception -", exc_info=ex, stack_info=True
+                "call_llm_service_api Exception -", exc_info=ex, stack_info=True,
             )
             raise ex
 

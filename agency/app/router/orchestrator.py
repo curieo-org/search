@@ -40,20 +40,20 @@ class Orchestrator:
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
         self.rerank_engine = TextEmbeddingInferenceRerankEngine.from_settings(
-            settings=self.settings.reranking
+            settings=self.settings.reranking,
         )
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
                 model="mistralai/Mixtral-8x7B-Instruct-v0.1",
                 api_key=self.settings.together.api_key.get_secret_value(),
-            )
+            ),
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self, search_text: str
+        self, search_text: str,
     ) -> SearchResultRecord | None:
         logger.info(
-            f"Orchestrator.handle_pubmed_bioxriv_web_search Entered. search_text: {search_text}"
+            f"Orchestrator.handle_pubmed_bioxriv_web_search Entered. search_text: {search_text}",
         )
         try:
             extracted_pubmed_results, extracted_web_results = await asyncio.gather(
@@ -61,9 +61,9 @@ class Orchestrator:
                 self.brave_search.call_brave_search_api(search_text=search_text),
             )
             extracted_results = extracted_pubmed_results + extracted_web_results
-            logger.info(
+            logger.debug(
                 f"Orchestrator.handle_pubmed_bioxriv_web_search.extracted_results count: "
-                f"{len(extracted_pubmed_results), len(extracted_web_results)}"
+                f"{len(extracted_pubmed_results), len(extracted_web_results)}",
             )
 
             if not extracted_results:
@@ -71,7 +71,7 @@ class Orchestrator:
 
             # rerank call
             reranked_results = self.rerank_engine.postprocess_nodes(
-                nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text)
+                nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text),
             )
 
             result = self.summarizer.get_response(
@@ -94,7 +94,7 @@ class Orchestrator:
             return None
 
     async def handle_clinical_trial_search(
-        self, search_text: str
+        self, search_text: str,
     ) -> SearchResultRecord | None:
         pass
         # TODO: Enable once stable and infallible

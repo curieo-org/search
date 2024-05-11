@@ -55,7 +55,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
 
     @classmethod
     def from_settings(
-        cls, *, settings: RerankingSettings
+        cls, *, settings: RerankingSettings,
     ) -> "TextEmbeddingInferenceRerankEngine":
         return cls(
             api=settings.api,
@@ -94,7 +94,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         with self.callback_manager.event(CBEventType.RERANKING) as event:
             logger.info(
                 "TextEmbeddingInferenceRerankEngine.postprocess_nodes query: "
-                + query_bundle.query_str
+                + query_bundle.query_str,
             )
             texts = [TAG_RE.sub("", node.get_content()) for node in nodes]
             results = self._session.post(  # type: ignore
@@ -105,7 +105,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
                     "texts": texts,
                 },
                 headers={
-                    "Authorization": f"Bearer {self.auth_token.get_secret_value()}"
+                    "Authorization": f"Bearer {self.auth_token.get_secret_value()}",
                 },
             ).json()
 
@@ -115,7 +115,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
             new_nodes = []
             for result in results:
                 new_node_with_score = NodeWithScore(
-                    node=nodes[result["index"]], score=result["score"]
+                    node=nodes[result["index"]], score=result["score"],
                 )
                 new_nodes.append(new_node_with_score)
             event.on_end(payload={EventPayload.NODES: new_nodes})

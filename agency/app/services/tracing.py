@@ -15,7 +15,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from app.settings import SentrySettings
 
 
-def setup_tracing(settings: SentrySettings):
+def setup_tracing(settings: SentrySettings) -> None:
     sentry_sdk.init(
         dsn=settings.dsn.get_secret_value(),
         enable_tracing=settings.enable_tracing,
@@ -30,7 +30,7 @@ def setup_tracing(settings: SentrySettings):
         resource = Resource(
             attributes={
                 ResourceAttributes.PROJECT_NAME: settings.phoenix_project_name,
-            }
+            },
         )
         tracer_provider = trace_sdk.TracerProvider(resource=resource)
         span_exporter = OTLPSpanExporter(endpoint=settings.phoenix_api)

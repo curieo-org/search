@@ -17,7 +17,7 @@ def setup_logger(tag):
 
     handler: logging.StreamHandler = logging.StreamHandler()
     formatter: logging.Formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -70,7 +70,7 @@ def remove_api_keys(d):
 def path_safe_string_conversion(filename: str):
     # https://stackoverflow.com/questions/7406102/create-sane-safe-filename-from-any-unsafe-string
     return "".join(
-        [c for c in filename if c.isalpha() or c.isdigit() or c == " "]
+        [c for c in filename if c.isalpha() or c.isdigit() or c == " "],
     ).rstrip()
 
 
@@ -78,14 +78,12 @@ def storage_cached(cache_type: str, cache_hash_key_name: str):
     def storage_cache_decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            assert getattr(
-                args[0], "config"
-            ), "storage_cached is only applicable to class method with config attribute"
+            assert args[0].config, "storage_cached is only applicable to class method with config attribute"
             assert (
                 cache_hash_key_name in kwargs
             ), f"Target method does not have {cache_hash_key_name} keyword argument"
 
-            config = getattr(args[0], "config")
+            config = args[0].config
             if config.get("cache").get("is_enable").get(cache_type):
                 hash_key = str(kwargs[cache_hash_key_name])
 
@@ -103,7 +101,7 @@ def storage_cached(cache_type: str, cache_hash_key_name: str):
                     result = func(*args, **kwargs)
                     config_for_cache = deepcopy(config)
                     config_for_cache = remove_api_keys(
-                        config_for_cache
+                        config_for_cache,
                     )  # remove api keys
                     save_result_cache(
                         cache_path,

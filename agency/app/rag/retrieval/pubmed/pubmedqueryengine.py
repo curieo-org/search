@@ -47,7 +47,7 @@ class PubmedSearchQueryEngine:
             sparse_top_k=qdrant_settings.sparse_top_k,
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
             embed_model=TextEmbeddingsInference(
-                base_url=settings.embedding.api, model_name=""  # TODO: is "" correct?
+                base_url=settings.embedding.api, model_name="",  # TODO: is "" correct?
             ),
         )
 

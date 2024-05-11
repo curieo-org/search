@@ -1,13 +1,13 @@
-import asyncio
 from concurrent import futures
 
 import grpc
 
 from app.api import setup_grpc_api
-from app.database.redis import get_redis_client, init_redis_client
+from app.caching.redis import get_redis_cache, init_redis_cache
 from app.services.search_utility import setup_logger
 from app.services.tracing import setup_tracing
 from app.settings import Settings
+from app.utils.asyncio_helpers import event_loop_context
 
 settings = Settings()
 logger = setup_logger("Main")
@@ -15,12 +15,9 @@ logger = setup_logger("Main")
 _cleanup_coroutines = []
 
 
-async def start_services():
+async def start_services() -> None:
     # Initialize redis client at app level
-    cache = init_redis_client(settings.redis)
-
-    # connect to redis
-    await cache.connect()
+    init_redis_cache(settings.redis)
 
     # tracing
     setup_tracing(settings.sentry)
@@ -32,22 +29,22 @@ async def start_services():
     # llmservice connection checking function
 
 
-async def stop_services(server):
+async def stop_services(server) -> None:
     logger.info("Server graceful shutdown started")
 
     # disconnect from redis
-    cache = get_redis_client()
-    await cache.disconnect()
+    cache = get_redis_cache()
+    await cache.close()
 
     # graceful shutdown
     await server.stop(settings.project.graceful_shutdown_period)
 
 
-async def serve():
+async def serve() -> None:
     await start_services()
 
     server = grpc.aio.server(
-        futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers)
+        futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers),
     )
     setup_grpc_api(server)
 
@@ -61,13 +58,13 @@ async def serve():
     await server.wait_for_termination()
 
 
-def start_server():
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(serve())
-    finally:
-        loop.run_until_complete(*_cleanup_coroutines)
-        loop.close()
+def start_server() -> None:
+    with event_loop_context() as loop:
+        try:
+            loop.run_until_complete(serve())
+        finally:
+            if _cleanup_coroutines:
+                loop.run_until_complete(*_cleanup_coroutines)
 
 
 app = start_server

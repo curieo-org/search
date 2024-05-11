@@ -9,9 +9,7 @@ from llama_index.core.prompts import PromptTemplate, PromptType
 from llama_index.core.query_pipeline import FnComponent, InputComponent
 from llama_index.core.query_pipeline import QueryPipeline as QP
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
-from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
-    DEFAULT_NEBULAGRAPH_NL2CYPHER_PROMPT_TMPL,
-)
+from llama_index.legacy.query_engine.knowledge_graph_query_engine import DEFAULT_NEBULAGRAPH_NL2CYPHER_PROMPT_TMPL
 from llama_index.llms.openai import OpenAI
 
 from app.database.nebula_graph import get_nebula_graph_client
@@ -35,10 +33,10 @@ class DrugChEMBLText2CypherEngine:
 
         self.table_schema_objs = self.get_all_table_info()
         self.embed_model = TextEmbeddingsInference(
-            base_url=settings.embedding.api, model_name=settings.embedding.model
+            base_url=settings.embedding.api, model_name=settings.embedding.model,
         )
         self.table_node_mapping = SimpleObjectNodeMapping.from_objects(
-            self.table_schema_objs
+            self.table_schema_objs,
         )
 
         self.obj_index = ObjectIndex.from_objects(
@@ -59,7 +57,7 @@ class DrugChEMBLText2CypherEngine:
             "Query: {query_str}\n"
             "Cypher Query: {cypher_query}\n"
             "Cypher Response: {context_str}\n"
-            "Response: "
+            "Response: ",
         )
 
         self.qp = self.build_query_pipeline()
@@ -105,11 +103,11 @@ class DrugChEMBLText2CypherEngine:
         results_list = list(results_gen)
 
         if not results_list:
-            return
+            return None
 
         elif len(results_list) == 1:
             path = results_list[0]
-            with open(path, "r") as source:
+            with open(path) as source:
                 return json.load(source)
         else:
             raise ValueError(f"More than one file matching index: {list(results_gen)}")
@@ -140,7 +138,7 @@ class DrugChEMBLText2CypherEngine:
         return "\n\n".join(context_strs)
 
     def get_response_synthesis_prompt(
-        self, query_str, sql_query, context_str
+        self, query_str, sql_query, context_str,
     ) -> PromptTemplate:
         response_synthesis_prompt_str = (
             "Given an input question, synthesize a response from the query results.\n"
@@ -184,7 +182,7 @@ class DrugChEMBLText2CypherEngine:
 
         qp.add_link("input", "cypher_query_retriever_prompt", dest_key="query_str")
         qp.add_link(
-            "table_output_parser", "cypher_query_retriever_prompt", dest_key="schema"
+            "table_output_parser", "cypher_query_retriever_prompt", dest_key="schema",
         )
 
         qp.add_chain(["cypher_query_retriever_prompt", "cypher_query_retriever_llm"])
@@ -200,7 +198,7 @@ class DrugChEMBLText2CypherEngine:
             dest_key="cypher_query",
         )
         qp.add_link(
-            "cypher_output_parser", "response_synthesis_prompt", dest_key="context_str"
+            "cypher_output_parser", "response_synthesis_prompt", dest_key="context_str",
         )
 
         qp.add_chain(["response_synthesis_prompt", "response_synthesis_llm"])
@@ -218,7 +216,7 @@ class DrugChEMBLText2CypherEngine:
 
         except Exception as ex:
             logger.exception(
-                "call_text2cypher Exception -", exc_info=ex, stack_info=True
+                "call_text2cypher Exception -", exc_info=ex, stack_info=True,
             )
 
             raise ex

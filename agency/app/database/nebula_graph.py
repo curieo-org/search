@@ -1,5 +1,6 @@
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Any
 
 from nebula3.Config import Config
 from nebula3.data.ResultSet import ResultSet
@@ -34,16 +35,14 @@ class NebulaGraph:
         return connection_pool
 
     def get_session(self) -> Session:
-        if not self._current_session:
-            self._current_session = self.create_new_session()
-        elif not self._current_session.ping_session():
+        if not self._current_session or not self._current_session.ping_session():
             self._current_session = self.create_new_session()
 
         return self._current_session
 
     def create_new_session(self) -> Session:
         current_session = self.get_connection_pool().get_session(
-            str(self.user), str(self.password)
+            str(self.user), str(self.password),
         )
         current_session.execute(f"USE {self.space}")
         return current_session
