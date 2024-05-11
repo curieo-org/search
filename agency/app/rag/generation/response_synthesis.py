@@ -17,10 +17,9 @@ class ResponseSynthesisRecord(pydantic.BaseModel):
 
 
 class ResponseSynthesisEngine:
-    """This class implements the logic to call the llm service in the last layer and
-    returns the results.
-    It uses the preprocessed service and prompt template. It returns the output in a
-    list format.
+    """Implements the logic to call the LLM in the last layer and returns the results.
+
+    It uses the preprocessed service and prompt template. Returns the output as a list.
     """
 
     def __init__(self, settings: Settings):
@@ -35,7 +34,7 @@ class ResponseSynthesisEngine:
 
     def get_prompt_v3(
         self, search_text: str, reranked_results: collections.defaultdict[list],
-    ):
+    ) -> (str, list[str]):
         logger.info(
             f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}",
         )
@@ -56,11 +55,13 @@ class ResponseSynthesisEngine:
         Web search result:
         {context_str}
 
-        Instructions: Using the provided web search results, write a comprehensive reply to the given query.
-        Make sure to cite results using [number] notation after the reference.
-        If the provided search results refer to multiple subjects with the same name, write separate answers for each subject.
-        Answer in language: {self.language}
-        If the context is insufficient, reply "I cannot answer because my reference sources don't have related info" in language {self.language}.
+        Instructions: Using the provided web search results, write a comprehensive
+        reply to the given query. Make sure to cite results using [number] notation
+        after the reference. If the provided search results refer to multiple
+        subjects with the same name, write separate answers for each subject. Answer
+        in language: {self.language} If the context is insufficient, reply "I cannot
+        answer because my reference sources don't have related info" in language
+        {self.language}.
         Query: {search_text}
         """
 
