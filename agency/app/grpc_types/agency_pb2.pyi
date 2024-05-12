@@ -1,12 +1,13 @@
-from collections.abc import Iterable as _Iterable
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar
-from typing import Optional as _Optional
-from typing import Union as _Union
-
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from typing import (
+    ClassVar as _ClassVar,
+    Iterable as _Iterable,
+    Mapping as _Mapping,
+    Optional as _Optional,
+    Union as _Union,
+)
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -26,9 +27,7 @@ class Source(_message.Message):
         key: str
         value: str
         def __init__(
-            self,
-            key: _Optional[str] = ...,
-            value: _Optional[str] = ...,
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
         ) -> None: ...
 
     URL_FIELD_NUMBER: _ClassVar[int]
@@ -36,9 +35,7 @@ class Source(_message.Message):
     url: str
     metadata: _containers.ScalarMap[str, str]
     def __init__(
-        self,
-        url: _Optional[str] = ...,
-        metadata: _Optional[_Mapping[str, str]] = ...,
+        self, url: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...
     ) -> None: ...
 
 class SearchResponse(_message.Message):

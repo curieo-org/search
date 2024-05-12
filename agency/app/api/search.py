@@ -1,5 +1,3 @@
-from typing import Any
-
 import sentry_sdk
 
 from app.grpc_types.agency_pb2 import SearchRequest, SearchResponse
@@ -18,7 +16,15 @@ class Search(AgencyService):
     @staticmethod
     def pubmed_bioxriv_web_search(
         request: SearchRequest,
-        **_kwargs: Any,
+        _target,
+        _options=(),
+        _channel_credentials=None,
+        _call_credentials=None,
+        _insecure=False,
+        _compression=None,
+        _wait_for_ready=None,
+        _timeout=None,
+        _metadata=None,
     ) -> SearchResponse:
         if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
             trace_transaction.set_tag("title", "pubmed_bioxriv_web_search")

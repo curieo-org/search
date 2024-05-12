@@ -26,6 +26,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
     api: str
     auth_token: SecretStr
     top_count: int
+    top_n: int
     _session: Any = PrivateAttr()
 
     def __init__(
@@ -37,14 +38,13 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         model: str,
         top_n: int = 2,
     ):
-        super().__init__(
-            top_n=top_n,
-            model=model,
-            api=api,
-            auth_token=auth_token,
-            top_count=top_count,
-        )
+        super().__init__()
+
         self.model = model
+        self.api = api
+        self.auth_token = auth_token
+        self.top_count = top_count
+        self.top_n = top_n
         self._session = requests.Session()
 
     @classmethod

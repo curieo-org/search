@@ -5,7 +5,7 @@ import grpc
 import app.grpc_types.agency_pb2 as agency__pb2
 
 
-class AgencyServiceStub:
+class AgencyServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -21,7 +21,7 @@ class AgencyServiceStub:
         )
 
 
-class AgencyServiceServicer:
+class AgencyServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def pubmed_bioxriv_web_search(self, request, context):
@@ -40,14 +40,13 @@ def add_AgencyServiceServicer_to_server(servicer, server):
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        "agency.AgencyService",
-        rpc_method_handlers,
+        "agency.AgencyService", rpc_method_handlers
     )
     server.add_generic_rpc_handlers((generic_handler,))
 
 
 # This class is part of an EXPERIMENTAL API.
-class AgencyService:
+class AgencyService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
