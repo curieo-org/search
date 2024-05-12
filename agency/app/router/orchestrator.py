@@ -1,3 +1,4 @@
+# ruff: noqa: ERA001, ARG002
 import asyncio
 import re
 
@@ -19,8 +20,14 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 class Orchestrator:
     """Orchestrator is responsible for routing the search engine query.
-    It routes the query into three routes now.The first one is clinical trails, second one is drug related information,
-    and third one is pubmed brave.
+
+    It currently supports 2 routes:
+    1. Pubmed
+    2. Brave API search
+
+    TODO: enable support for
+    3. Clinical trials
+    4. Drug chembl
     """
 
     def __init__(self, settings: Settings):
@@ -70,7 +77,8 @@ class Orchestrator:
 
             # rerank call
             reranked_results = self.rerank_engine.postprocess_nodes(
-                nodes=extracted_results, query_bundle=QueryBundle(query_str=search_text),
+                nodes=extracted_results,
+                query_bundle=QueryBundle(query_str=search_text),
             )
 
             result = self.summarizer.get_response(

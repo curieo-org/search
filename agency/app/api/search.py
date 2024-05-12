@@ -1,4 +1,5 @@
-import grpc
+from typing import Any
+
 import sentry_sdk
 
 from app.grpc_types.agency_pb2 import SearchRequest, SearchResponse
@@ -14,7 +15,9 @@ logger = setup_logger("Search_API")
 
 class Search(AgencyService):
     async def pubmed_bioxriv_web_search(
-        self, request: SearchRequest, context: grpc.aio.ServicerContext, **kwargs,
+        self,
+        request: SearchRequest,
+        **_kwargs: Any,
     ) -> SearchResponse:
         if trace_transaction := sentry_sdk.Hub.current.scope.transaction:
             trace_transaction.set_tag("title", "pubmed_bioxriv_web_search")
