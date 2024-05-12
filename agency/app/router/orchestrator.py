@@ -56,7 +56,8 @@ class Orchestrator:
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self, search_text: str,
+        self,
+        search_text: str,
     ) -> SearchResultRecord | None:
         logger.info(
             f"Orchestrator.handle_pubmed_bioxriv_web_search Entered. search_text: {search_text}",
@@ -101,7 +102,8 @@ class Orchestrator:
             return None
 
     async def handle_clinical_trial_search(
-        self, search_text: str,
+        self,
+        search_text: str,
     ) -> SearchResultRecord | None:
         pass
         # TODO: Enable once stable and infallible

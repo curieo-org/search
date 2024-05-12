@@ -62,8 +62,8 @@ class BraveSearchQueryEngine:
                 if web_response:
                     return [
                         TextNode(
-                            text=resp.get("description") + "".join(
-                                resp.get("extra_snippets", [])),
+                            text=resp.get("description")
+                            + "".join(resp.get("extra_snippets", [])),
                             metadata=BraveSourceRecord.model_validate(resp),
                         )
                         for resp in web_response

@@ -34,7 +34,9 @@ class Search(AgencyService):
                 sources = [source.to_grpc_source() for source in search_result.sources]
 
                 return SearchResponse(
-                    status=200, result=search_result.result, sources=sources,
+                    status=200,
+                    result=search_result.result,
+                    sources=sources,
                 )
 
             logger.error("pubmed_bioxriv_web_search. failed to retrieve search results")

@@ -1,2 +1,2 @@
 fmt:
-	isort --quiet . && ruff check --fix . && black --quiet .
+	ruff check --fix . && black --quiet .

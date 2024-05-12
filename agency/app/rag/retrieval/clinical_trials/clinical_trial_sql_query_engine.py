@@ -15,7 +15,9 @@ from pyvis.network import Network
 from qdrant_client import QdrantClient
 from sqlalchemy import create_engine
 
-from app.dspy_integration.clinical_trials_response_refinement import ResponseSynthesizerModule
+from app.dspy_integration.clinical_trials_response_refinement import (
+    ResponseSynthesizerModule,
+)
 from app.dspy_integration.clinical_trials_sql import SqlModule
 from app.services.search_utility import setup_logger
 from app.settings import Settings
@@ -27,10 +29,12 @@ class TableInfo(BaseModel):
     """Information regarding a structured table."""
 
     table_name: str = Field(
-        ..., description="table name (must be underscores and NO spaces)",
+        ...,
+        description="table name (must be underscores and NO spaces)",
     )
     table_summary: str = Field(
-        ..., description="short, concise summary/caption of the table",
+        ...,
+        description="short, concise summary/caption of the table",
     )
 
 
@@ -42,7 +46,9 @@ class ClinicalTrialText2SQLEngine:
 
         together = settings.together
         self.response_llm = dspy.Together(
-            model=together.model, api_key=together.api_key, max_tokens=500,
+            model=together.model,
+            api_key=together.api_key,
+            max_tokens=500,
         )
         self.sql_llm = dspy.Together(
             model=settings.ai_models.sql_generation,
@@ -68,7 +74,8 @@ class ClinicalTrialText2SQLEngine:
         self.sql_retriever = SQLRetriever(self.sql_database)
 
         self.embed_model = TextEmbeddingsInference(
-            base_url=settings.embedding.api, model_name=settings.embedding.model,
+            base_url=settings.embedding.api,
+            model_name=settings.embedding.model,
         )
 
         self.client = QdrantClient(
@@ -79,7 +86,8 @@ class ClinicalTrialText2SQLEngine:
         )
 
         self.vector_store = QdrantVectorStore(
-            client=self.client, collection_name=settings.qdrant.collection_name,
+            client=self.client,
+            collection_name=settings.qdrant.collection_name,
         )
 
         self.retriever = VectorIndexRetriever(
@@ -192,13 +200,19 @@ class ClinicalTrialText2SQLEngine:
     def retrieve_input_title_name(self, question, context) -> dspy.OutputField:
         return self.sql_module(question=question, context=context).answer
 
-    def get_synthesized_response(self, question, sql,
-                                 database_output) -> dspy.OutputField:
+    def get_synthesized_response(
+        self,
+        question,
+        sql,
+        database_output,
+    ) -> dspy.OutputField:
         if len(database_output) > 0:
             database_output = database_output[0].text
         with dspy.context(lm=self.response_llm):
             return self.response_synthesizer(
-                question=question, sql=sql, database_output=database_output,
+                question=question,
+                sql=sql,
+                database_output=database_output,
             ).answer
 
     def build_query_pipeline(self) -> QueryPipeline:
@@ -225,7 +239,9 @@ class ClinicalTrialText2SQLEngine:
         qp.add_link("input", "response_synthesis_llm", dest_key="question")
         qp.add_link("text2sql_llm", "response_synthesis_llm", dest_key="sql")
         qp.add_link(
-            "sql_retriever", "response_synthesis_llm", dest_key="database_output",
+            "sql_retriever",
+            "response_synthesis_llm",
+            dest_key="database_output",
         )
 
         net = Network(notebook=True, cdn_resources="in_line", directed=True)

@@ -42,7 +42,8 @@ class NebulaGraph:
 
     def create_new_session(self) -> Session:
         current_session = self.get_connection_pool().get_session(
-            self.user, self.password,
+            self.user,
+            self.password,
         )
         current_session.execute(f"USE {self.space}")
         return current_session

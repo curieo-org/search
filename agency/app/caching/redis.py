@@ -40,7 +40,10 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
             return None
 
     async def set(
-        self, key: RedisKey, value: RedisValue, expire: ExpiryT | None = None,
+        self,
+        key: RedisKey,
+        value: RedisValue,
+        expire: ExpiryT | None = None,
     ) -> None:
         try:
             if not expire:

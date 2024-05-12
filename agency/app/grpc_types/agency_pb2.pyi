@@ -26,7 +26,9 @@ class Source(_message.Message):
         key: str
         value: str
         def __init__(
-            self, key: _Optional[str] = ..., value: _Optional[str] = ...,
+            self,
+            key: _Optional[str] = ...,
+            value: _Optional[str] = ...,
         ) -> None: ...
 
     URL_FIELD_NUMBER: _ClassVar[int]
@@ -34,7 +36,9 @@ class Source(_message.Message):
     url: str
     metadata: _containers.ScalarMap[str, str]
     def __init__(
-        self, url: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...,
+        self,
+        url: _Optional[str] = ...,
+        metadata: _Optional[_Mapping[str, str]] = ...,
     ) -> None: ...
 
 class SearchResponse(_message.Message):

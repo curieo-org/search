@@ -18,7 +18,10 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("--data_path", type=str, help="The path to the input data file.")
 parser.add_argument(
-    "--num_samples", type=int, default=50, help="Number of samples to use.",
+    "--num_samples",
+    type=int,
+    default=50,
+    help="Number of samples to use.",
 )
 parser.add_argument(
     "--llm",
@@ -27,17 +30,27 @@ parser.add_argument(
     help="The Large Language Model to use.",
 )
 parser.add_argument(
-    "--project_name", type=str, default="pe_router", help="WANDB project name.",
+    "--project_name",
+    type=str,
+    default="pe_router",
+    help="WANDB project name.",
 )
 parser.add_argument(
-    "--run_name", type=str, default="pe_router_optimization", help="WANDB run name.",
+    "--run_name",
+    type=str,
+    default="pe_router_optimization",
+    help="WANDB run name.",
 )
 parser.add_argument("--entity", type=str, help="WANDB entity name.")
 parser.add_argument(
-    "--env_file", type=str, help="environment file to read API keys from",
+    "--env_file",
+    type=str,
+    help="environment file to read API keys from",
 )
 parser.add_argument(
-    "--rag_save_path", type=str, help="file for saving the optimized prompt",
+    "--rag_save_path",
+    type=str,
+    help="file for saving the optimized prompt",
 )
 # Parse the arguments
 args = parser.parse_args()
@@ -93,7 +106,8 @@ idx_to_txt = {v: k for k, v in txt_to_idx.items()}
 
 if args.llm == "gpt-3.5-turbo":
     turbo = dspy.OpenAI(
-        model="gpt-3.5-turbo", api_key=settings.openai.api_key.get_secret_value(),
+        model="gpt-3.5-turbo",
+        api_key=settings.openai.api_key.get_secret_value(),
     )
 elif args.llm == "gemma-7b-it":
     turbo = dspy.GROQ(
@@ -130,19 +144,24 @@ def get_router_source(x):
 df = pd.read_csv(args.data_path)
 df["route_option"] = df["Source"].apply(lambda x: get_router_source(x))
 chembl_sample = df[df["route_option"] == "chembl"].sample(
-    n=20, random_state=random_state,
+    n=20,
+    random_state=random_state,
 )
 pubmed_sample = df[df["route_option"] == "pubmed"].sample(
-    n=20, random_state=random_state,
+    n=20,
+    random_state=random_state,
 )
 clinical_trials = df[df["route_option"] == "Clinical Trials"].sample(
-    n=20, random_state=random_state,
+    n=20,
+    random_state=random_state,
 )
 bioarxiv_sample = df[df["route_option"] == "bioarxiv"].sample(
-    n=20, random_state=random_state,
+    n=20,
+    random_state=random_state,
 )
 all_samples = pd.concat(
-    [chembl_sample, pubmed_sample, clinical_trials, bioarxiv_sample], axis=0,
+    [chembl_sample, pubmed_sample, clinical_trials, bioarxiv_sample],
+    axis=0,
 ).sample(frac=1)
 total_data = []
 for idx, row in enumerate(all_samples.iterrows()):
