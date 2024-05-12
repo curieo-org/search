@@ -4,10 +4,10 @@ import grpc
 
 from app.api import setup_grpc_api
 from app.caching.redis import get_redis_cache, init_redis_cache
-from app.services.search_utility import setup_logger
-from app.services.tracing import setup_tracing
 from app.settings import Settings
-from app.utils.asyncio_helpers import event_loop_context
+from app.tracing.utils import setup_tracing
+from app.utils.asyncio import event_loop_context
+from app.utils.logging import setup_logger
 
 settings = Settings()
 logger = setup_logger("Main")

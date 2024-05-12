@@ -19,8 +19,8 @@ from app.dspy_integration.clinical_trials_response_refinement import (
     ResponseSynthesizerModule,
 )
 from app.dspy_integration.clinical_trials_sql import SqlModule
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("ClinicalTrialText2SQLEngine")
 

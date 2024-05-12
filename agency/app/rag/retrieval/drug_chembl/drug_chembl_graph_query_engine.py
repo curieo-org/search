@@ -13,8 +13,8 @@ from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
 from llama_index.llms.openai import OpenAI
 
 from app.database.nebula_graph import get_nebula_graph_client
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("DrugChEMBLText2CypherEngine")
 

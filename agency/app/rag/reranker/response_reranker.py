@@ -8,8 +8,8 @@ from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 from pydantic import SecretStr
 
-from app.services.search_utility import setup_logger
 from app.settings import RerankingSettings
+from app.utils.logging import setup_logger
 
 TAG_RE = re.compile(r"<[^>]+>")
 

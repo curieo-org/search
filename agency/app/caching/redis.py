@@ -6,8 +6,8 @@ import redis.asyncio as aioredis
 
 from app.caching.decorators import cached_factory
 from app.caching.generics import AsyncCache
-from app.services.search_utility import setup_logger
 from app.settings import RedisSettings
+from app.utils.logging import setup_logger
 
 ExpiryT = Union[int, timedelta]
 logger = setup_logger("RedisCache")

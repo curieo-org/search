@@ -1,4 +1,4 @@
-# ruff: noqa: ERA001, ARG002
+# ruff: noqa: ERA001, ARG002, D205
 import asyncio
 import re
 
@@ -9,10 +9,10 @@ from llama_index.llms.together import TogetherLLM
 
 from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
-from app.rag.retrieval.web.brave_search import BraveSearchQueryEngine
+from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
 from app.rag.utils.models import SearchResultRecord
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("Orchestrator")
 TAG_RE = re.compile(r"<[^>]+>")
@@ -105,10 +105,8 @@ class Orchestrator:
         self,
         search_text: str,
     ) -> SearchResultRecord | None:
-        pass
         # TODO: Enable once stable and infallible
-        """
-        # clinical trial call
+        """# clinical trial call
         logger.info(
             "Orchestrator.handle_clinical_trial_search.router_id clinical trial Entered."
         )
@@ -117,7 +115,7 @@ class Orchestrator:
                 search_text=search_text
             )
             result = str(sql_response)
-            sources = [result]  # TODO: clinical trial sql sources impl
+            sources = [result]  # TODO: clinical trial sql sources impl.
 
             logger.info(f"sql_response: {result}")
 
@@ -129,12 +127,11 @@ class Orchestrator:
                 stack_info=True,
             )
         """
+        return None
 
     async def handle_drug_search(self, search_text: str) -> SearchResultRecord | None:
-        pass
         # TODO: Enable once stable and infallible
-        """
-        # drug information call
+        """# drug information call
         logger.info(
             "Orchestrator.handle_drug_search drug_information_choice "
             "Entered."
@@ -148,7 +145,7 @@ class Orchestrator:
             logger.info(
                 f"Orchestrator.handle_drug_search.cypher_response "
                 f"cypher_response: {result}"
-            )
+            ).
 
             return SearchResultRecord(result=result, sources=sources)
         except Exception as e:
@@ -158,6 +155,7 @@ class Orchestrator:
                 stack_info=True,
             )
         """
+        return None
 
     # TODO: Enable once stable and infallible
     """

@@ -1,0 +1,70 @@
+import httpx
+from llama_index.core.schema import NodeWithScore, TextNode
+from pydantic import ValidationError
+
+from app.caching.decorators import cached
+from app.rag.retrieval.web.types import WebSearchApiResponse
+from app.settings import BraveSettings
+from app.utils.httpx import httpx_get
+from app.utils.logging import setup_logger
+
+logger = setup_logger("BraveSearchQueryEngine")
+
+
+class BraveSearchQueryEngine:
+    """Utility class for interacting with the Brave Search API.
+
+    Searches are performed in an async manner using httpx.
+    Searches are cached using the `cached` decorator with `search_text` as the
+    caching key.
+    """
+
+    def __init__(self, settings: BraveSettings):
+        self.settings = settings
+        self.default_timeout = 2.0
+
+    async def brave_search(self, search_text: str) -> httpx.Response | None:
+        logger.info("call_brave_search_api. query: " + search_text)
+
+        url = (
+            f"{self.settings.api_root}?"
+            f"count={self.settings.result_count}&"
+            f"q={search_text}&"
+            f"goggles_id={str(self.settings.goggles_id.get_secret_value())}&"
+            f"result_filter={','.join(self.settings.result_filter)}&"
+            f"search_lang=en&extra_snippets=True&safesearch=strict"
+        )
+
+        headers = {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": str(
+                self.settings.subscription_key.get_secret_value(),
+            ),
+        }
+
+        return await httpx_get(url=url, headers=headers, timeout=self.default_timeout)
+
+    @cached("agency.brave.search.{search_text}")
+    async def cached_brave_search(
+        self,
+        search_text: str,
+    ) -> WebSearchApiResponse | None:
+        if response := await self.brave_search(search_text):
+            try:
+                return WebSearchApiResponse.model_validate(response.json())
+            except ValidationError:
+                pass
+        return None
+
+    async def call_brave_search_api(self, search_text: str) -> list[NodeWithScore]:
+        results = []
+        if response := await self.cached_brave_search(search_text):
+            for result in response.web.results:
+                node = TextNode(
+                    text=result.description + "".join(result.get_extra_snippets()),
+                )
+                node.metadata = {"url": result.url, "page_age": result.page_age}
+                results.append(NodeWithScore(node=node))
+
+        return results

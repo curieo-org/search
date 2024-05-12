@@ -233,7 +233,7 @@ for x in tqdm(total_data[DEV_NUM : DEV_NUM + 20]):
         },
     )
     log_df = pd.concat([log_df, new_row], ignore_index=True)
-log_df["prediction"] = log_df["prediction"].str.extract("(\d+)")
+log_df["prediction"] = log_df["prediction"].str.extract(r"(\d+)")
 
 ### Gemma was right 60% of times
 how_much_right = sum(log_df["answer"] == log_df["prediction"]) / 20 * 100

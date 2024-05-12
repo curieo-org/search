@@ -5,8 +5,9 @@ import sentry_sdk
 from app.grpc_types.agency_pb2 import SearchRequest, SearchResponse
 from app.grpc_types.agency_pb2_grpc import AgencyService
 from app.router.orchestrator import Orchestrator
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.asyncio import complete_future
+from app.utils.logging import setup_logger
 
 orchestrator = Orchestrator(settings=Settings())
 
@@ -14,8 +15,8 @@ logger = setup_logger("Search_API")
 
 
 class Search(AgencyService):
-    async def pubmed_bioxriv_web_search(
-        self,
+    @staticmethod
+    def pubmed_bioxriv_web_search(
         request: SearchRequest,
         **_kwargs: Any,
     ) -> SearchResponse:
@@ -26,8 +27,10 @@ class Search(AgencyService):
 
         logger.info(f"pubmed_bioxriv_web_search. query: {query}")
         try:
-            if search_result := await orchestrator.handle_pubmed_bioxriv_web_search(
-                query,
+            if search_result := complete_future(
+                orchestrator.handle_pubmed_bioxriv_web_search(
+                    query,
+                ),
             ):
                 logger.info(f"pubmed_bioxriv_web_search. result: {search_result}")
 

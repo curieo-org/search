@@ -1,12 +1,11 @@
-import collections
 import json
 from urllib.parse import urlparse
 
 import pydantic
 import requests
 
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("ResponseSynthesisEngine")
 
@@ -35,10 +34,11 @@ class ResponseSynthesisEngine:
     def get_prompt_v3(
         self,
         search_text: str,
-        reranked_results: collections.defaultdict[list],
-    ) -> (str, list[str]):
+        reranked_results: list[dict[str, str]],
+    ) -> tuple[str, list[str]]:
         logger.info(
-            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}",
+            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results"
+            f".len: {len(reranked_results)}",
         )
 
         context_str = ""
@@ -48,7 +48,7 @@ class ResponseSynthesisEngine:
             urls.append(result["url"])
             context_str += f"Source {domain}\n"
 
-            context_str += f"{result['text']}\n"
+            context_str += f"{result["text"]}\n"
             context_str += "\n\n"
 
         prompt_token_limit = self.prompt_config.prompt_token_limit
@@ -72,7 +72,7 @@ class ResponseSynthesisEngine:
     async def call_llm_service_api(
         self,
         search_text: str,
-        reranked_results: collections.defaultdict[list],
+        reranked_results: list[dict[str, str]],
     ) -> ResponseSynthesisRecord:
         logger.info("call_llm_service_api. search_text: " + search_text)
         logger.info(

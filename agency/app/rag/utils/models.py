@@ -1,5 +1,4 @@
 import abc
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,7 +13,7 @@ class AbstractSourceRecord(abc.ABC):
 
 class BraveSourceRecord(BaseModel, AbstractSourceRecord):
     url: str
-    page_age: Optional[str]
+    page_age: str
 
     def __init__(self, **data):
         url = data.get("url")
@@ -27,7 +26,7 @@ class BraveSourceRecord(BaseModel, AbstractSourceRecord):
 
 class PubmedSourceRecord(BaseModel, AbstractSourceRecord):
     url: str
-    helper_text: Optional[str]
+    helper_text: str
 
     def __init__(self, **data):
         url = data.get("url")

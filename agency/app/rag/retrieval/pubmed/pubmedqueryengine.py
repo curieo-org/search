@@ -6,8 +6,8 @@ from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInfer
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from qdrant_client import AsyncQdrantClient
 
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("PubmedSearchQueryEngine")
 

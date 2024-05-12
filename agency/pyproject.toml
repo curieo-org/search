@@ -54,6 +54,7 @@ types-protobuf = "^5.26.0.20240422"
 types-psycopg2 = "^2.9.21.20240417"
 types-tree-sitter = "^0.20.1.20240311"
 types-tree-sitter-languages = "^1.10.0.20240201"
+pandas-stubs = "^2.2.1.240316"
 
 [build-system]
 requires = ["poetry-core"]
@@ -64,6 +65,25 @@ app = "app.main:app"
 
 [tool.mypy]
 plugins = "pydantic.mypy"
+#warn_return_any = true
+warn_unused_configs = true
+exclude = [
+    '.venv',
+    'prompt_experimentation',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "dspy",
+    "llama_index.embeddings.text_embeddings_inference",
+    "llama_index.llms.openai",
+    "llama_index.llms.together",
+    "llama_index.vector_stores.qdrant",
+    "pyvis.network",
+    "nebula3.*"
+]
+ignore_missing_imports = true
+
 
 [tool.ruff]
 line-length = 120
