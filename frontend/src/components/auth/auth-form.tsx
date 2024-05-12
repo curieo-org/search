@@ -66,6 +66,13 @@ export default function AuthForm(props: AuthFormProps) {
       })
   }
 
+  const handleFormSubmit = () => {
+    if (isEmailError || isPasswordError) {
+      return
+    }
+    handleAuth()
+  }
+
   const handleContinueWithGoogle = () => {}
 
   const handleContinueWithMicrosoft = () => {}
@@ -78,26 +85,30 @@ export default function AuthForm(props: AuthFormProps) {
     <div className="w-96 flex flex-col items-center">
       <img src="/images/curieo-logo.svg" className="mb-6" />
       <H1 className="text-3xl mb-6">{props.authPurpose === 'register' ? 'Create your account' : 'Welcome back'}</H1>
-      <Input
-        containerClass="mb-4"
-        placeholder="Email"
-        value={email}
-        onChange={e => setAuthFormState('email', e.target.value)}
-        errorMessage={email.length > 0 ? emailError : undefined}
-      />
-      <PasswordInput
-        containerClass="mb-4"
-        value={password}
-        onChange={e => setAuthFormState('password', e.target.value)}
-        errorMessage={password.length > 0 ? passwordError : undefined}
-      />
-      <Button
-        label="Continue"
-        className="w-full mb-4"
-        onClick={handleAuth}
-        isLoading={isLoading}
-        disabled={isEmailError || isPasswordError}
-      />
+      <form className="w-full" onSubmit={handleFormSubmit}>
+        <Input
+          containerClass="mb-4"
+          placeholder="Email"
+          value={email}
+          onChange={e => setAuthFormState('email', e.target.value)}
+          errorMessage={email.length > 0 ? emailError : undefined}
+        />
+        <PasswordInput
+          containerClass="mb-4"
+          value={password}
+          onChange={e => setAuthFormState('password', e.target.value)}
+          errorMessage={password.length > 0 ? passwordError : undefined}
+        />
+        <Button
+          label="Continue"
+          className="w-full mb-4"
+          onClick={handleAuth}
+          isLoading={isLoading}
+          disabled={isEmailError || isPasswordError}
+          type="submit"
+        />
+      </form>
+
       <div className="flex items-center mb-6">
         <Span className="font-medium">
           {props.authPurpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}
@@ -109,9 +120,9 @@ export default function AuthForm(props: AuthFormProps) {
         />
       </div>
       <div className="w-full flex items-center gap-x-3 mb-4">
-        <div className="h-px grow bg-custom-gray/25"></div>
+        <div className="h-px grow bg-custom-gray-200/25"></div>
         <Span>or continue with</Span>
-        <div className="h-px grow bg-custom-gray/25"></div>
+        <div className="h-px grow bg-custom-gray-200/25"></div>
       </div>
       <Button
         label="Google"

@@ -17,7 +17,7 @@ export const useSearchQuery = () => {
     async queryFn() {
       const params = { query: searchQuery.trim(), session_id: sessionId }
       const { data } = await AxiosClient.get('/search', { params })
-      queryClient.setQueryData(['search', data.search_history_id], data)
+      queryClient.setQueryData(['search-by-id', data.search_history_id], data)
       queryClient.invalidateQueries({ queryKey: ['search-history'] })
       return data as SearchResult
     },

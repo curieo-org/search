@@ -4,7 +4,7 @@ import { MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
 import { twMerge } from 'tailwind-merge'
 
 const defaultTextInputClasses =
-  'flex w-full rounded-md border border-custom-royal-blue bg-white resize-none px-4 py-2.5 text-base text-input-default placeholder:text-input-placeholder disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-custom-navy-blue focus-visible:ring-offset-0'
+  'flex w-full rounded-md border border-custom-blue-600 bg-white resize-none px-4 py-2.5 text-base text-input-default placeholder:text-input-placeholder disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-custom-purple-900 focus-visible:ring-offset-0'
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   button?: ReactNode

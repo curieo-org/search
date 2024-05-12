@@ -17,7 +17,8 @@ export default function SourcesMenu(props: SourcesMenuProps) {
       <div className="flex flex-col gap-y-2">
         {props.sources.map((source, index) => (
           <LinkPreview
-            className="p-2 xl:p-3 rounded-2xl border border-background-dark/20 dark:border-background-light/20 bg-gradient-source-card hover:bg-background-dark/20 dark:hover:bg-background-light/20"
+            style={{ animation: `fade-in ${Math.min(500 + index * 500, 3000)}ms` }}
+            className="h-32 w-auto flex flex-col items-stretch justify-center p-2 xl:p-3 rounded-2xl border border-background-dark/20 dark:border-background-light/20 bg-gradient-source-card hover:bg-background-dark/20 dark:hover:bg-background-light/20"
             key={`source-preview-${index}`}
             url={source.url}
           />

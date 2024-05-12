@@ -18,3 +18,8 @@ export type SearchResult = {
 export type SearchByIdParams = {
   searchHistoryId: string
 }
+
+export type SearchReactionBody = {
+  search_history_id: string
+  reaction: boolean
+}

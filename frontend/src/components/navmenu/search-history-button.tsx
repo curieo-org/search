@@ -26,20 +26,23 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
 
   const isActive = pathname === searchResultPagePath
 
+  const { className, searchResult, ...rest } = props
+
   return (
     <Button
       className={twMerge(
         classNames(
-          'w-full h-auto rounded-md font-normal text-xs hover:bg-white/3 text-typography-light dark:text-typography-dark',
+          'w-full h-auto rounded-md text-xs font-light hover:bg-white/3 text-typography-light dark:text-typography-dark/80',
           [
             isNavmenuCollapsed ? 'justify-center' : 'justify-start text-start pl-5 xl:pl-6',
             isActive ? 'bg-white/2' : 'bg-transparent',
           ]
         ),
-        props.className
+        className
       )}
-      label={props.searchResult.query}
+      label={searchResult.query}
       onClick={handleNavigateToSearchResultPage}
+      {...rest}
     />
   )
 }

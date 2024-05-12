@@ -1,4 +1,4 @@
-import { getHTMLTextWidth } from '@/helpers/ui-helpers'
+import { getHTMLTextWidth } from '@/helpers/browser'
 import { useEffect, useState } from 'react'
 
 export function useTextWidth(text: string): number {

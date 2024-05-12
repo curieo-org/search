@@ -43,13 +43,15 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
           <ShiftLeft size={35} className="float-right mr-0 cursor-pointer" onClick={toggleNavmenuCollaped} />
         </div>
       )}
-      <div className="my-2 h-px w-full bg-custom-gray/25"></div>
+      <div className="my-2 h-px w-full bg-custom-gray-200/25"></div>
       <div className="relative flex items-center gap-x-2 cursor-pointer" onClick={handleNavigateToSettingsPage}>
         <img
           src={userProfile?.profile_image ? userProfile.profile_image : '/images/placeholder-user.png'}
           className="h-8 lg:h-10 w-auto"
         />
-        {!isNavmenuCollapsed && <Span className="text-sm lg:text-base font-medium">{userProfile?.name}</Span>}
+        {!isNavmenuCollapsed && (
+          <Span className="text-xs lg:text-sm xl:text-base font-medium">{userProfile?.name}</Span>
+        )}
         {!isNavmenuCollapsed && <EngineIcon size={18} className="absolute right-2" />}
       </div>
     </div>
