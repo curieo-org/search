@@ -46,7 +46,7 @@ export default function SearchInput(props: SearchInputProps) {
   return (
     <Textarea
       ref={textAreaRef}
-      containerClass="max-w-[880px] grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4 backdrop-blur-sm"
+      containerClass="max-w-[880px] grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4"
       innerContainerClass={classNames(
         'rounded-2xl bg-background-light/80 dark:bg-background-dark/80 border border-background-dark/40 dark:border-background-light/40 pr-2 focus-within:border-0 focus-within:outline-none focus-within:ring-2 focus-within:ring-custom-indigo-600/50 focus-within:ring-offset-0',
         {
@@ -67,7 +67,7 @@ export default function SearchInput(props: SearchInputProps) {
       button={
         <IconButton
           className={classNames(
-            'absolute right-8 h-10 w-12 border border-background-dark/30 dark:border-background-light/30 transition-all duration-700 rounded-lg',
+            'absolute right-8 top-6 h-10 w-12 border border-background-dark/30 dark:border-background-light/30 transition-all duration-700 rounded-lg',
             {
               'cursor-auto': searchQuery.length === 0,
               'bg-primary/75': searchQuery.length !== 0,

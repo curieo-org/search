@@ -62,7 +62,7 @@ export default function SearchResult() {
               response={searchResult.result}
             />
           </div>
-          <div className="sticky bottom-0 pb-4 px-4 -mb-4 w-full flex justify-center">
+          <div className="sticky bottom-0 pb-4 px-4 -mb-4 w-full flex justify-center backdrop-blur-sm">
             <SearchInput handleSearch={handleSearch} />
           </div>
         </div>

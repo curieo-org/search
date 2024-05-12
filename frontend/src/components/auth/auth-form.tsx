@@ -8,7 +8,7 @@ import { useRegisterQuery } from '@/queries/auth/register-query'
 import { useAuthFormStore } from '@/stores/auth/auth-form-store'
 import { AuthResponse } from '@/types/auth'
 import { useRouter } from 'next/navigation'
-import { HTMLAttributes, useEffect, useState } from 'react'
+import { HTMLAttributes, useEffect, useState, MouseEvent } from 'react'
 import { toast } from 'react-toastify'
 import { z } from 'zod'
 import GoogleIcon from '../icons/google'
@@ -52,7 +52,8 @@ export default function AuthForm(props: AuthFormProps) {
   const handleAuthRedirect = () =>
     props.authPurpose === 'register' ? router.push(loginPagePath) : updateAuthStatus('authenticated')
 
-  const handleAuth = () => {
+  const handleAuth = (event?: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => {
+    event?.preventDefault()
     setIsLoading(true)
     authHandler({ email, password })
       .then(res => {
@@ -102,7 +103,7 @@ export default function AuthForm(props: AuthFormProps) {
         <Button
           label="Continue"
           className="w-full mb-4"
-          onClick={handleAuth}
+          onClick={e => handleAuth(e)}
           isLoading={isLoading}
           disabled={isEmailError || isPasswordError}
           type="submit"
