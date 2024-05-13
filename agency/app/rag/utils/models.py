@@ -23,10 +23,19 @@ class BraveSourceRecord(BaseModel, AbstractSourceRecord):
         page_age = data.get("page_age", "")
         title = data.get("title", "")
         description = data.get("description", "")
-        super().__init__(url=url, page_age=page_age, title=title, description=description)
+        super().__init__(
+            url=url, page_age=page_age, title=title, description=description
+        )
 
     def to_grpc_source(self) -> Source:
-        return Source(url=self.url, metadata={"page_age": self.page_age, "title": self.title, "description": self.description})
+        return Source(
+            url=self.url,
+            metadata={
+                "page_age": self.page_age,
+                "title": self.title,
+                "description": self.description,
+            },
+        )
 
 
 class PubmedSourceRecord(BaseModel, AbstractSourceRecord):
