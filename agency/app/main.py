@@ -3,24 +3,20 @@ from concurrent import futures
 import grpc
 
 from app.api import setup_grpc_api
-from app.caching.redis import get_redis_cache, init_redis_cache
-from app.settings import Settings
+from app.caching.redis import get_redis_cache
+from app.settings import app_settings
 from app.tracing.utils import setup_tracing
 from app.utils.asyncio import event_loop_context
 from app.utils.logging import setup_logger
 
-settings = Settings()
 logger = setup_logger("Main")
 
 _cleanup_coroutines = []
 
 
 async def start_services() -> None:
-    # Initialize redis client at app level
-    init_redis_cache(settings.redis)
-
     # tracing
-    setup_tracing(settings.sentry)
+    setup_tracing(app_settings.sentry)
 
     # db connection
     # embedding connection
@@ -37,18 +33,18 @@ async def stop_services(server) -> None:
     await cache.close()
 
     # graceful shutdown
-    await server.stop(settings.project.graceful_shutdown_period)
+    await server.stop(app_settings.project.graceful_shutdown_period)
 
 
 async def serve() -> None:
     await start_services()
 
     server = grpc.aio.server(
-        futures.ThreadPoolExecutor(max_workers=settings.project.max_grpc_workers),
+        futures.ThreadPoolExecutor(max_workers=app_settings.project.max_grpc_workers),
     )
     setup_grpc_api(server)
 
-    port = settings.project.port
+    port = app_settings.project.port
     server.add_insecure_port(f"[::]:{port}")
 
     await server.start()

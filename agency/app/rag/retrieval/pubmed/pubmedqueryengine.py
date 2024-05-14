@@ -4,6 +4,7 @@ from llama_index.core.schema import NodeWithScore
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant import QdrantVectorStore
+from llama_index.vector_stores.qdrant.utils import default_sparse_encoder
 from qdrant_client import AsyncQdrantClient
 
 from app.settings import Settings
@@ -34,6 +35,12 @@ class PubmedSearchQueryEngine:
             collection_name=qdrant_settings.collection_name,
             enable_hybrid=True,
             batch_size=20,
+            sparse_doc_fn=default_sparse_encoder(
+                "naver/efficient-splade-VI-BT-large-doc",
+            ),
+            sparse_query_fn=default_sparse_encoder(
+                "naver/efficient-splade-VI-BT-large-query",
+            ),
         )
 
         self.retriever = VectorIndexRetriever(
@@ -53,7 +60,7 @@ class PubmedSearchQueryEngine:
         try:
             return [
                 n
-                for n in self.retriever.retrieve(search_text)
+                for n in await self.retriever.aretrieve(search_text)
                 if n.score >= float(self.relevance_criteria)
             ]
         except Exception as e:

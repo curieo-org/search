@@ -1,8 +1,10 @@
+import logging
+
 import httpx
 from llama_index.core.schema import NodeWithScore, TextNode
 from pydantic import ValidationError
 
-from app.caching.decorators import cached
+from app.caching.redis import fcached
 from app.rag.retrieval.web.types import WebSearchApiResponse
 from app.settings import BraveSettings
 from app.utils.httpx import httpx_get
@@ -23,8 +25,8 @@ class BraveSearchQueryEngine:
         self.settings = settings
         self.default_timeout = 2.0
 
-    async def brave_search(self, search_text: str) -> httpx.Response | None:
-        logger.info("call_brave_search_api. query: " + search_text)
+    async def search_request(self, search_text: str) -> httpx.Response | None:
+        logger.info("brave_search: " + search_text)
 
         url = (
             f"{self.settings.api_root}?"
@@ -45,26 +47,37 @@ class BraveSearchQueryEngine:
 
         return await httpx_get(url=url, headers=headers, timeout=self.default_timeout)
 
-    @cached("agency.brave.search.{search_text}")
-    async def cached_brave_search(
+    @fcached("agency.brave.search.{search_text}")
+    async def cached_search(
+        self,
+        search_text: str,
+    ) -> bytes | None:
+        # Cache result as bytes to play nicely with redis
+        if response := await self.search_request(search_text):
+            return response.json()
+        return None
+
+    async def brave_search(
         self,
         search_text: str,
     ) -> WebSearchApiResponse | None:
-        if response := await self.brave_search(search_text):
+        # TODO: Merge with cached_search once cache supports pydantic models
+        if response := await self.cached_search(search_text):
             try:
-                return WebSearchApiResponse.model_validate(response.json())
+                return WebSearchApiResponse.model_validate(response)
             except ValidationError:
                 pass
         return None
 
     async def call_brave_search_api(self, search_text: str) -> list[NodeWithScore]:
         results = []
-        if response := await self.cached_brave_search(search_text):
-            for result in response.web.results:
+        if response := await self.brave_search(search_text):
+            logging.error(response)
+            for result in response.web_results():
                 node = TextNode(
                     text=result.description + "".join(result.get_extra_snippets()),
                 )
-                node.metadata = {"url": result.url, "page_age": result.page_age}
+                node.metadata = result.model_dump()
                 results.append(NodeWithScore(node=node))
 
         return results

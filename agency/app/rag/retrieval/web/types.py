@@ -64,3 +64,6 @@ class WebSearchApiResponse(BaseModel):
         default=None,
         description="Web search results relevant to the query.",
     )
+
+    def web_results(self) -> list[SearchResult]:
+        return self.web.results if self.web else []

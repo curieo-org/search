@@ -1,12 +1,12 @@
-import logging
 from datetime import timedelta
 from typing import Union
 
+import pydantic
 import redis.asyncio as aioredis
 
-from app.caching.decorators import cached_factory
+from app.caching.decorators import fcached_factory
 from app.caching.generics import AsyncCache
-from app.settings import RedisSettings
+from app.settings import RedisSettings, app_settings
 from app.utils.logging import setup_logger
 
 ExpiryT = Union[int, timedelta]
@@ -17,6 +17,7 @@ RedisValue = str | bytes | float | int
 
 
 class RedisCache(AsyncCache[RedisKey, RedisValue]):
+    # TODO: Add built in support for pydantic encoding / decoding
     def __init__(self, *, url: str, default_expiry: ExpiryT):
         self.url = url
         self.default_expiry = default_expiry
@@ -48,6 +49,10 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
         try:
             if not expire:
                 expire = self.default_expiry
+
+            if isinstance(value, pydantic.BaseModel):
+                await self.redis.set(key, value.model_dump_json(), ex=expire)
+
             await self.redis.set(key, value, ex=expire)
 
         except aioredis.RedisError as e:
@@ -64,29 +69,21 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
         return "%s(default_expiry=%i)" % (self.__class__.__name__, self.default_expiry)
 
 
-_redis_cache: RedisCache | None = None
+def _init_redis_cache(settings: RedisSettings) -> RedisCache:
+    """Initializes Redis client. Ensures it is only done once."""
+    return RedisCache(
+        url=settings.url.get_secret_value(),
+        default_expiry=settings.default_expiry,
+    )
+
+
+redis_cache = _init_redis_cache(settings=app_settings.redis)
 
 
 def get_redis_cache() -> RedisCache:
-    global _redis_cache  # noqa: PLW0602
-    if not _redis_cache:
-        raise ValueError("Redis client has not been initialized")
-
-    return _redis_cache
+    return redis_cache
 
 
-def init_redis_cache(settings: RedisSettings) -> RedisCache:
-    """Initializes Redis client. Ensures it is only done once."""
-    global _redis_cache  # noqa: PLW0603
-    if not _redis_cache:
-        _redis_cache = RedisCache(
-            url=settings.url.get_secret_value(),
-            default_expiry=settings.default_expiry,
-        )
-    else:
-        logging.warning("Tried initializing redis client more than once, skipping ...")
-
-    return _redis_cache
-
-
-cached = cached_factory(cache_fn=get_redis_cache)
+fcached = fcached_factory(
+    cache_fn=get_redis_cache,
+)

@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.12"
-llama-index = "^0.10.18"
+llama-index = "^0.10.36"
 phoenix = "^0.9.1"
 pyvis = "^0.3.2"
 requests = "^2.31.0"
@@ -23,11 +23,11 @@ nebula3-python = "^3.5.0"
 sentry-sdk = { extras = ["grpcio"], version = "^1.45.0" }
 setuptools = "^69.2.0"
 llama-index-llms-together = "^0.1.3"
-llama-index-postprocessor-cohere-rerank = "^0.1.2"
+llama-index-postprocessor-cohere-rerank = "^0.1.5"
 together = "^0.2.11"
-llama-index-vector-stores-qdrant = "^0.1.4"
+llama-index-vector-stores-qdrant = "^0.2.8"
 openinference-semantic-conventions = "^0.1.5"
-openinference-instrumentation-llama-index = "^1.2.1"
+openinference-instrumentation-llama-index = "^1.3.0"
 opentelemetry-exporter-otlp = "^1.23.0"
 dspy-ai = "^2.4.9"
 pydantic-settings = "^2.2.1"
@@ -35,6 +35,7 @@ pydantic = "^2.6.4"
 grpcio = "^1.62.1"
 grpcio-tools = "^1.62.1"
 httpx = "^0.27.0"
+qdrant-client = "^1.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -78,9 +79,10 @@ module = [
     "llama_index.embeddings.text_embeddings_inference",
     "llama_index.llms.openai",
     "llama_index.llms.together",
-    "llama_index.vector_stores.qdrant",
+    "llama_index.vector_stores.qdrant.*",
     "pyvis.network",
-    "nebula3.*"
+    "nebula3.*",
+    "nest_asyncio"
 ]
 ignore_missing_imports = true
 

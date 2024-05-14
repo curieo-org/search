@@ -179,3 +179,6 @@ class Settings(BaseSettings):
     llama_index: LlamaIndexSettings = LlamaIndexSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
+
+
+app_settings = Settings()

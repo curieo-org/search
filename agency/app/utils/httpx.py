@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Mapping, Sequence
 
 import httpx
@@ -41,7 +42,8 @@ async def _httpx_infallible_request(
 
         return response
 
-    except Exception:  # noqa
+    except Exception as e:  # noqa
+        logging.exception(e)
         return None
 
 

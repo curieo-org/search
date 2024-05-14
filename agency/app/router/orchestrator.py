@@ -7,7 +7,7 @@ from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.rag.reranker.response_reranker import TextEmbeddingInferenceRerankEngine
+from app.rag.reranker.response_reranker import TextEmbeddingRerankPostprocessor
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
 from app.rag.utils.models import SearchResultRecord
@@ -45,7 +45,7 @@ class Orchestrator:
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
-        self.rerank_engine = TextEmbeddingInferenceRerankEngine.from_settings(
+        self.reranker = TextEmbeddingRerankPostprocessor.from_settings(
             settings=self.settings.reranking,
         )
         self.summarizer = SimpleSummarize(
@@ -67,7 +67,9 @@ class Orchestrator:
                 self.pubmed_search.call_pubmed_vectors(search_text=search_text),
                 self.brave_search.call_brave_search_api(search_text=search_text),
             )
+
             extracted_results = extracted_pubmed_results + extracted_web_results
+
             logger.debug(
                 f"Orchestrator.handle_pubmed_bioxriv_web_search.extracted_results count: "
                 f"{len(extracted_pubmed_results), len(extracted_web_results)}",
@@ -77,7 +79,7 @@ class Orchestrator:
                 return None
 
             # rerank call
-            reranked_results = self.rerank_engine.postprocess_nodes(
+            reranked_results = self.reranker.postprocess_nodes(
                 nodes=extracted_results,
                 query_bundle=QueryBundle(query_str=search_text),
             )
@@ -89,9 +91,15 @@ class Orchestrator:
                 ],
             )
 
-            sources = [node.node.metadata for node in reranked_results]
+            # Metadata should be valid SourceRecords
+            sources = [node.metadata for node in reranked_results]
 
-            return SearchResultRecord(result=result, sources=sources)
+            return SearchResultRecord.model_validate(
+                {
+                    "result": result,
+                    "sources": sources,
+                },
+            )
 
         except Exception as e:
             logger.exception(

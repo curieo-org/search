@@ -1,33 +1,55 @@
+import enum
 from abc import abstractmethod
 from collections.abc import Hashable
-from typing import Generic, TypeVar
+from typing import Protocol, TypeVar, runtime_checkable
 
 KeyT = TypeVar("KeyT", bound=Hashable)
-ValueT = TypeVar("ValueT")
 KeyTCo = TypeVar("KeyTCo", covariant=True, bound=Hashable)
+KeyTCon = TypeVar("KeyTCon", contravariant=True, bound=Hashable)
+ValueT = TypeVar("ValueT")
 ValueTCo = TypeVar("ValueTCo", covariant=True)
 
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+T_contra = TypeVar("T_contra", contravariant=True)
 
-class AsyncCache(Generic[KeyT, ValueT]):
+
+@enum.unique
+class SyncPrimitive(enum.Enum):
+    SYNC = "sync"
+    ASYNC = "async"
+
+
+class SyncType(Protocol):
+    primitive: SyncPrimitive
+
+
+@runtime_checkable
+class AsyncCache(SyncType, Protocol[KeyTCon, ValueT]):
+    primitive: SyncPrimitive = SyncPrimitive.ASYNC
+
     @abstractmethod
-    async def get(self, key: KeyT) -> ValueT | None: ...
+    async def get(self, key: KeyTCon) -> ValueT | None: ...
 
     @abstractmethod
-    async def set(self, key: KeyT, value: ValueT) -> None: ...
+    async def set(self, key: KeyTCon, value: ValueT) -> None: ...
 
     @abstractmethod
-    async def delete(self, key: KeyT) -> None: ...
+    async def delete(self, key: KeyTCon) -> None: ...
 
 
-class Cache(Generic[KeyT, ValueT]):
-    @abstractmethod
-    def get(self, key: KeyT) -> ValueT | None: ...
-
-    @abstractmethod
-    def set(self, key: KeyT, value: ValueT) -> None: ...
+@runtime_checkable
+class Cache(SyncType, Protocol[KeyTCon, ValueT]):
+    primitive: SyncPrimitive = SyncPrimitive.SYNC
 
     @abstractmethod
-    def delete(self, key: KeyT) -> None: ...
+    def get(self, key: KeyTCon) -> ValueT | None: ...
+
+    @abstractmethod
+    def set(self, key: KeyTCon, value: ValueT) -> None: ...
+
+    @abstractmethod
+    def delete(self, key: KeyTCon) -> None: ...
 
 
-GenericCache = Cache[KeyT, ValueT] | AsyncCache[KeyT, ValueT]
+GenericCache = Cache | AsyncCache

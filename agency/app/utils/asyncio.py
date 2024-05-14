@@ -25,7 +25,12 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
     asyncio has deprecated get_event_loop as of 3.10, with get_running_loop as the
     recommended alternative.
     We want to fall back to any event loop if running loop is not available.
+    Using nest_asyncio.apply() we also patch asyncio event loop functionality so that
+    the running event loop is re-entrant.
     """
+    # import nest_asyncio
+
+    # nest_asyncio.apply()
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
