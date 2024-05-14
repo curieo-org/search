@@ -28,9 +28,7 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
     Using nest_asyncio.apply() we also patch asyncio event loop functionality so that
     the running event loop is re-entrant.
     """
-    # import nest_asyncio
-
-    # nest_asyncio.apply()
+    # TODO: check if import nest_asyncio and nest_asyncio.apply() is needed
     try:
         return asyncio.get_running_loop()
     except RuntimeError:

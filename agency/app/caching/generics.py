@@ -25,20 +25,6 @@ class SyncType(Protocol):
 
 
 @runtime_checkable
-class AsyncCache(SyncType, Protocol[KeyTCon, ValueT]):
-    primitive: SyncPrimitive = SyncPrimitive.ASYNC
-
-    @abstractmethod
-    async def get(self, key: KeyTCon) -> ValueT | None: ...
-
-    @abstractmethod
-    async def set(self, key: KeyTCon, value: ValueT) -> None: ...
-
-    @abstractmethod
-    async def delete(self, key: KeyTCon) -> None: ...
-
-
-@runtime_checkable
 class Cache(SyncType, Protocol[KeyTCon, ValueT]):
     primitive: SyncPrimitive = SyncPrimitive.SYNC
 
@@ -50,6 +36,20 @@ class Cache(SyncType, Protocol[KeyTCon, ValueT]):
 
     @abstractmethod
     def delete(self, key: KeyTCon) -> None: ...
+
+
+@runtime_checkable
+class AsyncCache(SyncType, Protocol[KeyTCon, ValueT]):
+    primitive: SyncPrimitive = SyncPrimitive.ASYNC
+
+    @abstractmethod
+    async def aget(self, key: KeyTCon) -> ValueT | None: ...
+
+    @abstractmethod
+    async def aset(self, key: KeyTCon, value: ValueT) -> None: ...
+
+    @abstractmethod
+    async def adelete(self, key: KeyTCon) -> None: ...
 
 
 GenericCache = Cache | AsyncCache

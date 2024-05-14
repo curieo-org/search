@@ -72,7 +72,9 @@ class TextEmbeddingRerankPostprocessor(BaseNodePostprocessor):
         dispatch_event = dispatcher.get_dispatch_event()
         dispatch_event(
             ReRankStartEvent(
-                query=query_bundle, nodes=nodes, top_n=self.top_n,
+                query=query_bundle,
+                nodes=nodes,
+                top_n=self.top_n,
                 model_name=self.model,
             ),
         )

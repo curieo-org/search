@@ -1,12 +1,12 @@
 import asyncio
 import functools
 from collections import OrderedDict
-from collections.abc import Awaitable, Callable, Hashable
+from collections.abc import Callable, Coroutine, Hashable
 from functools import wraps
 from inspect import signature
-from typing import Any, Generic, ParamSpec, TypeVar, assert_never
+from typing import Any, Generic, ParamSpec, TypeVar
 
-from app.caching.generics import GenericCache, KeyTCo, SyncPrimitive, ValueT
+from app.caching.generics import AsyncCache, Cache, GenericCache, KeyTCo, ValueT
 from app.utils.logging import setup_logger
 
 logger = setup_logger("caching")
@@ -25,8 +25,10 @@ def extract_keys(fstring: str) -> list[str]:
     return keys
 
 
-CachedFn = Callable[[KeyTCo], ValueT]
+SyncFn = Callable[..., ValueT]
+AsyncFn = Callable[..., Coroutine[Any, Any, ValueT]]
 
+CachedFn = Callable[[KeyTCo], ValueT]
 KeyFn = Callable[..., KeyTCo]
 GetKeyFn = Callable[..., KeyFn]
 GetCacheFn = Callable[..., GenericCache]
@@ -110,7 +112,7 @@ def fcached(fstring: str, cache_fn: GetCacheFn) -> CachedFn:
     "user.42.info" etc.
     """
     return cached_decorator(
-        cache_fn=cache_fn,
+        get_cache=cache_fn,
         get_key_fn=fcache_key_fn(fstring=fstring),
     )
 
@@ -125,70 +127,57 @@ def fcached_factory(*, cache_fn: GetCacheFn) -> Callable[[str], CachedFn]:
     return functools.partial(fcached, cache_fn=cache_fn)
 
 
-def cached_decorator(cache_fn: GetCacheFn, get_key_fn: GetKeyFn) -> CachedFn:
+def into_coroutine(fn: SyncFn | AsyncFn) -> AsyncFn:
+    # type: ignore
+    def as_coro(sync_fn: SyncFn) -> AsyncFn:
+        @wraps(sync_fn)
+        async def coro(*args: Any, **kwargs: Any) -> ValueT:
+            return sync_fn(*args, **kwargs)
+
+        return coro
+
+    if asyncio.iscoroutinefunction(fn):
+        return fn
+
+    return as_coro(fn)
+
+
+def cached_decorator(get_cache: GetCacheFn, get_key_fn: GetKeyFn) -> CachedFn:
     """Decorator that caches a function or coroutine."""
 
-    def decorator(fn: Callable[..., ValueT | Awaitable[ValueT]]) -> Wrapped:
-        cache: GenericCache = cache_fn()
+    def decorator(fn: SyncFn | AsyncFn) -> AsyncFn:
+        cache: GenericCache = get_cache()
         key_fn: KeyFn = get_key_fn(fn)
+        coro = into_coroutine(fn)
 
-        is_coroutine_fn = asyncio.iscoroutinefunction(fn)
+        if isinstance(cache, Cache):
 
-        match cache.primitive:
-            case SyncPrimitive.SYNC:
-                if is_coroutine_fn:
+            @wraps(fn)
+            async def wrapper(*args: Any, **kwargs: Any) -> ValueT:
+                key = key_fn(*args, **kwargs)
+                if cached_value := cache.get(key):
+                    return cached_value
 
-                    @wraps(fn)
-                    def wrapper(*args: Any, **kwargs: Any) -> ValueT:
-                        key = key_fn(*args, **kwargs)
-                        if value := cache.get(key):
-                            return value
+                value: ValueT = await coro(*args, **kwargs)
+                cache.set(key, value)
+                return value
 
-                        value = fn(*args, **kwargs)
-                        cache.set(key, value)
-                        return value
+            return wrapper
 
-                    return wrapper
+        if isinstance(cache, AsyncCache):
 
-                @wraps(fn)
-                async def wrapper(*args: Any, **kwargs: Any) -> ValueT:
-                    key = key_fn(*args, **kwargs)
-                    if value := cache.get(key):
-                        return value
+            @wraps(fn)
+            async def wrapper(*args: Any, **kwargs: Any) -> ValueT:
+                key = key_fn(*args, **kwargs)
+                if cached_value := await cache.aget(key):
+                    return cached_value
 
-                    value = await fn(*args, **kwargs)
-                    cache.set(key, value)
-                    return value
+                value: ValueT = await coro(*args, **kwargs)
+                await cache.aset(key, value)
+                return value
 
-                return wrapper
+            return wrapper
 
-            case SyncPrimitive.ASYNC:
-                if is_coroutine_fn:
-
-                    @wraps(fn)
-                    async def wrapper(*args: Any, **kwargs: Any) -> ValueT:
-                        key = key_fn(*args, **kwargs)
-                        if value := await cache.get(key):
-                            return value
-                        value = await fn(*args, **kwargs)
-                        await cache.set(key, value)
-                        return value
-
-                    return wrapper
-
-                @wraps(fn)
-                async def wrapper(*args: Any, **kwargs: Any) -> ValueT:
-                    key = key_fn(*args, **kwargs)
-                    if value := await cache.get(key):
-                        return value
-                    value = fn(*args, **kwargs)
-                    await cache.set(key, value)
-                    return value
-
-                return wrapper
-
-            case _ as unreachable:
-                # https://typing.readthedocs.io/en/latest/source/unreachable.html
-                assert_never(unreachable)
+        raise ValueError("Unreachable state.")
 
     return decorator

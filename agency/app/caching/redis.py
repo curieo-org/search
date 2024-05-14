@@ -33,14 +33,14 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
     async def close(self) -> None:
         await self.redis.close()
 
-    async def get(self, key: RedisKey) -> RedisValue | None:
+    async def aget(self, key: RedisKey) -> RedisValue | None:
         try:
             return await self.redis.get(key)
         except aioredis.RedisError as e:
             logger.exception("Retrieving value from redis failed: ", e)
             return None
 
-    async def set(
+    async def aset(
         self,
         key: RedisKey,
         value: RedisValue,
@@ -58,7 +58,7 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
         except aioredis.RedisError as e:
             logger.exception("Setting value in redis failed: ", e)
 
-    async def delete(self, key: RedisKey) -> None:
+    async def adelete(self, key: RedisKey) -> None:
         try:
             await self.redis.delete(key)
         except aioredis.RedisError as e:

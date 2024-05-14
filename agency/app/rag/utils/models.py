@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from pydantic import BaseModel, ConfigDict
 
 from app.grpc_types.agency_pb2 import Source
@@ -5,6 +7,7 @@ from app.rag.retrieval.web.types import SearchResult as BraveSearchResult
 
 
 class SourceModel(BaseModel):
+    @abstractmethod
     def to_grpc_source(self) -> Source: ...
 
 
@@ -15,8 +18,9 @@ class BraveSourceRecord(SourceModel, BraveSearchResult):
             metadata={
                 "title": self.title,
                 "description": self.description,
-                "page_age": self.page_age,
-            })
+                "page_age": self.page_age or "",
+            },
+        )
 
 
 class PubmedSourceRecord(SourceModel):
