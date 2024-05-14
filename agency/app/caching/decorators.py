@@ -128,18 +128,14 @@ def fcached_factory(*, cache_fn: GetCacheFn) -> Callable[[str], CachedFn]:
 
 
 def into_coroutine(fn: SyncFn | AsyncFn) -> AsyncFn:
-    # type: ignore
-    def as_coro(sync_fn: SyncFn) -> AsyncFn:
-        @wraps(sync_fn)
-        async def coro(*args: Any, **kwargs: Any) -> ValueT:
-            return sync_fn(*args, **kwargs)
-
-        return coro
-
     if asyncio.iscoroutinefunction(fn):
         return fn
 
-    return as_coro(fn)
+    @wraps(fn)
+    async def coro(*args: Any, **kwargs: Any) -> ValueT:
+        return fn(*args, **kwargs)  # type: ignore
+
+    return coro
 
 
 def cached_decorator(get_cache: GetCacheFn, get_key_fn: GetKeyFn) -> CachedFn:
