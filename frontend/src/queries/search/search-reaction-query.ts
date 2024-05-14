@@ -2,7 +2,7 @@ import { AxiosClient } from '@/helpers/axios-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SearchReactionBody, SearchResult } from '@/types/search'
 
-export const useSearchReactionQuery = () => {
+export const useSearchReactionMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({

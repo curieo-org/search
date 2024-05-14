@@ -1,6 +1,6 @@
 import { copyResetTime } from '@/constants/config'
 import { copyToClipboard } from '@/helpers/browser'
-import { useSearchReactionQuery } from '@/queries/search/search-reaction-query'
+import { useSearchReactionMutation } from '@/queries/search/search-reaction-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { HTMLAttributes, useState } from 'react'
 import { MdDone } from 'react-icons/md'
@@ -20,7 +20,7 @@ type SearchActionsProps = HTMLAttributes<HTMLDivElement> & {
 export default function SearchActions(props: SearchActionsProps) {
   const queryClient = useQueryClient()
   const [isCopied, setIsCopied] = useState(false)
-  const { isPending: isReacting, mutate: saveReaction } = useSearchReactionQuery()
+  const { isPending: isReacting, mutate: saveReaction } = useSearchReactionMutation()
 
   const handleReaction = async (reaction: boolean) => {
     saveReaction({ search_history_id: props.searchHistoryId, reaction })
