@@ -12,6 +12,9 @@ const config: Config = {
       colors: {
         ...colors,
       },
+      width: {
+        '90': '22.5rem',
+      },
       borderWidth: {
         '6': '6px',
       },
@@ -39,6 +42,13 @@ const config: Config = {
         'spin-once': 'spin 1s linear',
         'spin-once-reverse': 'spin-reverse 1s linear',
         'spin-slow': 'spin 2s linear infinite',
+      },
+
+      keyframes: {
+        'spin-reverse': {
+          from: { transform: 'rotate(360deg)' },
+          to: { transform: 'rotate(0deg)' },
+        },
       },
     },
   },

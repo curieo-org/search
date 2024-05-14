@@ -31,3 +31,21 @@ export function Button(props: ButtonProps) {
     </button>
   )
 }
+
+export type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { icon: ReactNode }
+
+export function IconButton(props: IconButtonProps) {
+  const { icon, className, ...rest } = props
+  return (
+    <button
+      type="button"
+      {...rest}
+      className={twMerge(
+        'relative flex h-12 w-auto shrink-0 items-center justify-center rounded-md text-white transition-all duration-100',
+        className
+      )}
+    >
+      {icon}
+    </button>
+  )
+}

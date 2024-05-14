@@ -30,7 +30,7 @@ export default function App({ children }: LayoutProps) {
         autoClose={3000}
       />
 
-      <div className="min-h-screen w-full bg-background-light dark:bg-background-dark">
+      <div className="min-h-screen w-full bg-background-light dark:bg-gradient-to-br dark:from-background-dark-top-left dark:to-background-dark-bottom-right">
         <div className="md:hidden w-full h-screen flex flex-col items-center justify-center">
           <img src="/images/curieo-logo.svg" className="mb-4" />
           <P className="text-center text-xl">Please return to desktop view</P>

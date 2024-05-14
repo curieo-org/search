@@ -10,3 +10,7 @@ export function getHTMLTextWidth(text: string, font: string = 'normal 16px Times
 
   return metrics.width
 }
+
+export function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+}

@@ -4,7 +4,7 @@ TAG = 5.0
 
 ecr_deploy: login
 	docker buildx build --platform linux/amd64 -t $(Image) .
-	docker tag $(Image):$(TAG) $(ECR):$(TAG)
+	docker tag $(Image) $(ECR):$(TAG)
 	docker push $(ECR):$(TAG)
 
 login:

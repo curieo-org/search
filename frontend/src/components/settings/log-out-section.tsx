@@ -26,9 +26,9 @@ export default function LogoutSection(props: LogoutSectionProps) {
 
   return (
     <div className={twMerge('w-full flex flex-col items-center', props.className)}>
-      <div className="mb-2 w-full h-px bg-custom-gray/25"></div>
+      <div className="mb-2 w-full h-px bg-custom-gray-200/25"></div>
       <Button
-        className="w-full bg-transparent hover:bg-white/2 text-custom-ash"
+        className="w-full bg-transparent hover:bg-white/2 text-custom-gray-100"
         label="Log out"
         onClick={handleLogout}
       />
