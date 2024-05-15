@@ -1,13 +1,13 @@
 use axum::Router;
 use axum_login::tower_sessions::cookie::time::Duration;
 use axum_login::tower_sessions::cookie::SameSite;
-use axum_login::tower_sessions::{CachingSessionStore, Expiry, MemoryStore, SessionManagerLayer};
+use axum_login::tower_sessions::{CachingSessionStore, Expiry, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
 use crate::auth::models::PostgresBackend;
-use crate::auth::redis_store::RedisStore;
+use crate::auth::sessions::{DashStore, RedisStore};
 use crate::startup::AppState;
 use crate::{auth, health_check, search, users};
 
@@ -18,7 +18,7 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     // as a request extension.
 
     let session_store = RedisStore::new(state.cache.clone());
-    let caching_session_store = CachingSessionStore::new(MemoryStore::default(), session_store);
+    let caching_session_store = CachingSessionStore::new(DashStore::default(), session_store);
 
     let session_layer = SessionManagerLayer::new(caching_session_store)
         .with_secure(false)
