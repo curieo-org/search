@@ -25,7 +25,7 @@ async def start_services() -> None:
     # llmservice connection checking function
 
 
-async def stop_services(server) -> None:
+async def stop_services(server: grpc.aio.Server) -> None:
     logger.info("Server graceful shutdown started")
 
     # disconnect from redis
