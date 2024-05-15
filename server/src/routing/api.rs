@@ -1,7 +1,7 @@
 use axum::Router;
 use axum_login::tower_sessions::cookie::time::Duration;
 use axum_login::tower_sessions::cookie::SameSite;
-use axum_login::tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
+use axum_login::tower_sessions::{CachingSessionStore, Expiry, MemoryStore, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
@@ -16,8 +16,11 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
     // as a request extension.
-    let session_store = RedisStore::new(state.cache);
-    let session_layer = SessionManagerLayer::new(session_store)
+
+    let session_store = RedisStore::new(state.cache.clone());
+    let caching_session_store = CachingSessionStore::new(MemoryStore::default(), session_store);
+
+    let session_layer = SessionManagerLayer::new(caching_session_store)
         .with_secure(false)
         .with_same_site(SameSite::Lax) // Ensure we send the cookie from the OAuth redirect.
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));

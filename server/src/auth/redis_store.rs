@@ -1,23 +1,10 @@
-use std::fmt::Debug;
-use std::sync::Arc;
-
 use crate::cache::{CacheError, CachePool};
 use async_trait::async_trait;
-use axum_login::tower_sessions::cookie::Expiration;
 use axum_login::tower_sessions::session::{Id, Record};
 use axum_login::tower_sessions::{session_store, SessionStore};
-pub use fred;
-use fred::{
-    prelude::KeysInterface,
-    types::{Expiration, SetOptions},
-};
 use redis::{ExistenceCheck, SetExpiry, SetOptions};
+use std::fmt::Debug;
 use time::OffsetDateTime;
-use tower_sessions_core::{
-    session::{Id, Record},
-    session_store, SessionStore,
-};
-use tower_sessions_redis_store::RedisStoreError;
 
 impl From<CacheError> for session_store::Error {
     fn from(err: CacheError) -> Self {
@@ -32,11 +19,11 @@ impl From<CacheError> for session_store::Error {
 /// A Redis session store.
 #[derive(Debug, Clone)]
 pub struct RedisStore {
-    pool: Arc<CachePool>,
+    pool: CachePool,
 }
 
 impl RedisStore {
-    pub fn new(pool: Arc<CachePool>) -> Self {
+    pub fn new(pool: CachePool) -> Self {
         Self { pool }
     }
 
@@ -54,10 +41,10 @@ impl RedisStore {
                 ))
         });
 
-        Ok(self
-            .pool
+        self.pool
             .try_set_options(record.id.to_string().as_str(), record, options)
-            .await?)
+            .await
+            .map_err(session_store::Error::from)
     }
 }
 
@@ -65,7 +52,14 @@ impl RedisStore {
 impl SessionStore for RedisStore {
     async fn create(&self, record: &mut Record) -> session_store::Result<()> {
         loop {
-            if !self.save_with_options(record, Some(SetOptions::NX)).await? {
+            if self
+                .save_with_options(
+                    record,
+                    Some(SetOptions::default().conditional_set(ExistenceCheck::NX)),
+                )
+                .await
+                .is_err()
+            {
                 record.id = Id::default();
                 continue;
             }
@@ -75,7 +69,11 @@ impl SessionStore for RedisStore {
     }
 
     async fn save(&self, record: &Record) -> session_store::Result<()> {
-        self.save_with_options(record, Some(SetOptions::XX)).await?;
+        self.save_with_options(
+            record,
+            Some(SetOptions::default().conditional_set(ExistenceCheck::XX)),
+        )
+        .await?;
         Ok(())
     }
 
