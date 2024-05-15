@@ -42,7 +42,7 @@ async def _httpx_infallible_request(
 
         return response
 
-    except Exception as e:  # noqa
+    except Exception as e:
         logging.exception(e)
         return None
 
