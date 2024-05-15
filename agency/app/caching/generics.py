@@ -52,4 +52,4 @@ class AsyncCache(SyncType, Protocol[KeyTCon, ValueT]):
     async def adelete(self, key: KeyTCon) -> None: ...
 
 
-GenericCache = Cache | AsyncCache
+GenericCache = Cache[KeyTCon, ValueT] | AsyncCache[KeyTCon, ValueT]

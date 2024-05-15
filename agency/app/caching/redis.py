@@ -21,14 +21,7 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
     def __init__(self, *, url: str, default_expiry: ExpiryT):
         self.url = url
         self.default_expiry = default_expiry
-        self._redis: aioredis.Redis | None = None
-
-    @property
-    def redis(self) -> aioredis.Redis:
-        if self._redis is None:
-            self._redis = aioredis.Redis.from_url(self.url)
-
-        return self._redis
+        self.redis = aioredis.Redis.from_url(self.url)
 
     async def close(self) -> None:
         await self.redis.close()
@@ -64,9 +57,9 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
         except aioredis.RedisError as e:
             logger.exception("Deleting key/value from redis failed: ", e)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Repr RedisCache string."""
-        return "%s(default_expiry=%i)" % (self.__class__.__name__, self.default_expiry)
+        return f"{self.__class__.__name__}(default_expiry={self.default_expiry})"
 
 
 def _init_redis_cache(settings: RedisSettings) -> RedisCache:
