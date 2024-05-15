@@ -92,7 +92,7 @@ impl SessionStore for RedisStore {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct DashStore(Arc<DashMap<Id, Record, ahash::RandomState>>);
+pub struct DashStore(Arc<DashMap<Id, Record>>);
 
 #[async_trait]
 impl SessionStore for DashStore {
