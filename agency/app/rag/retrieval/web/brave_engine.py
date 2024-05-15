@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import httpx
 from llama_index.core.schema import NodeWithScore, TextNode
@@ -51,7 +52,7 @@ class BraveSearchQueryEngine:
     async def cached_search(
         self,
         search_text: str,
-    ) -> bytes | None:
+    ) -> Any | None:
         # Cache result as bytes to play nicely with redis
         if response := await self.search_request(search_text):
             return response.json()

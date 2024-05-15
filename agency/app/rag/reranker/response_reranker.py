@@ -103,7 +103,7 @@ class TextEmbeddingRerankPostprocessor(BaseNodePostprocessor):
                 for node in nodes
             ]
 
-            results = self._session.post(  # type: ignore
+            results = self._session.post(
                 self.api,
                 json={
                     "query": query_bundle.query_str,
