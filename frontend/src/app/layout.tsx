@@ -3,11 +3,11 @@ import Providers from '@/components/wrappers/providers'
 import { appDescription, appTitle } from '@/constants/app'
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Onest } from 'next/font/google'
 import { ReactNode } from 'react'
 import 'react-toastify/dist/ReactToastify.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const onest = Onest({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: appTitle,
@@ -24,11 +24,9 @@ export default function RootLayout({ children }: LayoutProps) {
       <head>
         <link rel="icon" type="image/x-icon" href="/images/curieo-logo.svg" />
       </head>
-      <body className={inter.className} suppressHydrationWarning={true}>
+      <body className={onest.className} suppressHydrationWarning={true}>
         <Providers>
-          <App>
-            {children}
-          </App>
+          <App>{children}</App>
         </Providers>
       </body>
     </html>

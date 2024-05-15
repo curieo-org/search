@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: search-{{ .Release.Name }}
+  name: search-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.service.replica_count }}
+  selector:
+    matchLabels:
+      app: search-{{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: {{ .Values.service.replica_count }}
+        imagePullPolicy: Always
+        env:
+        - name: NEXT_PUBLIC_POSTHOG_UI_HOST
+          value: https://app.posthog.com
+        - name: NEXT_PUBLIC_POSTHOG_KEY
+          value: phc_Qau6pGkA8BXUr7JuDxgALufZqhxMKAk9UVGY4UFQyXu
+        - name: NEXT_PUBLIC_POSTHOG_API_HOST
+          value: https://search-fronrend.search.svc.cluster.local:3000/ingest
+        - name: NEXT_PUBLIC_API_URL
+          value: http://search-server.search.svc.cluster.local:3030        
+        name: search-{{ .Release.Name }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}

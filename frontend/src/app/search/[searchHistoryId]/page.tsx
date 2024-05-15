@@ -1,5 +1,6 @@
 'use client'
 
+import SearchActions from '@/components/search/search-actions'
 import SearchInput from '@/components/search/search-input'
 import SearchResponse from '@/components/search/search-response'
 import SearchTitle from '@/components/search/search-title'
@@ -54,7 +55,12 @@ export default function SearchResult() {
         <div className="w-full flex flex-col justify-between">
           <div className="w-full px-6 py-10 lg:px-12 xl:px-20 xl:py-20 mx-auto xl:max-w-[880px] transition-all duration-300">
             <SearchTitle className="mb-6" title={searchResult.query} />
-            <SearchResponse response={searchResult.result} />
+            <SearchResponse className="mb-4" response={searchResult.result} />
+            <SearchActions
+              searchHistoryId={searchResult.search_history_id}
+              reaction={searchResult.reaction}
+              response={searchResult.result}
+            />
           </div>
           <div className="sticky bottom-0 pb-4 px-4 -mb-4 w-full flex justify-center backdrop-blur-sm">
             <SearchInput handleSearch={handleSearch} />

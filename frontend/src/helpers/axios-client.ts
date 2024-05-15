@@ -19,7 +19,7 @@ const onResponse = (response: any) => {
 }
 
 const onResponseError = async (error: any) => {
-  if (error.response.status === 405) {
+  if (error.response.status === 405 && window.location.pathname !== loginPagePath) {
     window.location.pathname = loginPagePath
   }
   return Promise.reject(error)

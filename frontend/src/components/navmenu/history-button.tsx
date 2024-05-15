@@ -21,8 +21,8 @@ export default function HistoryButton(props: HTMLAttributes<HTMLButtonElement>) 
     <Button
       className={twMerge(
         classNames(
-          'w-full rounded-2xl cursor-auto bg-transparent hover:bg-transparent text-typography-light dark:text-typography-dark',
-          [isNavmenuCollapsed ? 'justify-center mx-2 w-auto' : 'justify-start']
+          'w-full rounded-2xl bg-transparent hover:bg-transparent text-typography-light dark:text-typography-dark',
+          [isNavmenuCollapsed ? 'justify-center mx-2 w-auto cursor-pointer' : 'justify-start cursor-auto']
         ),
         props.className
       )}

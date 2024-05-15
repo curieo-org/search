@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 export const useFetchSearchByIdQuery = ({ searchHistoryId }: SearchByIdParams) => {
   return useQuery({
-    queryKey: ['search', searchHistoryId],
+    queryKey: ['search-by-id', searchHistoryId],
     async queryFn() {
       const params = { search_history_id: searchHistoryId }
       const { data } = await AxiosClient.get('/search/one', { params })

@@ -13,7 +13,6 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --compile
 
 COPY ./app /app
-COPY .env /.env
 
 EXPOSE 50051
 

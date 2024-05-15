@@ -1,5 +1,6 @@
 import { HTMLAttributes } from 'react'
 import { P } from '../lib/typography'
+import { twMerge } from 'tailwind-merge'
 
 type SearchResponseProps = HTMLAttributes<HTMLDivElement> & {
   response: string
@@ -7,9 +8,9 @@ type SearchResponseProps = HTMLAttributes<HTMLDivElement> & {
 
 export default function SearchResponse(props: SearchResponseProps) {
   return (
-    <div className="flex flex-col gap-y-6 max-h-[520px] overflow-y-scroll">
+    <div className={twMerge('flex flex-col gap-y-6 max-h-[520px] overflow-y-scroll', props.className)}>
       {props.response.split('\n').map((paragraph, index) => (
-        <P className="pr-4" key={`response-paragraph-${index}`}>
+        <P className="pr-4" style={{ animation: `fade-in ${1 + index * 0.5}s` }} key={`response-paragraph-${index}`}>
           {paragraph}
         </P>
       ))}

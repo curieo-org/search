@@ -21,7 +21,7 @@ export default function NewSearchButton(props: HTMLAttributes<HTMLButtonElement>
     <Button
       className={twMerge(
         classNames(
-          'w-full rounded-2xl bg-gray-100 dark:bg-custom-black-ash text-typography-light dark:text-typography-dark border-l-0 border-custom-black-ash hover:border-l-2 hover:border-custom-violet-600/50 dark:hover:drop-shadow-xs dark:hover:bg-gradient-dark',
+          'w-full rounded-2xl bg-gray-100 dark:bg-custom-gray-900 text-typography-light dark:text-typography-dark border-l-0 border-custom-gray-900 hover:border-l-2 hover:border-custom-indigo-600/50 dark:hover:drop-shadow-xs dark:hover:bg-gradient-dark',
           [isNavmenuCollapsed ? 'justify-center mx-2 w-auto' : 'justify-start']
         ),
         props.className

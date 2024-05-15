@@ -13,9 +13,10 @@ export default function SearchHistorySlab(props: SearchHistorySlabProps) {
     <div className={twMerge('w-full', props.className)}>
       <span className="text-input-placeholder text-2xs ml-6">{props.title}</span>
       <div className="flex flex-col mt-0.5">
-        {props.searchHistoryList.map(searchResult => (
+        {props.searchHistoryList.map((searchResult, index) => (
           <SearchHistoryButton
             key={`search-history-nav-${searchResult.search_history_id}`}
+            style={{ animation: `fade-in ${Math.min(500 + index * 300, 3000)}ms` }}
             searchResult={searchResult}
           />
         ))}
