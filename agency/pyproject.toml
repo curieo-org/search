@@ -39,7 +39,6 @@ qdrant-client = "^1.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
-black = { extras = ["jupyter"], version = "^24.4.2" }
 mypy = "^1.9.0"
 ruff = "^0.3.5"
 lxml-stubs = "^0.5.1"
@@ -104,7 +103,7 @@ ignore_missing_imports = true
 
 
 [tool.ruff]
-line-length = 120
+line-length = 88
 indent-width = 4
 target-version = "py39"
 
@@ -114,8 +113,6 @@ extend-unsafe-fixes = ["D"]
 select = [
     # flake8-builtins
     "A",
-    # flake8-commas
-    "COM812",
     # flake8-comprehensions
     "C4",
     # pydocstyle
@@ -159,7 +156,13 @@ select = [
     # avoid shadowing
     "PLW",
 ]
+# CLR = # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
+    # CLR
+    "COM812",
+    # CLR
+    "ISC001",
+    # Documentation
     "D100",
     "D101",
     "D104",

@@ -59,9 +59,7 @@ class Orchestrator:
         self,
         search_text: str,
     ) -> SearchResultRecord | None:
-        logger.info(
-            f"Orchestrator.handle_pubmed_bioxriv_web_search Entered. search_text: {search_text}",
-        )
+        logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
         try:
             extracted_pubmed_results, extracted_web_results = await asyncio.gather(
                 self.pubmed_search.call_pubmed_vectors(search_text=search_text),
@@ -71,7 +69,7 @@ class Orchestrator:
             extracted_results = extracted_pubmed_results + extracted_web_results
 
             logger.debug(
-                f"Orchestrator.handle_pubmed_bioxriv_web_search.extracted_results count: "
+                f"handle_pubmed_bioxriv_web_search.extracted_results count: "
                 f"{len(extracted_pubmed_results), len(extracted_web_results)}",
             )
 
@@ -116,7 +114,7 @@ class Orchestrator:
         # TODO: Enable once stable and infallible
         """# clinical trial call
         logger.info(
-            "Orchestrator.handle_clinical_trial_search.router_id clinical trial Entered."
+            "handle_clinical_trial_search.router_id clinical trial Entered."
         )
         try:
             sql_response = await self.clinical_trial_search.call_text2sql(

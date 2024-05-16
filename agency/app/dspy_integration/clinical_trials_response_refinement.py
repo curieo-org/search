@@ -24,6 +24,3 @@ class ResponseSynthesizerModule(dspy.Module):
             database_output=database_output,
         )
         return dspy.Prediction(answer=prediction.answer)
-
-
-# /Users/som/Downloads/code/search/backend/.venv/lib/python3.11/site-packages/dsp/primitives/predict.py
