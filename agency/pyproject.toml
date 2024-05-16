@@ -106,8 +106,10 @@ ignore_missing_imports = true
 line-length = 88
 indent-width = 4
 target-version = "py312"
+extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
+exclude = ["*.ipynb"]
 extend-unsafe-fixes = ["D"]
 # List of rules: https://docs.astral.sh/ruff/rules
 select = [
