@@ -16,3 +16,6 @@ mypy:
 fmt: ruff-fix black-fix
 
 lint: ruff black mypy
+
+test:
+	poetry run pytest .
