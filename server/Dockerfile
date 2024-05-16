@@ -13,6 +13,9 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 FROM rust:1.77 AS builder
+
+RUN apt-get update && apt-get install -y protobuf-compiler
+
 WORKDIR app
 COPY --from=cacher /app/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo

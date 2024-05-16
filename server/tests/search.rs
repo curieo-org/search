@@ -3,10 +3,12 @@ use server::auth::register;
 use server::cache::{CachePool, CacheSettings};
 use server::proto::{SearchResponse, Source};
 use server::search::{
-    get_search_history, get_top_searches, insert_search_history, search, update_search_reaction,
+    get_one_search_history, get_search_history, get_top_searches, insert_search_history, search,
+    update_search_reaction,
 };
 use server::search::{
-    SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest, TopSearchRequest,
+    SearchHistoryByIdRequest, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
+    TopSearchRequest,
 };
 use server::settings::Settings;
 use server::startup::agency_service_connect;
@@ -92,6 +94,21 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         insert_search_history(&pool, &cache, &user_id, &search_query, &search_response).await;
 
     assert!(search_insertion_result.is_ok());
+
+    let one_search_history_request = SearchHistoryByIdRequest {
+        search_history_id: search_insertion_result.unwrap().search_history_id,
+    };
+
+    let one_search_history_result =
+        get_one_search_history(&pool, &user_id, &one_search_history_request).await;
+
+    assert!(one_search_history_result.is_ok());
+    let one_search_history_result = one_search_history_result.unwrap();
+
+    assert_eq!(one_search_history_result.query, search_query.query);
+    assert_eq!(one_search_history_result.user_id, user_id);
+    assert_eq!(one_search_history_result.result, search_response.result);
+    assert_eq!(one_search_history_result.sources.0, search_response.sources);
 
     let search_history_request = SearchHistoryRequest {
         limit: Some(1),
