@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 import requests
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
@@ -52,7 +51,7 @@ class TextEmbeddingRerankPostprocessor(BaseNodePostprocessor):
     def _postprocess_nodes(
         self,
         nodes: list[NodeWithScore],
-        query_bundle: Optional[QueryBundle] = None,
+        query_bundle: QueryBundle | None = None,
     ) -> list[NodeWithScore]:
         """Post-processing reranking of response nodes.
 

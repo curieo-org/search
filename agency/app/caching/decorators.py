@@ -69,7 +69,7 @@ def fcache_key_fn(fstring: str) -> GetKeyFn:
             else:
                 keymap: dict[str, str] = {}
 
-                for arg, (pk, _) in zip(args, parameters.items()):
+                for arg, (pk, _) in zip(args, parameters.items(), strict=False):
                     if pk in keys:
                         keymap[pk] = str(arg)
 

@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Union
 
 import pydantic
 import redis.asyncio as aioredis
@@ -9,7 +8,7 @@ from app.caching.generics import AsyncCache
 from app.settings import RedisSettings, app_settings
 from app.utils.logging import setup_logger
 
-ExpiryT = Union[int, timedelta]
+ExpiryT = int | timedelta
 logger = setup_logger("RedisCache")
 
 RedisKey = str | bytes

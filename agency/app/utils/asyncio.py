@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Awaitable, Coroutine, Generator
 from contextlib import contextmanager
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 # Result type
 R = TypeVar("R")
@@ -37,6 +37,6 @@ def get_event_loop() -> asyncio.AbstractEventLoop:
 
 
 def complete_future(
-    future: Union[asyncio.Future[R], Coroutine[Any, Any, R], Awaitable[R]],
+    future: asyncio.Future[R] | Coroutine[Any, Any, R] | Awaitable[R],
 ) -> R:
     return get_event_loop().run_until_complete(future)
