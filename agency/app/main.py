@@ -11,7 +11,7 @@ from app.utils.logging import setup_logger
 
 logger = setup_logger("Main")
 
-_cleanup_coroutines = []
+_cleanup_coroutines: list = []
 
 
 async def start_services() -> None:
