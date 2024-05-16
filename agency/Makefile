@@ -12,11 +12,14 @@ ruff-fmt:
 mypy:
 	poetry run dmypy run .
 
-lint: ruff mypy
+lint: ruff fmt-check mypy
 
 lint-fix: ruff-fix
 
 fmt: ruff-fmt
+
+fmt-check:
+	poetry run ruff format --check .
 
 test:
 	poetry run pytest .
