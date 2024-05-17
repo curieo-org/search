@@ -52,7 +52,7 @@ POST /auth/register
 ```json
 {
   "user_id": "12b48e74-f596-11ee-85a9-f3d0e85b3083",
-  "email": "username@email.com",
+  "email": "username@email.com"
 }
 ```
 
@@ -62,10 +62,10 @@ POST /auth/login
 
 ### Params
 
-| Name     | Location              | Type   | Required | Description         |
-| -------- | --------------------- | ------ | -------- | ------------------- |
-| email | x-www-form-urlencoded | string | yes      | registered email |
-| password | x-www-form-urlencoded | string | yes      | correct password    |
+| Name     | Location              | Type   | Required | Description      |
+| -------- | --------------------- | ------ | -------- | ---------------- |
+| email    | x-www-form-urlencoded | string | yes      | registered email |
+| password | x-www-form-urlencoded | string | yes      | correct password |
 
 > Response Examples
 
@@ -254,9 +254,9 @@ GET /search/one
 
 ### Params
 
-| Name  | Location | Type   | Required | Description |
-| ----- | -------- | ------ | -------- | ----------- |
-| search_history_id | body     | string  | yes      | search history id |
+| Name              | Location | Type   | Required | Description       |
+| ----------------- | -------- | ------ | -------- | ----------------- |
+| search_history_id | body     | string | yes      | search history id |
 
 > Response Examples
 

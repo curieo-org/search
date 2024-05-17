@@ -25,17 +25,17 @@ export default function LinkPreview(props: LinkPreviewProps) {
       try {
         let title = metadata.title || ''
         let description = metadata.abstract || metadata.description || ''
-        description = description.replace(/(<([^>]+)>)/ig, '')
+        description = description.replace(/(<([^>]+)>)/gi, '')
         let image = metadata.image || ''
-        
+
         if (!title) {
-            const response = await fetch(props.url)
-            const data = await response.text()
-            const parser = new DOMParser()
-            const doc = parser.parseFromString(data, 'text/html')
-            title = doc.querySelector('title')?.textContent || ''
-            description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || ''
-            image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
+          const response = await fetch(props.url)
+          const data = await response.text()
+          const parser = new DOMParser()
+          const doc = parser.parseFromString(data, 'text/html')
+          title = doc.querySelector('title')?.textContent || ''
+          description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || ''
+          image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
         }
 
         setPreviewData({ title, description, image })

@@ -1,6 +1,6 @@
-import posthog from "posthog-js"
+import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
-import { LayoutProps } from "@/app/layout"
+import { LayoutProps } from '@/app/layout'
 import dynamic from 'next/dynamic'
 
 const posthog_enabled = process.env.NEXT_PUBLIC_POSTHOG_KEY != null
@@ -17,11 +17,11 @@ const PostHogPageView = dynamic(() => import('@/components/analytics/posthog'), 
   ssr: false,
 })
 
-export default function AnalyticsProvider({
-    children,
-  }: LayoutProps) {
-    return <PostHogProvider client={posthog}>
+export default function AnalyticsProvider({ children }: LayoutProps) {
+  return (
+    <PostHogProvider client={posthog}>
       <PostHogPageView />
       {children}
     </PostHogProvider>
+  )
 }
