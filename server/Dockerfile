@@ -1,7 +1,8 @@
 FROM rust:1.77 AS planner
-WORKDIR app
 
+WORKDIR app
 RUN cargo install cargo-chef
+COPY ../proto proto
 COPY . .
 RUN cargo chef prepare  --recipe-path recipe.json
 
