@@ -166,7 +166,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
-    #postgres_engine: SecretStr
+    # postgres_engine: SecretStr
     project: ProjectSettings = ProjectSettings()
     search: SearchSettings = SearchSettings()
     brave: BraveSettings

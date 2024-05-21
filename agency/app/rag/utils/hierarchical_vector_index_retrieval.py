@@ -2,35 +2,26 @@
 
 from typing import Any, Dict, List, Optional
 
+import llama_index.core.instrumentation as instrument
 from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.callbacks.base import CallbackManager
+from llama_index.core.callbacks.schema import CBEventType, EventPayload
 from llama_index.core.constants import DEFAULT_SIMILARITY_TOP_K
 from llama_index.core.data_structs.data_structs import IndexDict
 from llama_index.core.indices.utils import log_vector_store_query_result
 from llama_index.core.indices.vector_store.base import VectorStoreIndex
-from llama_index.core.schema import NodeWithScore, ObjectType, QueryBundle
-from llama_index.core.retrievers import VectorIndexRetriever
-from llama_index.core.callbacks.schema import CBEventType, EventPayload
+from llama_index.core.instrumentation.events.retrieval import (
+    RetrievalEndEvent,
+    RetrievalStartEvent,
+)
+from llama_index.core.schema import NodeWithScore, ObjectType, QueryBundle, QueryType
 from llama_index.core.vector_stores.types import (
     MetadataFilters,
     VectorStoreQuery,
     VectorStoreQueryMode,
     VectorStoreQueryResult,
 )
-from llama_index.core.schema import (
-    BaseNode,
-    IndexNode,
-    NodeWithScore,
-    QueryBundle,
-    QueryType,
-    TextNode,
-)
-from llama_index.core.instrumentation.events.retrieval import (
-    RetrievalEndEvent,
-    RetrievalStartEvent,
-)
-import llama_index.core.instrumentation as instrument
 
 dispatcher = instrument.get_dispatcher(__name__)
 
@@ -101,9 +92,9 @@ class HierarchialVectorIndexRetriever(BaseRetriever):
         self._similarity_top_k = similarity_top_k
 
     @dispatcher.span
-    def retrieve(self,
-                str_or_query_bundle: QueryType,
-                filters: Optional[MetadataFilters] = None ) -> List[NodeWithScore]:
+    def retrieve(
+        self, str_or_query_bundle: QueryType, filters: Optional[MetadataFilters] = None
+    ) -> List[NodeWithScore]:
         """Retrieve nodes given query.
 
         Args:
@@ -143,9 +134,7 @@ class HierarchialVectorIndexRetriever(BaseRetriever):
 
     @dispatcher.span
     def _retrieve(
-        self,
-        query_bundle: QueryBundle,
-        filters: Optional[MetadataFilters] = None
+        self, query_bundle: QueryBundle, filters: Optional[MetadataFilters] = None
     ) -> List[NodeWithScore]:
         if self._vector_store.is_embedding_query:
             if query_bundle.embedding is None and len(query_bundle.embedding_strs) > 0:
@@ -157,9 +146,9 @@ class HierarchialVectorIndexRetriever(BaseRetriever):
         return self._get_nodes_with_embeddings(query_bundle, filters)
 
     def _build_vector_store_query(
-        self, 
+        self,
         query_bundle_with_embeddings: QueryBundle,
-        filters: Optional[MetadataFilters] = None
+        filters: Optional[MetadataFilters] = None,
     ) -> VectorStoreQuery:
         return VectorStoreQuery(
             query_embedding=query_bundle_with_embeddings.embedding,
@@ -218,7 +207,7 @@ class HierarchialVectorIndexRetriever(BaseRetriever):
     def _get_nodes_with_embeddings(
         self,
         query_bundle_with_embeddings: QueryBundle,
-        filters: Optional[MetadataFilters] = None
+        filters: Optional[MetadataFilters] = None,
     ) -> List[NodeWithScore]:
         query = self._build_vector_store_query(query_bundle_with_embeddings, filters)
         query_result = self._vector_store.query(query, **self._kwargs)

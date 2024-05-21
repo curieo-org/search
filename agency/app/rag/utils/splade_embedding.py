@@ -1,5 +1,6 @@
 from typing import Any, Callable, List, Optional, Union
 
+import llama_index.core.instrumentation as instrument
 from llama_index.core.base.embeddings.base import (
     DEFAULT_EMBED_BATCH_SIZE,
     BaseEmbedding,
@@ -7,11 +8,10 @@ from llama_index.core.base.embeddings.base import (
 )
 from llama_index.core.bridge.pydantic import Field
 from llama_index.core.callbacks import CallbackManager
-from llama_index.embeddings.huggingface.utils import format_query, format_text
-from llama_index.core.utils import get_tqdm_iterable
-import llama_index.core.instrumentation as instrument
 from llama_index.core.callbacks.schema import CBEventType, EventPayload
 from llama_index.core.instrumentation.events.embedding import EmbeddingStartEvent
+from llama_index.core.utils import get_tqdm_iterable
+from llama_index.embeddings.huggingface.utils import format_text
 
 dispatcher = instrument.get_dispatcher(__name__)
 
@@ -100,13 +100,13 @@ class SpladeEmbeddingsInference(BaseEmbedding):
             format_text(text, self.model_name, self.text_instruction) for text in texts
         ]
         return self._call_api(texts)
-    
+
     def _get_query_embedding(self, query: str) -> List[float]:
         return []
 
     async def _aget_query_embedding(self, query: str) -> List[float]:
         return []
-    
+
     def get_text_embedding_batch(
         self,
         texts: List[str],

@@ -10,6 +10,7 @@ from pathlib import Path
 def get_project_root() -> Path:
     return Path(__file__).parent.parent
 
+
 def setup_logger(tag):
     logger = logging.getLogger(tag)
     logger.setLevel(logging.DEBUG)
@@ -21,6 +22,7 @@ def setup_logger(tag):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
+
 
 def save_result_cache(path: Path, hash: str, type: str, **kwargs):
     cache_dir = path / type
@@ -35,9 +37,11 @@ def load_result_from_cache(path: Path, hash: str, type: str):
     with open(path, "rb") as f:
         return pickle.load(f)
 
+
 def check_result_cache_exists(path: Path, hash: str, type: str) -> bool:
     path = path / type / f"{hash}.pickle"
     return True if os.path.exists(path) else False
+
 
 def check_max_number_of_cache(path: Path, type, max_number_of_cache: int = 10):
     path = path / type
@@ -62,11 +66,13 @@ def remove_api_keys(d):
         d.pop(key)
     return d
 
+
 def path_safe_string_conversion(filename: str):
     # https://stackoverflow.com/questions/7406102/create-sane-safe-filename-from-any-unsafe-string
     return "".join(
         [c for c in filename if c.isalpha() or c.isdigit() or c == " "]
     ).rstrip()
+
 
 def storage_cached(cache_type: str, cache_hash_key_name: str):
     def storage_cache_decorator(func):
