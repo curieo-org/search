@@ -49,7 +49,9 @@ fn copy_proto_files(proto_files: &[&str]) -> io::Result<()> {
             // Source exists, sink does not. Copy.
             (Ok(_), Err(_)) => fs::copy(source, path).map(|_| ())?, // Force () arm.
             // Source does not exist. Fail.
-            (Err(e), _) => Err(e)?,
+            (Err(e), Err(_)) => Err(e)?,
+            // Source does not exist, local does. We trust in our local version.
+            (Err(_), Ok(_)) => (),
             // Both exist. Compare contents and update if needed.
             // If we update when not needed we may trigger cargo:rerun-if-changed.
             (Ok(source_data), Ok(data)) => {

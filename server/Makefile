@@ -1,11 +1,11 @@
 Image = curieo-search-server
 ECR = 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-server
-TAG = 5.0
+TAG = 6.0
 
 PLATFORM ?= linux/amd64
 
 build:
-	cp -R ../proto proto
+	cp -R ../proto .
 	docker buildx build --platform $(PLATFORM) -t $(Image) .
 	rm -rf proto
 
