@@ -1,4 +1,5 @@
-from typing import Any, Callable, List, Optional, Union
+from collections.abc import Callable
+from typing import Any, List
 
 import llama_index.core.instrumentation as instrument
 from llama_index.core.base.embeddings.base import (
@@ -23,12 +24,10 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         default=DEFAULT_URL,
         description="Base URL for the splade embeddings service.",
     )
-    query_instruction: Optional[str] = Field(
+    query_instruction: str | None = Field(
         description="Instruction to prepend to query text."
     )
-    text_instruction: Optional[str] = Field(
-        description="Instruction to prepend to text."
-    )
+    text_instruction: str | None = Field(description="Instruction to prepend to text.")
     timeout: float = Field(
         default=60.0,
         description="Timeout in seconds for the request.",
@@ -37,7 +36,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         default=True,
         description="Whether to truncate text or not when generating embeddings.",
     )
-    auth_token: Optional[Union[str, Callable[[str], str]]] = Field(
+    auth_token: str | Callable[[str], str] | None = Field(
         default=None,
         description="Authentication token or authentication token generating function for authenticated requests",
     )
@@ -46,13 +45,13 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         self,
         model_name: str,
         base_url: str = DEFAULT_URL,
-        text_instruction: Optional[str] = None,
-        query_instruction: Optional[str] = None,
+        text_instruction: str | None = None,
+        query_instruction: str | None = None,
         embed_batch_size: int = DEFAULT_EMBED_BATCH_SIZE,
         timeout: float = 60.0,
         truncate_text: bool = True,
-        callback_manager: Optional[CallbackManager] = None,
-        auth_token: Optional[Union[str, Callable[[str], str]]] = None,
+        callback_manager: CallbackManager | None = None,
+        auth_token: str | Callable[[str], str] | None = None,
     ):
         super().__init__(
             base_url=base_url,

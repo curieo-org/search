@@ -1,28 +1,18 @@
-<<<<<<< HEAD
 from collections import defaultdict
 from typing import List, Tuple
 
-=======
->>>>>>> main
 from llama_index.core import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
 from llama_index.core.vector_stores import ExactMatchFilter
 from llama_index.core.vector_stores.types import MetadataFilters, VectorStoreQueryMode
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-<<<<<<< HEAD
 from qdrant_client import QdrantClient
 
-from app.rag.utils.hierarchical_vector_index_retrieval import (
-    HierarchialVectorIndexRetriever,
-)  # type: ignore
+from app.rag.utils.hierarchical_vector_index_retrieval import \
+    HierarchialVectorIndexRetriever  # type: ignore
 from app.rag.utils.splade_embedding import SpladeEmbeddingsInference
 from app.services.search_utility import setup_logger
-=======
-from llama_index.vector_stores.qdrant.utils import default_sparse_encoder
-from qdrant_client import AsyncQdrantClient
-
->>>>>>> main
 from app.settings import Settings
 from app.utils.logging import setup_logger
 
@@ -116,14 +106,7 @@ class PubmedSearchQueryEngine:
             similarity_top_k=qdrant_settings.top_k,
             sparse_top_k=qdrant_settings.sparse_top_k,
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
-<<<<<<< HEAD
             embed_model=self.embed_model,
-=======
-            embed_model=TextEmbeddingsInference(
-                base_url=settings.embedding.api,
-                model_name="",  # TODO: is "" correct?
-            ),
->>>>>>> main
         )
 
     async def call_pubmed_vectors(self, search_text: str) -> list[NodeWithScore]:
@@ -135,7 +118,6 @@ class PubmedSearchQueryEngine:
             # find the parent nodes first
             parent_nodes = [
                 n
-<<<<<<< HEAD
                 for n in self.retriever.retrieve(
                     search_text,
                     filters=MetadataFilters(
@@ -143,10 +125,6 @@ class PubmedSearchQueryEngine:
                     ),
                 )
                 if n.score >= float(self.parent_relevance_criteria)
-=======
-                for n in await self.retriever.aretrieve(search_text)
-                if n.score >= float(self.relevance_criteria)
->>>>>>> main
             ]
 
             # children nodes
