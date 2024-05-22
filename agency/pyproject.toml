@@ -6,8 +6,8 @@ authors = ["raahul"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "~3.11"
-llama-index = "^0.10.18"
+python = "~3.12"
+llama-index = "^0.10.36"
 phoenix = "^0.9.1"
 pyvis = "^0.3.2"
 requests = "^2.31.0"
@@ -20,29 +20,51 @@ python-multipart = "^0.0.9"
 redis = "^5.0.3"
 ruff = "^0.3.3"
 nebula3-python = "^3.5.0"
-sentry-sdk = {extras = ["grpcio"], version = "^1.45.0"}
+sentry-sdk = { extras = ["grpcio"], version = "^1.45.0" }
 setuptools = "^69.2.0"
 llama-index-llms-together = "^0.1.3"
+<<<<<<< HEAD
 llama-index-postprocessor-cohere-rerank = "^0.1.2"
 llama-index-vector-stores-qdrant = "^0.1.4"
+=======
+llama-index-postprocessor-cohere-rerank = "^0.1.5"
+together = "^0.2.11"
+llama-index-vector-stores-qdrant = "^0.2.8"
+>>>>>>> main
 openinference-semantic-conventions = "^0.1.5"
-openinference-instrumentation-llama-index = "^1.2.1"
+openinference-instrumentation-llama-index = "^1.3.0"
 opentelemetry-exporter-otlp = "^1.23.0"
-# dspy-ai = "^2.4.2" once it is released.
-dspy = { git = "https://git@github.com/stanfordnlp/dspy.git" }
+dspy-ai = "^2.4.9"
 pydantic-settings = "^2.2.1"
 pydantic = "^2.6.4"
 grpcio = "^1.62.1"
 grpcio-tools = "^1.62.1"
+<<<<<<< HEAD
 loguru = "^0.7.2"
 fastapi = "^0.111.0"
+=======
+httpx = "^0.27.0"
+qdrant-client = "^1.9.1"
+>>>>>>> main
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
-black = "^24.3.0"
 mypy = "^1.9.0"
-isort = "^5.13.2"
 ruff = "^0.3.5"
+lxml-stubs = "^0.5.1"
+grpc-stubs = "^1.53.0.5"
+types-itsdangerous = "^1.1.6"
+types-redis = "^4.6.0.20240425"
+types-requests = "^2.31.0.20240406"
+types-setuptools = "^69.5.0.20240423"
+types-sqlalchemy = "^1.4.53.38"
+types-tqdm = "^4.66.0.20240417"
+types-decorator = "^5.1.8.20240310"
+types-protobuf = "^5.26.0.20240422"
+types-psycopg2 = "^2.9.21.20240417"
+types-tree-sitter = "^0.20.1.20240311"
+types-tree-sitter-languages = "^1.10.0.20240201"
+pandas-stubs = "^2.2.1.240316"
 
 [build-system]
 requires = ["poetry-core"]
@@ -50,3 +72,160 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 app = "app.main:app"
+
+[tool.pytest.ini_options]
+markers = "load_db_fixtures: load db fixtures only"
+minversion = "6.0"
+addopts = [
+    "-ra -q"
+]
+python_files = [
+    "tests.py",
+    "test_*.py",
+    "*_test.py"
+]
+testpaths = [
+    "tests",
+    "integration"
+]
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+#warn_return_any = true
+warn_unused_configs = true
+exclude = [
+    '.venv',
+    'prompt_experimentation',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "dspy",
+    "llama_index.embeddings.text_embeddings_inference",
+    "llama_index.llms.openai",
+    "llama_index.llms.together",
+    "llama_index.vector_stores.qdrant.*",
+    "pyvis.network",
+    "nebula3.*",
+    "nest_asyncio"
+]
+ignore_missing_imports = true
+
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+exclude = ["*.ipynb"]
+extend-unsafe-fixes = ["D"]
+# List of rules: https://docs.astral.sh/ruff/rules
+select = [
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # pydocstyle
+    "D",
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # flake8-implicit-str-concat
+    "ISC",
+    # pep8-naming
+    "N",
+    # flake8-annotations
+    "ANN",
+    # flake8-async
+    "ASYNC",
+    # flake8-bandid selected
+    "S",
+    # flake8-print
+    "T20",
+    # flake8-return
+    "RET",
+    # flake8-simplify
+    "SIM",
+    # flake8-unused-arguments
+    "ARG",
+    # flake8-use-pathlib
+    "PTH",
+    # eradicate
+    "ERA",
+    # pandas-vet
+    "PD",
+    # Import sort
+    "I",
+    # avoid shadowing
+    "PLW",
+]
+# CLR = # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+ignore = [
+    # CLR
+    "COM812",
+    # CLR
+    "ISC001",
+    # Documentation
+    "D100",
+    "D101",
+    "D104",
+    "D106",
+    # missing-type-self
+    "ANN101",
+    # missing-type-cls
+    "ANN102",
+    # missing-type-kwargs
+    "ANN003",
+    # utf-8 encoding skip
+    "UP009",
+    # Missing return type annotation for special method `__init__`
+    "ANN204",
+    # Star-arg unpacking after a keyword argument is strongly discouraged
+    "B026",
+    # Missing type annotation for function argument `self`
+    "ANN001",
+    # Dynamically typed expressions (typing.Any) are disallowed in `wrapper`
+    "ANN401",
+    # We don't need docstrings for every method
+    "ANN202",
+    "D107",
+    "D102",
+    "D103",
+    # Inline lambdas
+    "E731",
+    # Sometimes we need List and Tuple
+    "UP006",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs}/*" = ["ALL"]
+"**/test*.py" = ["ALL"]
+"**/grpc_types/*" = ["ALL"]
+"prompt_experimentation/*" = ["ALL"]
+"**__init__.py" = ["F401"]

@@ -1,0 +1,6 @@
+# Ignore artifacts:
+coverage
+.next
+node_modules
+public
+helm

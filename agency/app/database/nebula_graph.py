@@ -1,5 +1,6 @@
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Any
 
 from nebula3.Config import Config
 from nebula3.data.ResultSet import ResultSet
@@ -34,23 +35,22 @@ class NebulaGraph:
         return connection_pool
 
     def get_session(self) -> Session:
-        if not self._current_session:
-            self._current_session = self.create_new_session()
-        elif not self._current_session.ping_session():
+        if not self._current_session or not self._current_session.ping_session():
             self._current_session = self.create_new_session()
 
         return self._current_session
 
     def create_new_session(self) -> Session:
         current_session = self.get_connection_pool().get_session(
-            str(self.user), str(self.password)
+            self.user,
+            self.password,
         )
         current_session.execute(f"USE {self.space}")
         return current_session
 
     @contextmanager
     def session_ctx(self) -> Generator[Session, Any, Any]:
-        session: None | Session = None
+        session: Session | None = None
         try:
             session = self.get_session()
             yield session
@@ -60,7 +60,7 @@ class NebulaGraph:
             if session:
                 session.release()
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self._current_session:
             self._current_session.release()
 
@@ -69,7 +69,9 @@ class NebulaGraph:
 
     @staticmethod
     def result_to_dict(result: ResultSet) -> dict[str, list]:
-        assert result.is_succeeded()
+        if not result.is_succeeded():
+            return {}
+
         columns = result.keys()
         result_dict: dict[str, list] = {}
 
@@ -78,8 +80,6 @@ class NebulaGraph:
             col_list = result.column_values(col_name)
             if len(col_list) > 0:
                 result_dict[col_name] = [x.cast() for x in col_list]
-
-        assert len(result_dict) > 0
 
         return result_dict
 
@@ -93,7 +93,7 @@ _nebula_graph_client: NebulaGraph | None = None
 
 
 def get_nebula_graph_client(settings: NebulaGraphSettings) -> NebulaGraph:
-    global _nebula_graph_client
+    global _nebula_graph_client  # noqa: PLW0603
 
     if not _nebula_graph_client:
         _nebula_graph_client = NebulaGraph(

@@ -1,51 +1,31 @@
-import abc
-from typing import Optional
+from abc import abstractmethod
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.grpc_types.agency_pb2 import Source
+from app.rag.retrieval.web.types import SearchResult as BraveSearchResult
 
 
-class AbstractSourceRecord(abc.ABC):
-    @abc.abstractmethod
-    def to_grpc_source(self) -> Source:
-        raise NotImplementedError
+class SourceModel(BaseModel):
+    @abstractmethod
+    def to_grpc_source(self) -> Source: ...
 
 
-class BraveSourceRecord(BaseModel, AbstractSourceRecord):
-    url: str
-    page_age: Optional[str]
-    title: Optional[str]
-    description: Optional[str]
-
-    def __init__(self, **data):
-        url = data.get("url")
-        page_age = data.get("page_age", "")
-        title = data.get("title", "")
-        description = data.get("description", "")
-        super().__init__(
-            url=url, page_age=page_age, title=title, description=description
-        )
-
+class BraveSourceRecord(SourceModel, BraveSearchResult):
     def to_grpc_source(self) -> Source:
         return Source(
-            url=self.url,
+            url=str(self.url),
             metadata={
-                "page_age": self.page_age,
                 "title": self.title,
                 "description": self.description,
+                "page_age": self.page_age or "",
             },
         )
 
 
-class PubmedSourceRecord(BaseModel, AbstractSourceRecord):
+class PubmedSourceRecord(SourceModel):
     url: str
-    helper_text: Optional[str]
-
-    def __init__(self, **data):
-        url = data.get("url")
-        helper_text = data.get("helper_text", "")
-        super().__init__(url=url, helper_text=helper_text)
+    helper_text: str = ""
 
     def to_grpc_source(self) -> Source:
         return Source(url=self.url, metadata={"helper_text": self.helper_text})
@@ -55,5 +35,7 @@ SourceRecord = BraveSourceRecord | PubmedSourceRecord
 
 
 class SearchResultRecord(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     result: str
     sources: list[SourceRecord]

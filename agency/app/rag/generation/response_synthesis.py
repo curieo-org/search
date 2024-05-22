@@ -1,12 +1,11 @@
-import collections
 import json
 from urllib.parse import urlparse
 
 import pydantic
 import requests
 
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("ResponseSynthesisEngine")
 
@@ -17,11 +16,9 @@ class ResponseSynthesisRecord(pydantic.BaseModel):
 
 
 class ResponseSynthesisEngine:
-    """
-    This class implements the logic to call the llm service in the last layer and
-    returns the results.
-    It uses the preprocessed service and prompt template. It returns the output in a
-    list format.
+    """Implements the logic to call the LLM in the last layer and returns the results.
+
+    It uses the preprocessed service and prompt template. Returns the output as a list.
     """
 
     def __init__(self, settings: Settings):
@@ -35,10 +32,13 @@ class ResponseSynthesisEngine:
         return response_text.replace("\n", "")
 
     def get_prompt_v3(
-        self, search_text: str, reranked_results: collections.defaultdict[list]
-    ):
+        self,
+        search_text: str,
+        reranked_results: list[dict[str, str]],
+    ) -> tuple[str, list[str]]:
         logger.info(
-            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results.len: {len(reranked_results)}"
+            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results"
+            f".len: {len(reranked_results)}",
         )
 
         context_str = ""
@@ -48,7 +48,7 @@ class ResponseSynthesisEngine:
             urls.append(result["url"])
             context_str += f"Source {domain}\n"
 
-            context_str += f"{result['text']}\n"
+            context_str += f"{result["text"]}\n"
             context_str += "\n\n"
 
         prompt_token_limit = self.prompt_config.prompt_token_limit
@@ -57,23 +57,27 @@ class ResponseSynthesisEngine:
         Web search result:
         {context_str}
 
-        Instructions: Using the provided web search results, write a comprehensive reply to the given query.
-        Make sure to cite results using [number] notation after the reference.
-        If the provided search results refer to multiple subjects with the same name, write separate answers for each subject.
-        Answer in language: {self.language}
-        If the context is insufficient, reply "I cannot answer because my reference sources don't have related info" in language {self.language}.
+        Instructions: Using the provided web search results, write a comprehensive
+        reply to the given query. Make sure to cite results using [number] notation
+        after the reference. If the provided search results refer to multiple
+        subjects with the same name, write separate answers for each subject. Answer
+        in language: {self.language} If the context is insufficient, reply "I cannot
+        answer because my reference sources don't have related info" in language
+        {self.language}.
         Query: {search_text}
         """
 
         return prompt, urls
 
     async def call_llm_service_api(
-        self, search_text: str, reranked_results: collections.defaultdict[list]
+        self,
+        search_text: str,
+        reranked_results: list[dict[str, str]],
     ) -> ResponseSynthesisRecord:
         logger.info("call_llm_service_api. search_text: " + search_text)
         logger.info(
             "call_llm_service_api. reranked_results length: "
-            + str(len(reranked_results))
+            + str(len(reranked_results)),
         )
 
         try:
@@ -96,16 +100,21 @@ class ResponseSynthesisEngine:
                     "top_k": 50,
                     "repetition_penalty": 1,
                     "n": 1,
-                }
+                },
             )
 
             response = requests.request(
-                "POST", self.together.api_root, headers=headers, data=payload
+                "POST",
+                self.together.api_root,
+                headers=headers,
+                data=payload,
             )
 
         except Exception as ex:
             logger.exception(
-                "call_llm_service_api Exception -", exc_info=ex, stack_info=True
+                "call_llm_service_api Exception -",
+                exc_info=ex,
+                stack_info=True,
             )
             raise ex
 
