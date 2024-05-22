@@ -605,6 +605,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "5.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
+dependencies = [
+ "cfg-if",
+ "hashbrown 0.14.3",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+ "serde",
+]
+
+[[package]]
 name = "der"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2429,6 +2443,7 @@ dependencies = [
  "chrono",
  "color-eyre",
  "config",
+ "dashmap",
  "dotenvy",
  "futures",
  "hyper 1.2.0",
@@ -3183,9 +3198,9 @@ checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
 name = "tower-sessions"
-version = "0.12.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32b7b53dbe4dc5cf64382fcbd1e8b8ca222949d757fcabec1bcc8de751bb611b"
+checksum = "c2d9b6f0c4938eed0eefd9cce19319b4bdad10e11ca9d8c3be373ce734bbfd63"
 dependencies = [
  "async-trait",
  "http 1.1.0",
@@ -3201,9 +3216,9 @@ dependencies = [
 
 [[package]]
 name = "tower-sessions-core"
-version = "0.12.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cec154be845cc7482fa002282813881732bdf17c75a8e85ff1bddaf387b668c5"
+checksum = "38767064990c327ec1d92bba2576dce0944750e9c9ae021f12ebc72de77ac406"
 dependencies = [
  "async-trait",
  "axum-core 0.4.3",
@@ -3222,9 +3237,9 @@ dependencies = [
 
 [[package]]
 name = "tower-sessions-memory-store"
-version = "0.12.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a9bd4f20f01924813964a7e804680dbbeec16a133c919201685d274412cba50"
+checksum = "a8b09bbe2c138a9b0ebf307dc6e6a4f7723c59545e0f4fe5e329a89868164ae3"
 dependencies = [
  "async-trait",
  "time",

@@ -1,29 +1,29 @@
 import re
-from typing import Any, List, Optional
 
 import requests
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
 from llama_index.core.callbacks import CBEventType, EventPayload
+from llama_index.core.instrumentation import get_dispatcher
+from llama_index.core.instrumentation.events.rerank import (
+    ReRankEndEvent,
+    ReRankStartEvent,
+)
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
-from llama_index.core.schema import NodeWithScore, QueryBundle
+from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
 from pydantic import SecretStr
 
-from app.services.search_utility import setup_logger
 from app.settings import RerankingSettings
+from app.utils.logging import setup_logger
+
+dispatcher = get_dispatcher(__name__)
 
 TAG_RE = re.compile(r"<[^>]+>")
 
-logger = setup_logger("TextEmbeddingInferenceRerankEngine")
+logger = setup_logger("TextEmbeddingRerankPostprocessor")
 
 
-class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
-    """
-    The class extends the BaseNodePostprocessor class, aimed at reranking nodes
-    (elements) based on text embedding inference. This class is part of a larger
-    framework, likely for processing and analyzing data within a specific domain,
-    such as document retrieval or search engine optimization. Here's an overview of
-    the class and its components:
-    """
+class TextEmbeddingRerankPostprocessor(BaseNodePostprocessor):
+    """Text-embedding reranking post-processor."""
 
     model: str = Field(
         default="BAAI/bge-reranker-large",
@@ -32,50 +32,32 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
     api: str
     auth_token: SecretStr
     top_count: int
-    _session: Any = PrivateAttr()
+    top_n: int = 2
 
-    def __init__(
-        self,
-        *,
-        api: str,
-        auth_token: SecretStr,
-        top_count: int,
-        model: str,
-        top_n: int = 2,
-    ):
-        super().__init__(
-            top_n=top_n,
-            model=model,
-            api=api,
-            auth_token=auth_token,
-            top_count=top_count,
-        )
-        self.model = model
-        self._session = requests.Session()
+    _session: requests.Session = PrivateAttr(default_factory=lambda: requests.Session())
 
     @classmethod
     def from_settings(
-        cls, *, settings: RerankingSettings
-    ) -> "TextEmbeddingInferenceRerankEngine":
-        return cls(
-            api=settings.api,
-            auth_token=settings.auth_token,
-            top_count=settings.top_count,
-            model=settings.model,
-        )
+        cls,
+        *,
+        settings: RerankingSettings,
+    ) -> "TextEmbeddingRerankPostprocessor":
+        return TextEmbeddingRerankPostprocessor.from_dict(settings.dict())
 
     @classmethod
     def class_name(cls) -> str:
-        return "TextEmbeddingInferenceRerankEngine"
+        return "TextEmbeddingRerankPostprocessor"
 
     def _postprocess_nodes(
         self,
-        nodes: List[NodeWithScore],
-        query_bundle: Optional[QueryBundle] = None,
-    ) -> List[NodeWithScore]:
-        """
-        This method takes a list of nodes (each represented by a NodeWithScore object)
-        and an optional QueryBundle object.
+        nodes: list[NodeWithScore],
+        query_bundle: QueryBundle | None = None,
+    ) -> list[NodeWithScore]:
+        """Post-processing reranking of response nodes.
+
+        This method takes a list of nodes represented by a NodeWithScore object and an
+        optional QueryBundle object.
+
         It performs the reranking operation by:
         -- Validating the input.
         -- Extracting text from each node, removing HTML tags.
@@ -84,20 +66,43 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
         -- Processing the APIs response to update the nodes' scores based on reranking
            results.
         -- Returning the top N reranked nodes, according to the class's top_n attribute
-           and possibly constrained by top_count
+           and possibly constrained by top_count.
         """
+        dispatch_event = dispatcher.get_dispatch_event()
+        dispatch_event(
+            ReRankStartEvent(
+                query=query_bundle,
+                nodes=nodes,
+                top_n=self.top_n,
+                model_name=self.model,
+            ),
+        )
+
         if query_bundle is None:
             raise ValueError("Missing query bundle in extra info.")
         if len(nodes) == 0:
             return []
 
-        with self.callback_manager.event(CBEventType.RERANKING) as event:
+        with self.callback_manager.event(
+            CBEventType.RERANKING,
+            payload={
+                EventPayload.NODES: nodes,
+                EventPayload.MODEL_NAME: self.model,
+                EventPayload.QUERY_STR: query_bundle.query_str,
+                EventPayload.TOP_K: self.top_n,
+            },
+        ) as event:
             logger.info(
                 "TextEmbeddingInferenceRerankEngine.postprocess_nodes query: "
-                + query_bundle.query_str
+                + query_bundle.query_str,
             )
-            texts = [TAG_RE.sub("", node.get_content()) for node in nodes]
-            results = self._session.post(  # type: ignore
+            # TODO: Better than? [TAG_RE.sub("", node.get_content()) for node in nodes]
+            texts = [
+                node.node.get_content(metadata_mode=MetadataMode.EMBED)
+                for node in nodes
+            ]
+
+            results = self._session.post(
                 self.api,
                 json={
                     "query": query_bundle.query_str,
@@ -105,7 +110,7 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
                     "texts": texts,
                 },
                 headers={
-                    "Authorization": f"Bearer {self.auth_token.get_secret_value()}"
+                    "Authorization": f"Bearer {self.auth_token.get_secret_value()}",
                 },
             ).json()
 
@@ -114,10 +119,12 @@ class TextEmbeddingInferenceRerankEngine(BaseNodePostprocessor):
 
             new_nodes = []
             for result in results:
-                new_node_with_score = NodeWithScore(
-                    node=nodes[result["index"]], score=result["score"]
-                )
-                new_nodes.append(new_node_with_score)
+                index = result["index"]
+                node = nodes[index]
+                node.score = float(result["score"])
+                new_nodes.append(node)
             event.on_end(payload={EventPayload.NODES: new_nodes})
+
+        dispatch_event(ReRankEndEvent(nodes=new_nodes))
 
         return new_nodes[: self.top_count]

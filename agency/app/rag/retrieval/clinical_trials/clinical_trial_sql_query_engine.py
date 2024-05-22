@@ -1,15 +1,13 @@
 import os
 import re
 from pathlib import Path
-from typing import List
 
 import dspy
 from llama_index.core import SQLDatabase, VectorStoreIndex
 from llama_index.core.bridge.pydantic import BaseModel, Field
 from llama_index.core.indices.struct_store.sql_retriever import SQLRetriever
 from llama_index.core.objects import ObjectIndex, SQLTableNodeMapping, SQLTableSchema
-from llama_index.core.query_pipeline import FnComponent, InputComponent
-from llama_index.core.query_pipeline import QueryPipeline as QP
+from llama_index.core.query_pipeline import FnComponent, InputComponent, QueryPipeline
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -20,38 +18,37 @@ from sqlalchemy import create_engine
 from app.dspy_integration.clinical_trials_response_refinement import (
     ResponseSynthesizerModule,
 )
-from app.dspy_integration.clinical_trials_sql import SQL_module
-from app.services.search_utility import setup_logger
+from app.dspy_integration.clinical_trials_sql import SqlModule
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("ClinicalTrialText2SQLEngine")
 
 
 class TableInfo(BaseModel):
-    """
-    Information regarding a structured table.
-    """
+    """Information regarding a structured table."""
 
     table_name: str = Field(
-        ..., description="table name (must be underscores and NO spaces)"
+        ...,
+        description="table name (must be underscores and NO spaces)",
     )
     table_summary: str = Field(
-        ..., description="short, concise summary/caption of the table"
+        ...,
+        description="short, concise summary/caption of the table",
     )
 
 
 class ClinicalTrialText2SQLEngine:
-    """
-    This class implements the logic to convert the user prompt to sql query.
-    Then it executes the sql query in the database and return the result.
-    """
+    """Converts user prompt to sql query and executes against db, returns the result."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
 
         together = settings.together
         self.response_llm = dspy.Together(
-            model=together.model, api_key=together.api_key, max_tokens=500
+            model=together.model,
+            api_key=together.api_key,
+            max_tokens=500,
         )
         self.sql_llm = dspy.Together(
             model=settings.ai_models.sql_generation,
@@ -62,12 +59,12 @@ class ClinicalTrialText2SQLEngine:
         dspy.settings.configure(lm=self.sql_llm)
 
         dspy_settings = settings.dspy
-        self.sql_module = SQL_module()
+        self.sql_module = SqlModule()
         self.sql_module.load(dspy_settings.clinical_trial_sql_program)
 
         self.response_synthesizer = ResponseSynthesizerModule()
         self.response_synthesizer.load(
-            dspy_settings.clinical_trials_response_refinement_program
+            dspy_settings.clinical_trials_response_refinement_program,
         )
 
         self.engine = create_engine(settings.postgres_engine.get_secret_value())
@@ -77,7 +74,8 @@ class ClinicalTrialText2SQLEngine:
         self.sql_retriever = SQLRetriever(self.sql_database)
 
         self.embed_model = TextEmbeddingsInference(
-            base_url=settings.embedding.api, model_name=settings.embedding.model
+            base_url=settings.embedding.api,
+            model_name=settings.embedding.model,
         )
 
         self.client = QdrantClient(
@@ -88,7 +86,8 @@ class ClinicalTrialText2SQLEngine:
         )
 
         self.vector_store = QdrantVectorStore(
-            client=self.client, collection_name=settings.qdrant.collection_name
+            client=self.client,
+            collection_name=settings.qdrant.collection_name,
         )
 
         self.retriever = VectorIndexRetriever(
@@ -116,51 +115,51 @@ class ClinicalTrialText2SQLEngine:
 
     def _get_table_info_with_index(self, idx: int) -> TableInfo | None:
         results_gen = Path(self.settings.table_info_dir.clinical_trials).glob(
-            f"{idx}_*"
+            f"{idx}_*",
         )
         results_list = list(results_gen)
 
         if not results_list:
-            return
+            return None
 
-        elif len(results_list) == 1:
+        if len(results_list) == 1:
             path = results_list[0]
-            with open(path, "r") as source:
+            with Path(path).open("r") as source:
                 return TableInfo.parse_raw(source.read())
         else:
             raise ValueError(f"More than one file matching index: {list(results_gen)}")
 
-    def get_all_table_info(self):
+    def get_all_table_info(self) -> list[TableInfo]:
         file_counts = len(os.listdir(self.settings.table_info_dir.clinical_trials))
         table_infos = []
 
         for i in range(file_counts):
-            table_info = self._get_table_info_with_index(i)
-            table_infos.append(table_info)
+            if table_info := self._get_table_info_with_index(i):
+                table_infos.append(table_info)
         logger.info(f"get_all_table_info table_infos: {len(table_infos)}")
         return table_infos
 
-    def get_table_context_str(self, table_schema_objs: List[SQLTableSchema]):
+    def get_table_context_str(self, table_schema_objs: list[SQLTableSchema]) -> str:
         """Get table context string."""
         context_strs = []
         for table_schema_obj in table_schema_objs:
             table_info = self.sql_database.get_single_table_info(
-                table_schema_obj.table_name
+                table_schema_obj.table_name,
             )
             if table_schema_obj.context_str:
                 table_opt_context = " The table description is: "
                 table_opt_context += table_schema_obj.context_str
                 table_info += table_opt_context
             context_strs.append(table_info)
+
         return "\n\n".join(context_strs)
 
-    def get_sql_query(self, question, context):
-        sql_query = self.sql_module(question=question, context=context).answer
-        return sql_query
+    def get_sql_query(self, question, context) -> dspy.Prediction:
+        return self.sql_module(question=question, context=context).answer
 
     def extract_sql(self, question: str, llm_response: str) -> str | None:
         # First try to extract SQL code blocks enclosed in triple backticks
-        # old_pattern = r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
+        # Old pattern: r"```(?:sql\n)?(.*?)```|(select.*?;)|('*\n\n---\n\nQuestion:')"
         pattern = r"(?si)SELECT.*?;"
         sql_match = re.search(pattern, llm_response, re.DOTALL | re.IGNORECASE)
 
@@ -169,53 +168,55 @@ class ClinicalTrialText2SQLEngine:
             retrieved_sql = self.get_relevant_tiles(question, extracted_sql)
 
             logger.info(
-                f"Output from LLM: {llm_response} \nExtracted SQL: {retrieved_sql}"
+                f"Output from LLM: {llm_response} \nExtracted SQL: {retrieved_sql}",
             )
             return retrieved_sql
-        else:
-            # Handle the case where no SQL pattern is matched
-            logger.info(f"No SQL pattern matched in LLM response: {llm_response}")
-            # Return an appropriate response, such as an empty list or a message indicating no SQL was found
-            return
+
+        logger.info(f"No SQL pattern matched in LLM response: {llm_response}")
+        return None
 
     @staticmethod
     def replace_title_value(sql_command: str, title_names: list[str]) -> str:
         titles_for_sql = "', '".join([title.replace("'", '"') for title in title_names])
-        quoted_titles_for_sql = "'{}'".format(titles_for_sql)
+        quoted_titles_for_sql = f"'{titles_for_sql}'"
         # Pattern to match the WHERE clause related to the title
         pattern = r"title\s*=\s*'.*?'"
         # Replacement pattern using IN clause
         replacement = f"title IN ({quoted_titles_for_sql})"
         # Perform the substitution
-        updated_sql_command = re.sub(pattern, replacement, sql_command)
-        return updated_sql_command
+        return re.sub(pattern, replacement, sql_command)
 
     def get_relevant_tiles(self, question, sql_query) -> str:
         return self.replace_title_value(
             sql_query,
             [
                 node.metadata.get(
-                    self.settings.qdrant.clinical_trial_metadata_field_name
+                    self.settings.qdrant.clinical_trial_metadata_field_name,
                 )
                 for node in self.retriever.retrieve(question)
             ],
         )
 
-    def retrieve_input_title_name(self, question, context):
-        sql_query = self.sql_module(question=question, context=context).answer
-        return sql_query
+    def retrieve_input_title_name(self, question, context) -> dspy.OutputField:
+        return self.sql_module(question=question, context=context).answer
 
-    def get_synthesized_response(self, question, sql, database_output):
+    def get_synthesized_response(
+        self,
+        question,
+        sql,
+        database_output,
+    ) -> dspy.OutputField:
         if len(database_output) > 0:
             database_output = database_output[0].text
         with dspy.context(lm=self.response_llm):
-            response = self.response_synthesizer(
-                question=question, sql=sql, database_output=database_output
+            return self.response_synthesizer(
+                question=question,
+                sql=sql,
+                database_output=database_output,
             ).answer
-        return response
 
-    def build_query_pipeline(self):
-        qp = QP(
+    def build_query_pipeline(self) -> QueryPipeline:
+        qp = QueryPipeline(
             modules={
                 "input": InputComponent(),
                 "table_retriever": self.obj_retriever,
@@ -238,7 +239,9 @@ class ClinicalTrialText2SQLEngine:
         qp.add_link("input", "response_synthesis_llm", dest_key="question")
         qp.add_link("text2sql_llm", "response_synthesis_llm", dest_key="sql")
         qp.add_link(
-            "sql_retriever", "response_synthesis_llm", dest_key="database_output"
+            "sql_retriever",
+            "response_synthesis_llm",
+            dest_key="database_output",
         )
 
         net = Network(notebook=True, cdn_resources="in_line", directed=True)

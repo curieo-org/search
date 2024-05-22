@@ -1,13 +1,11 @@
 import json
 import os
 from pathlib import Path
-from typing import List
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.objects import ObjectIndex, SimpleObjectNodeMapping
 from llama_index.core.prompts import PromptTemplate, PromptType
-from llama_index.core.query_pipeline import FnComponent, InputComponent
-from llama_index.core.query_pipeline import QueryPipeline as QP
+from llama_index.core.query_pipeline import FnComponent, InputComponent, QueryPipeline
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
     DEFAULT_NEBULAGRAPH_NL2CYPHER_PROMPT_TMPL,
@@ -15,17 +13,14 @@ from llama_index.legacy.query_engine.knowledge_graph_query_engine import (
 from llama_index.llms.openai import OpenAI
 
 from app.database.nebula_graph import get_nebula_graph_client
-from app.services.search_utility import setup_logger
 from app.settings import Settings
+from app.utils.logging import setup_logger
 
 logger = setup_logger("DrugChEMBLText2CypherEngine")
 
 
 class DrugChEMBLText2CypherEngine:
-    """
-    This class implements the logic to convert the user prompt to cypher query.
-    Then it executes the cypher query in the graph database and return the result.
-    """
+    """Converts user prompt to cypher and executes against db, returns the result."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -35,10 +30,11 @@ class DrugChEMBLText2CypherEngine:
 
         self.table_schema_objs = self.get_all_table_info()
         self.embed_model = TextEmbeddingsInference(
-            base_url=settings.embedding.api, model_name=settings.embedding.model
+            base_url=settings.embedding.api,
+            model_name=settings.embedding.model,
         )
         self.table_node_mapping = SimpleObjectNodeMapping.from_objects(
-            self.table_schema_objs
+            self.table_schema_objs,
         )
 
         self.obj_index = ObjectIndex.from_objects(
@@ -59,12 +55,12 @@ class DrugChEMBLText2CypherEngine:
             "Query: {query_str}\n"
             "Cypher Query: {cypher_query}\n"
             "Cypher Response: {context_str}\n"
-            "Response: "
+            "Response: ",
         )
 
         self.qp = self.build_query_pipeline()
 
-    def execute_graph_query(self, queries):
+    def execute_graph_query(self, queries) -> list[dict[str, list]]:
         logger.info(f"execute_graph_query queries: {queries}")
         queries = str(queries).strip()
         query_list = []
@@ -91,9 +87,7 @@ class DrugChEMBLText2CypherEngine:
             if query.strip() == "":
                 continue
 
-            query = query.strip() + ";"
-
-            result_dict = self.graph_storage.execute_query(query)
+            result_dict = self.graph_storage.execute_query(query.strip() + ";")
             results.append(result_dict)
 
         logger.info(f"execute_graph_query results: {results}")
@@ -105,27 +99,27 @@ class DrugChEMBLText2CypherEngine:
         results_list = list(results_gen)
 
         if not results_list:
-            return
+            return None
 
-        elif len(results_list) == 1:
+        if len(results_list) == 1:
             path = results_list[0]
-            with open(path, "r") as source:
+            with Path(path).open("r") as source:
                 return json.load(source)
         else:
             raise ValueError(f"More than one file matching index: {list(results_gen)}")
 
-    def get_all_table_info(self):
+    def get_all_table_info(self) -> list[dict]:
         file_counts = len(os.listdir(self.settings.table_info_dir.drug_chembl))
         table_infos = []
 
         for i in range(file_counts):
-            table_info = self._get_table_info_with_index(i)
-            table_infos.append(table_info)
+            if table_info := self._get_table_info_with_index(i):
+                table_infos.append(table_info)
 
         logger.info(f"get_all_table_info table_infos: {len(table_infos)}")
         return table_infos
 
-    def get_table_context_str(self, table_schema_objs: List[dict[str, str]]) -> str:
+    def get_table_context_str(self, table_schema_objs: list[dict[str, str]]) -> str:
         """Get table context string."""
         context_strs = []
 
@@ -140,13 +134,16 @@ class DrugChEMBLText2CypherEngine:
         return "\n\n".join(context_strs)
 
     def get_response_synthesis_prompt(
-        self, query_str, sql_query, context_str
+        self,
+        query_str,
+        cypher_query,
+        context_str,
     ) -> PromptTemplate:
         response_synthesis_prompt_str = (
-            "Given an input question, synthesize a response from the query results.\n"
-            "Query: {query_str}\n"
-            "Cypher Query: {cypher_query}\n"
-            "Cypher Response: {context_str}\n"
+            f"Given an input question, synthesize a response from the query results.\n"
+            f"Query: {query_str}\n"
+            f"Cypher Query: {cypher_query}\n"
+            f"Cypher Response: {context_str}\n"
             "Response: "
         )
         return PromptTemplate(response_synthesis_prompt_str)
@@ -164,8 +161,8 @@ class DrugChEMBLText2CypherEngine:
         logger.info(f"cypher_output_parser response_str: {response_str}")
         return response_str
 
-    def build_query_pipeline(self):
-        qp = QP(
+    def build_query_pipeline(self) -> QueryPipeline:
+        qp = QueryPipeline(
             modules={
                 "input": InputComponent(),
                 "table_retriever": self.obj_retriever,
@@ -184,7 +181,9 @@ class DrugChEMBLText2CypherEngine:
 
         qp.add_link("input", "cypher_query_retriever_prompt", dest_key="query_str")
         qp.add_link(
-            "table_output_parser", "cypher_query_retriever_prompt", dest_key="schema"
+            "table_output_parser",
+            "cypher_query_retriever_prompt",
+            dest_key="schema",
         )
 
         qp.add_chain(["cypher_query_retriever_prompt", "cypher_query_retriever_llm"])
@@ -200,7 +199,9 @@ class DrugChEMBLText2CypherEngine:
             dest_key="cypher_query",
         )
         qp.add_link(
-            "cypher_output_parser", "response_synthesis_prompt", dest_key="context_str"
+            "cypher_output_parser",
+            "response_synthesis_prompt",
+            dest_key="context_str",
         )
 
         qp.add_chain(["response_synthesis_prompt", "response_synthesis_llm"])
@@ -218,7 +219,9 @@ class DrugChEMBLText2CypherEngine:
 
         except Exception as ex:
             logger.exception(
-                "call_text2cypher Exception -", exc_info=ex, stack_info=True
+                "call_text2cypher Exception -",
+                exc_info=ex,
+                stack_info=True,
             )
 
             raise ex

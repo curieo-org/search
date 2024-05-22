@@ -92,8 +92,7 @@ class NebulaGraphSettings(BaseSettings):
 
 class RedisSettings(BaseSettings):
     url: SecretStr
-    max_age: int = 86400
-    max_sorted_set: int = 100
+    default_expiry: int = 86400
 
 
 class WandbSettings(BaseSettings):
@@ -180,3 +179,6 @@ class Settings(BaseSettings):
     llama_index: LlamaIndexSettings = LlamaIndexSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
+
+
+app_settings = Settings()

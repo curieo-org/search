@@ -16,7 +16,6 @@ import { Button } from '../lib/button'
 import { Input, PasswordInput } from '../lib/form'
 import { H1, Span } from '../lib/typography'
 import { useAppContext } from '../wrappers/app'
-// import MicrosoftIcon from '../icons/microsoft'
 
 type AuthFormProps = HTMLAttributes<HTMLDivElement> & {
   authPurpose: 'register' | 'login'
@@ -109,7 +108,6 @@ export default function AuthForm(props: AuthFormProps) {
           type="submit"
         />
       </form>
-
       <div className="flex items-center mb-6">
         <Span className="font-medium">
           {props.authPurpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}

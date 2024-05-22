@@ -1,28 +1,34 @@
 # Curieo Search Frontend
 
 ## Prerequisites
+
 - Node.js
 - NPM
 - Docker (for production image creation)
 
 ## Configuration
+
 Copy the `.env.template` file to `.env.local` and update the values as needed.
+
 ```bash
 cp .env.template .env.local
 ```
 
 ## Installation
+
 ```bash
 npm install
 npm run build
 ```
 
 ## Running
+
 ```bash
 npm run dev
 ```
 
 ## Production Docker Image Creation
+
 ```bash
 # Use a new tag for the image
 TAG = <TAG>
