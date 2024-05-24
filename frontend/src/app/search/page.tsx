@@ -14,7 +14,7 @@ export default function Search() {
   const { reset } = useSearchStore()
   const { data, isLoading, isSuccess, isError, refetch: fetchSearchResult } = useSearchQuery()
   const handleSearch = () => {
-    fetchSearchResult()
+    fetchSearchResult().then(r => r)
   }
 
   useEffect(() => {

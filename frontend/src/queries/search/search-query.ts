@@ -1,5 +1,5 @@
 import { useAppContext } from '@/components/wrappers/app'
-import { AxiosClient } from '@/helpers/axios-client'
+import { BackendAPIClient } from '@/helpers/axios-client'
 import { useSearchStore } from '@/stores/search/search-store'
 import { SearchResult } from '@/types/search'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -16,7 +16,7 @@ export const useSearchQuery = () => {
     queryKey: ['search', searchQuery, sessionId],
     async queryFn() {
       const params = { query: searchQuery.trim(), session_id: sessionId }
-      const { data } = await AxiosClient.get('/search', { params })
+      const { data } = await BackendAPIClient.get('/search', { params })
       queryClient.setQueryData(['search-by-id', data.search_history_id], data)
       queryClient.invalidateQueries({ queryKey: ['search-history'] })
       return data as SearchResult

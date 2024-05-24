@@ -6,7 +6,7 @@ import {
   authPages,
   dynamicAppPaths,
   exactAppPaths,
-  loginPagePath,
+  signinPagePath,
   pagesWithNavMenu,
   searchPagePath,
 } from '@/constants/route'
@@ -32,7 +32,7 @@ export default function App({ children }: LayoutProps) {
 
       <div className="min-h-screen w-full bg-background-light dark:bg-gradient-to-br dark:from-background-dark-top-left dark:to-background-dark-bottom-right">
         <div className="md:hidden w-full h-screen flex flex-col items-center justify-center">
-          <img src="/images/curieo-logo.svg" className="mb-4" />
+          <img src="/images/curieo-logo.svg" className="mb-4" alt="logo" />
           <P className="text-center text-xl">Please return to desktop view</P>
         </div>
 
@@ -65,7 +65,7 @@ function AppMiddleware({ children }: LayoutProps) {
   } else if (isAuthPage) {
     return <WrappedWithNavMenu>{children}</WrappedWithNavMenu>
   } else if (isSignedOut) {
-    return <RedirectedPage path={loginPagePath} />
+    return <RedirectedPage path={signinPagePath} />
   } else {
     return <SpinnerLoading />
   }
@@ -90,27 +90,22 @@ function RedirectedPage({ path }: { path: string }) {
 
 type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading'
 type AppContextType = {
-  sessionId: string | null
   authStatus: AuthStatus
   updateAuthStatus: (authStatus: AuthStatus) => void
 }
 
 const inititalContext = {
-  sessionId: null,
   authStatus: 'loading' as AuthStatus,
   updateAuthStatus: (authStatus: AuthStatus) => {},
 }
 
 const AppContext = createContext<AppContextType>(inititalContext)
+
 function AppContextProvider({ children }: LayoutProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null)
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
   const [profileRefreshFlag, setProfileRefreshFlag] = useState(0)
 
   useEffect(() => {
-    const newSessionId = uuidv4()
-    setSessionId(newSessionId)
-
     const profileRefreshInterval = setInterval(() => {
       setProfileRefreshFlag(prev => prev + 1)
     }, profileRefreshTime)
@@ -133,7 +128,7 @@ function AppContextProvider({ children }: LayoutProps) {
 
   const updateAuthStatus = (authStatus: AuthStatus) => setAuthStatus(authStatus)
 
-  return <AppContext.Provider value={{ authStatus, updateAuthStatus, sessionId }}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ authStatus, updateAuthStatus }}>{children}</AppContext.Provider>
 }
 
 export function useAppContext() {

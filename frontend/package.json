@@ -6,17 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint-fix": "next lint --fix"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.36.0",
-    "axios": "^1.6.8",
+    "@tanstack/react-query": "^5.37.1",
+    "axios": "^1.7.2",
     "date-fns": "^3.6.0",
     "lodash": "^4.17.21",
     "next": "14.2.3",
-    "next-auth": "^5.0.0-beta.16",
+    "next-auth": "^5.0.0-beta.17",
+    "next-auth-http-adapter": "^0.3.0",
     "next-themes": "^0.3.0",
-    "posthog-js": "^1.131.4",
+    "posthog-js": "^1.133.0",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.2.1",
@@ -27,7 +29,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.1",
+    "@types/lodash": "^4.17.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

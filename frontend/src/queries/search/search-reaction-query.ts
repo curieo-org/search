@@ -1,4 +1,4 @@
-import { AxiosClient } from '@/helpers/axios-client'
+import { BackendAPIClient } from '@/helpers/axios-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SearchReactionBody, SearchResult } from '@/types/search'
 
@@ -8,7 +8,7 @@ export const useSearchReactionMutation = () => {
   return useMutation({
     mutationKey: ['search-reaction'],
     async mutationFn(payload: SearchReactionBody) {
-      const { data } = await AxiosClient.patch(`/search/reaction`, payload)
+      const { data } = await BackendAPIClient.patch(`/search/reaction`, payload)
       return data as SearchResult
     },
     onSuccess: data => {

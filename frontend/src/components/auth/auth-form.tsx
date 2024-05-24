@@ -1,7 +1,7 @@
 'use client'
 
 import { emailErrorMessage, passwordErrorMessage, welcomeMessage } from '@/constants/messages'
-import { loginPagePath } from '@/constants/route'
+import { signinPagePath } from '@/constants/route'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useLoginQuery } from '@/queries/auth/login-query'
 import { useRegisterQuery } from '@/queries/auth/register-query'
@@ -49,12 +49,12 @@ export default function AuthForm(props: AuthFormProps) {
   const handleAuthToast = (res: AuthResponse) =>
     props.authPurpose === 'register' ? toast.success('You have registered successfully') : toast.success(welcomeMessage)
   const handleAuthRedirect = () =>
-    props.authPurpose === 'register' ? router.push(loginPagePath) : updateAuthStatus('authenticated')
+    props.authPurpose === 'register' ? router.push(signinPagePath) : updateAuthStatus('authenticated')
 
   const handleAuth = (event?: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => {
     event?.preventDefault()
     setIsLoading(true)
-    authHandler({ email, password })
+    authHandler({ username: email, password })
       .then(res => {
         handleAuthToast(res)
         handleAuthRedirect()
@@ -73,12 +73,14 @@ export default function AuthForm(props: AuthFormProps) {
     handleAuth()
   }
 
-  const handleContinueWithGoogle = () => {}
+  const handleContinueWithGoogle = () => {
+    console.log('CLICKED!')
+  }
 
   const handleContinueWithMicrosoft = () => {}
 
   const handleToggleAuthPurpose = () => {
-    props.authPurpose === 'register' ? router.push(loginPagePath) : router.push('/register')
+    props.authPurpose === 'register' ? router.push(signinPagePath) : router.push('/register')
   }
 
   return (
