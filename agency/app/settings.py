@@ -60,13 +60,13 @@ class OpenAISettings(BaseSettings):
 
 
 class EmbeddingSettings(BaseSettings):
-    api: str = "http://text-embedding.dev.curieo.org"
+    api_url: str = "http://localhost:8080"
     api_key: SecretStr
     embed_batch_size: int = 4
 
 
 class SpladeEmbeddingSettings(BaseSettings):
-    api: str = "http://text-splade-query.dev.curieo.org"
+    api: str = "http://localhost:8083"
     api_key: SecretStr
     embed_batch_size: int = 4
 
@@ -119,21 +119,26 @@ class GroqSettings(BaseSettings):
 
 class QdrantSettings(BaseSettings):
     api_port: int = 6333
-    api_url: str = "https://qdrant.dev.curieo.org"
-    collection_name: str = "pubmed_hybrid_vector_dbv4"
+    api_url: str = "localhost" #for dev uncomment it only
+    #api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
+    parent_collection_name: str = "pubmed_parent_hybrid"
+    cluster_collection_name: str = "pubmed_cluster_hybrid"
+    clinical_trial_collection_name: str = "clinical_trials_vector_db"
     api_key: SecretStr
 
-    top_k: int = 20
-    sparse_top_k: int = 3
+    parent_top_k: int = 10
+    parent_sparse_top_k: int = 5
 
-    clinical_trial_collection_name: str = "clinical_trials_vector_db"
+    cluster_top_k: int = 5
+    cluster_sparse_top_k: int = 3
+    
     clinical_trial_top_k: int = 5
     clinical_trial_metadata_field_name: str = "title"
 
 
-class LlamaIndexSettings(BaseSettings):
+class LlamaIndexHelperSettings(BaseSettings):
     parent_relevance_criteria: float = 0.1
-    child_relevance_criteria: float = 0.1
+    cluster_relevance_criteria: float = 0.1
 
 
 class DspySettings(BaseSettings):
@@ -157,6 +162,11 @@ class AIModelsSettings(BaseSettings):
     pubmed_response_synthesizer_model: str = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 
+class PsqlSettings(BaseSettings):
+    connection: SecretStr
+    ids_select_query: str = "SELECT node_text FROM pubmed_text_details where id in ({ids})"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         extra="allow",
@@ -165,7 +175,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
-    # postgres_engine: SecretStr
+    psql: PsqlSettings
     project: ProjectSettings = ProjectSettings()
     search: SearchSettings = SearchSettings()
     brave: BraveSettings
@@ -181,7 +191,7 @@ class Settings(BaseSettings):
     spladeembedding: SpladeEmbeddingSettings
     reranking: RerankingSettings
     qdrant: QdrantSettings
-    llama_index: LlamaIndexSettings = LlamaIndexSettings()
+    llama_index_helper: LlamaIndexHelperSettings = LlamaIndexHelperSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
 

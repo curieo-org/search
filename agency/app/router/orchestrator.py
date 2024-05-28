@@ -1,8 +1,8 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 
-import dspy
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
@@ -23,6 +23,8 @@ class Orchestrator:
 
     It currently supports 2 routes:
     1. Pubmed
+        1.1 Pubmed Parents
+        1.2 Pubmed Children
     2. Brave API search
 
     TODO: enable support for
@@ -32,11 +34,6 @@ class Orchestrator:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.llm = dspy.OpenAI(
-            model=settings.ai_models.router,
-            api_key=settings.openai.api_key.get_secret_value(),
-        )
-        dspy.settings.configure(lm=self.llm)
         # self.router = RouterModule()
         # self.router.load(settings.dspy.orchestrator_router_prompt_program)
 
@@ -58,30 +55,30 @@ class Orchestrator:
     async def handle_pubmed_bioxriv_web_search(
         self,
         search_text: str,
+        rerank_llm_lingua_call: bool = False
     ) -> SearchResultRecord | None:
         logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
+        extracted_results = []
+        reranked_results = []
         try:
-            extracted_pubmed_results, extracted_web_results = await asyncio.gather(
-                self.pubmed_search.call_pubmed_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text),
+            extracted_pubmed_results, extracted_pubmed_cluster_results, extracted_web_results = await asyncio.gather(
+                self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
+                self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
+                self.brave_search.call_brave_search_api(search_text=search_text)
             )
+            extracted_results = extracted_pubmed_results + extracted_pubmed_cluster_results + extracted_web_results
 
-            extracted_results = extracted_pubmed_results + extracted_web_results
-
-            logger.debug(
-                f"handle_pubmed_bioxriv_web_search.extracted_results count: "
-                f"{len(extracted_pubmed_results), len(extracted_web_results)}",
-            )
-
-            if not extracted_results:
-                return None
 
             # rerank call
-            reranked_results = self.reranker.postprocess_nodes(
-                nodes=extracted_results,
-                query_bundle=QueryBundle(query_str=search_text),
-            )
+            if rerank_llm_lingua_call:
+                pass #TODO
+            else:
+                reranked_results = self.reranker.postprocess_nodes(
+                    nodes=extracted_results,
+                    query_bundle=QueryBundle(query_str=search_text),
+                )
 
+            #summarizer model
             result = self.summarizer.get_response(
                 query_str=search_text,
                 text_chunks=[
