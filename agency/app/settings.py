@@ -164,9 +164,7 @@ class AIModelsSettings(BaseSettings):
 
 class PsqlSettings(BaseSettings):
     connection: SecretStr
-    ids_select_query: str = (
-        "SELECT node_text FROM pubmed_text_details where id in ({ids})"
-    )
+    children_text_table_name: str = "pubmed_text_details"
 
 
 class Settings(BaseSettings):
