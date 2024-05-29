@@ -8,11 +8,11 @@ from llama_index.vector_stores.qdrant.utils import default_sparse_encoder
 from qdrant_client import AsyncQdrantClient
 from sqlalchemy import create_engine, text
 
+from app.rag.utils.models import PubmedSourceRecord, RetrievedResult
 from app.rag.utils.splade_embedding import SpladeEmbeddingsInference
 from app.settings import Settings
 from app.utils.custom_vectorstore import CurieoVectorStore
 from app.utils.logging import setup_logger
-from app.rag.utils.models import RetrievedResult, PubmedSourceRecord
 
 logger = setup_logger("PubmedSearchQueryEngine")
 
@@ -241,7 +241,7 @@ class PubmedSearchQueryEngine:
                         ),
                     }
                 )
-                for pubmed_id in nodes_dict.keys()
+                for pubmed_id in nodes_dict
                 for child_node_id in nodes_dict[pubmed_id]
                 if child_node_id in children_node_texts.keys()
             ]

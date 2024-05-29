@@ -6,10 +6,10 @@ from pydantic import ValidationError
 
 from app.caching.redis import fcached
 from app.rag.retrieval.web.types import WebSearchApiResponse
+from app.rag.utils.models import RetrievedResult
 from app.settings import BraveSettings
 from app.utils.httpx import httpx_get
 from app.utils.logging import setup_logger
-from app.rag.utils.models import RetrievedResult
 
 logger = setup_logger("BraveSearchQueryEngine")
 

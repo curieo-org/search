@@ -3,8 +3,8 @@ from abc import abstractmethod
 from pydantic import BaseModel, ConfigDict
 
 from app.grpc_types.agency_pb2 import Source
-from app.rag.retrieval.web.types import SearchResult as BraveSearchResult
 from app.rag.retrieval.pubmed.types import SearchResult as PubmedSearchResult
+from app.rag.retrieval.web.types import SearchResult as BraveSearchResult
 
 
 class SourceModel(BaseModel):
