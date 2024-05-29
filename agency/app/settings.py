@@ -119,8 +119,8 @@ class GroqSettings(BaseSettings):
 
 class QdrantSettings(BaseSettings):
     api_port: int = 6333
-    api_url: str = "localhost" #for dev uncomment it only
-    #api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
+    api_url: str = "localhost"  # for dev uncomment it only
+    # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
     parent_collection_name: str = "pubmed_parent_hybrid"
     cluster_collection_name: str = "pubmed_cluster_hybrid"
     clinical_trial_collection_name: str = "clinical_trials_vector_db"
@@ -131,7 +131,7 @@ class QdrantSettings(BaseSettings):
 
     cluster_top_k: int = 5
     cluster_sparse_top_k: int = 3
-    
+
     clinical_trial_top_k: int = 5
     clinical_trial_metadata_field_name: str = "title"
 
@@ -164,7 +164,9 @@ class AIModelsSettings(BaseSettings):
 
 class PsqlSettings(BaseSettings):
     connection: SecretStr
-    ids_select_query: str = "SELECT node_text FROM pubmed_text_details where id in ({ids})"
+    ids_select_query: str = (
+        "SELECT node_text FROM pubmed_text_details where id in ({ids})"
+    )
 
 
 class Settings(BaseSettings):

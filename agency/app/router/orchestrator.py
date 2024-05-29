@@ -1,6 +1,5 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
-from concurrent.futures import ProcessPoolExecutor, as_completed
 import re
 
 from llama_index.core.response_synthesizers import SimpleSummarize
@@ -53,32 +52,37 @@ class Orchestrator:
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self,
-        search_text: str,
-        rerank_llm_lingua_call: bool = False
+        self, search_text: str, rerank_llm_lingua_call: bool = False
     ) -> SearchResultRecord | None:
         logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
         extracted_results = []
         reranked_results = []
         try:
-            extracted_pubmed_results, extracted_pubmed_cluster_results, extracted_web_results = await asyncio.gather(
+            (
+                extracted_pubmed_results,
+                extracted_pubmed_cluster_results,
+                extracted_web_results,
+            ) = await asyncio.gather(
                 self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
                 self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text)
+                self.brave_search.call_brave_search_api(search_text=search_text),
             )
-            extracted_results = extracted_pubmed_results + extracted_pubmed_cluster_results + extracted_web_results
-
+            extracted_results = (
+                extracted_pubmed_results
+                + extracted_pubmed_cluster_results
+                + extracted_web_results
+            )
 
             # rerank call
             if rerank_llm_lingua_call:
-                pass #TODO
+                pass  # TODO
             else:
                 reranked_results = self.reranker.postprocess_nodes(
                     nodes=extracted_results,
                     query_bundle=QueryBundle(query_str=search_text),
                 )
 
-            #summarizer model
+            # summarizer model
             result = self.summarizer.get_response(
                 query_str=search_text,
                 text_chunks=[
