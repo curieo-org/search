@@ -1,119 +1,79 @@
-# ⚕️🧬🔬Curieo Healthcare Search API 🔍
-
-![Current Version](https://img.shields.io/badge/version-v0.1-blue)
-![GitHub Org's stars](https://img.shields.io/github/stars/curieo-org)
-![Website](https://img.shields.io/website?url=http%3A%2F%2Fcurieo.org%2F)
-
-Welcome to Curieo Search, the search engine on a mission to revolutionize how you access
-healthcare information. Our
-goal is simple yet ambitious: to be the best healthcare search engine available,
-offering unparalleled access to
-accurate, up-to-date, and relevant medical information.
+# Agency
 
 ## Table of Contents
-
-- [⚕️🧬🔬Curieo Healthcare Search API 🔍](#️curieo-healthcare-search-api-)
+- [Agency](#agency)
   - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Technologies](#technologies)
+  - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Running the App](#running-the-app)
+  - [Usage](#usage)
   - [Deployment](#deployment)
 
-## Installation
+## Introduction
+Agency is a collection of multiple RAG modules. Every module is responsible for computing a the search result for a specific data source. All of the modules are exposed via a gRPC server.
 
+## Technologies
+1. Python
+2. gRPC Server
+3. Llama Index
+4. Qdrant Vector Database
+5. Postgres Database
+6. Nebula Graph Database
+
+## Prerequisites
+1. Python 3
+2. Embedding LLM
+3. Splade Embedding LLM
+4. Summarization LLM
+5. Reranker LLM
+6. Clinical Trials
+   1. Clinical Trials PostgresDB
+   2. Clinical Trials QdrantDB
+   3. SQL LLM Model
+7. Drug Discovery
+   1. Drug Nebula Graphdb
+   2. Cypher LLM Model
+8. Web Search
+   1. Pubmed PostgresDB
+   2. Pubmed QdrantDB
+
+## Installation
 - Install Curieo Agency using Docker
     - Make sure Docker is installed.
     - Build the Docker image `docker build -t curieo-agency .`
-    - Run the Docker container `docker run -p 50051:50051 -d agency`
+    - Run the Docker container `docker run -p 50051:50051 -d curieo-agency`
 
 - Install Cureio Agency without Docker
     - Make sure `pyenv` is installed.
-    - Create a new virtual environment `python -m venv .venv`
+    - Create a new virtual environment `python3 -m venv .venv`
     - Activate the env `source .venv/bin/activate`
     - Install poetry and uvicorn `pip install poetry`
     - Install dependencies `poetry install`
 
+## Usage
+```bash
+# configure the environment variables
+cp .env.template .env
 
-- Set up Embedding Server
-  from [TEI](https://github.com/huggingface/text-embeddings-inference/tree/main)
-
-    - Setup for Re-rankers models
-
-  ```
-  model=BAAI/bge-reranker-large
-  revision=refs/pr/4
-  volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
-
-  docker run --gpus all -p 8080:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
-  ```
-
-  The Output:
-
-  ```
-  curl 127.0.0.1:8080/rerank \
-  -X POST \
-  -d '{"query":"What is Deep Learning?", "texts": ["Deep Learning is not...", "Deep learning is..."]}' \
-  -H 'Content-Type: application/json'
-  ```
-
-    - Using for Text Embeddings
-
-  ```
-  model=BAAI/bge-large-en-v1.5
-  revision=refs/pr/5
-  volume=$PWD/data # share a volume with the Docker container to avoid downloading weights every run
-
-  docker run --gpus all -p 8081:80 -v $volume:/data --pull always ghcr.io/huggingface/text-embeddings-inference:1.1 --model-id $model --revision $revision
-  ```
-
-  The Output:
-
-  ```
-  curl 127.0.0.1:8080/embed \
-  -X POST \
-  -d '{"inputs":"What is Deep Learning?"}' \
-  -H 'Content-Type: application/json'
-  ```
-
-  If you want use without the docker the do the following steps:
-
-  ```
-  git clone git@github.com:huggingface/text-embeddings-inference.git
-  cd text-embeddings-inference
-
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-  # On x86
-  cargo install --path router -F candle -F mkl
-  # On M1 or M2
-  cargo install --path router -F candle -F metal
-
-  model=BAAI/bge-large-en-v1.5
-  revision=refs/pr/5
-  text-embeddings-router --model-id $model --revision $revision --port 8081
-
-  model=BAAI/bge-reranker-large
-  revision=refs/pr/4
-  text-embeddings-router --model-id $model --revision $revision --port 8080
-  ```
-
-    - Clone the [Data Digger](https://github.com/curieo-org/data-digger) repository and
-      follow the instructions to set
-      up the aact postgresql database and chembl nebula graph database.
-    - Add local redis engine
-    - Alternatively, you can use the existing deployed databases for all of the above if
-      they are available.
-    - Copy the `.env.template` file to `.env` and update the required values.
-
-## Running the App
-
-Steps and commands for running the app are to be included here
-
-- Use the below command to execute the server:
-
-  ```
-  poetry run app
-  ```
+# start the server
+poetry run app
+```
 
 ## Deployment
+```bash
+# Update the following line in the Makefile for the TAG
+TAG = 
 
-Not decided yet, we will work on that part.
+# Build and upload the image to the ECR
+make -f Makefile_ECR
+
+# Change the TAG in the helm/values.yaml file in the root directory
+image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-agency:<TAG>
+
+# Create a new deployment in the Kubernetes from the root directory
+helm install agency ./helm -n <NAMESPACE> --values ./helm/values.yaml
+
+# Update the already existing deployment in the Kubernetes from the root directory
+helm upgrade agency ./helm -n <NAMESPACE> --values ./helm/values.yaml
+```
