@@ -7,9 +7,10 @@ from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
 from app.rag.reranker.response_reranker import TextEmbeddingRerankPostprocessor
+from app.rag.reranker.response_llmlingua import LongLLMLinguaPostprocessor
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
-from app.rag.utils.models import SearchResultRecord
+from app.rag.utils.models import SearchResultRecord, RetrievedResult
 from app.settings import Settings
 from app.utils.logging import setup_logger
 
@@ -41,9 +42,8 @@ class Orchestrator:
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
-        self.reranker = TextEmbeddingRerankPostprocessor.from_settings(
-            settings=self.settings.reranking,
-        )
+        #self.reranker = TextEmbeddingRerankPostprocessor()
+        self.llm_lingua_reranker = LongLLMLinguaPostprocessor()
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
                 model="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -52,32 +52,37 @@ class Orchestrator:
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self, search_text: str, rerank_llm_lingua_call: bool = False
+        self,
+        search_text: str, 
+        rerank_llm_lingua_call: bool = False
     ) -> SearchResultRecord | None:
         logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
-        extracted_results = []
+        extracted_results = list[RetrievedResult]
         reranked_results = []
         try:
             (
                 extracted_pubmed_results,
                 extracted_pubmed_cluster_results,
-                extracted_web_results,
+                #extracted_web_results,
             ) = await asyncio.gather(
                 self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
                 self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text),
+                #self.brave_search.call_brave_search_api(search_text=search_text),
             )
             extracted_results = (
                 extracted_pubmed_results
                 + extracted_pubmed_cluster_results
-                + extracted_web_results
+                #+ extracted_web_results
             )
 
             # rerank call
             if rerank_llm_lingua_call:
-                pass  # TODO
+                reranked_results = self.llm_lingua_reranker._postprocess_nodes(
+                    nodes=extracted_results,
+                    query_bundle=QueryBundle(query_str=search_text),
+                )
             else:
-                reranked_results = self.reranker.postprocess_nodes(
+                reranked_results = self.reranker._postprocess_nodes(
                     nodes=extracted_results,
                     query_bundle=QueryBundle(query_str=search_text),
                 )
@@ -86,7 +91,7 @@ class Orchestrator:
             result = self.summarizer.get_response(
                 query_str=search_text,
                 text_chunks=[
-                    TAG_RE.sub("", node.get_content()) for node in reranked_results
+                    TAG_RE.sub("", node) for node in reranked_results
                 ],
             )
 

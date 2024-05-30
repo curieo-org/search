@@ -62,15 +62,21 @@ class PubmedSearchQueryEngine:
             embed_batch_size=self.settings.spladeembedding.embed_batch_size,
         )
 
-        self.client = AsyncQdrantClient(
-            url=self.settings.qdrant.api_url,
-            port=self.settings.qdrant.api_port,
+        self.parent_client = AsyncQdrantClient(
+            url=self.settings.qdrant.parent_api_url,
+            port=self.settings.qdrant.parent_api_port,
+            api_key=self.settings.qdrant.api_key.get_secret_value(),
+            https=False,
+        )
+        self.cluster_client = AsyncQdrantClient(
+            url=self.settings.qdrant.cluster_api_url,
+            port=self.settings.qdrant.cluster_api_port,
             api_key=self.settings.qdrant.api_key.get_secret_value(),
             https=False,
         )
 
         self.parent_vector_store = CurieoVectorStore(
-            aclient=self.client,
+            aclient=self.parent_client,
             collection_name=self.settings.qdrant.parent_collection_name,
             enable_hybrid=True,
             sparse_query_fn=self.sparse_query_vectors,
@@ -81,7 +87,7 @@ class PubmedSearchQueryEngine:
         )
 
         self.cluster_vector_store = CurieoVectorStore(
-            aclient=self.client,
+            aclient=self.cluster_client,
             collection_name=self.settings.qdrant.cluster_collection_name,
             enable_hybrid=True,
             sparse_query_fn=self.sparse_query_vectors,
@@ -175,14 +181,14 @@ class PubmedSearchQueryEngine:
             retrieved_results = [
                 RetrievedResult.model_validate(
                     {
-                        "text": node.metadata.get("text", ""),
+                        "text": node.get_text(),
                         "source": PubmedSourceRecord.model_validate(
                             {
                                 "url": self.get_pubmed_url(
                                     node.metadata.get("pubmedid", 0)
                                 ),
                                 "title": node.metadata.get("title", ""),
-                                "abstract": node.metadata.get("text", ""),
+                                "abstract": node.get_text(),
                             }
                         ),
                     }
@@ -241,8 +247,8 @@ class PubmedSearchQueryEngine:
                         ),
                     }
                 )
-                for pubmed_id in nodes_dict
-                for child_node_id in nodes_dict[pubmed_id]
+                for pubmed_id in nodes_dict.keys()
+                for child_node_id in nodes_dict[pubmed_id].get('children_node_ids', [])
                 if child_node_id in children_node_texts.keys()
             ]
 
