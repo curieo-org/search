@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from typing import List
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger
 from pydantic import BaseModel
@@ -15,12 +16,12 @@ compressor = LLMLinguaCompressor(
 
 class CompressPromptRequest(BaseModel):
     query: str = ""
-    context_texts: str = ""
+    context_texts_list: List[str] = ""
     target_token: int = 300
 
 
 class CompressPromptResponse(BaseModel):
-    compressed_prompt: str
+    response: dict = {}
 
 
 @router.post("/compress_prompt/")
@@ -28,10 +29,10 @@ async def compress_prompt(request: CompressPromptRequest) -> JSONResponse:
     try:
         response = await compressor.compress_prompt(
             query_str=request.query,
-            context_texts=request.context_texts,
+            context_texts_list=request.context_texts_list,
             target_token=request.target_token,
         )
-        return CompressPromptResponse(compressed_prompt=response)
+        return CompressPromptResponse(response=response)
     except Exception as e:
         logger.error(f"Error processing request: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
