@@ -16,17 +16,17 @@ from app.settings import SentrySettings
 
 
 def setup_tracing(settings: SentrySettings) -> None:
-    sentry_sdk.init(
-        dsn=settings.dsn.get_secret_value(),
-        enable_tracing=settings.enable_tracing,
-        integrations=[
-            AsyncioIntegration(),
-            GRPCIntegration(),
-            LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
-        ],
-    )
-
     if settings.environment == "production":
+        sentry_sdk.init(
+            dsn=settings.dsn.get_secret_value(),
+            enable_tracing=settings.enable_tracing,
+            integrations=[
+                AsyncioIntegration(),
+                GRPCIntegration(),
+                LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
+            ],
+        )
+
         resource = Resource(
             attributes={
                 ResourceAttributes.PROJECT_NAME: settings.phoenix_project_name,
