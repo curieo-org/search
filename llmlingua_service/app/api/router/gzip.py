@@ -3,6 +3,7 @@ Custom route that intelligently decodes gzip encoded request bodies.
 
 Borrowed from https://fastapi.tiangolo.com/advanced/custom-request-and-route/#create-a-custom-gziprequest-class
 """
+
 import gzip
 from typing import Callable
 

@@ -120,13 +120,13 @@ class GroqSettings(BaseSettings):
 class QdrantSettings(BaseSettings):
     parent_api_port: int = 6334
     cluster_api_port: int = 6335
-    #api_port: int = 6333
+    # api_port: int = 6333
     parent_api_url: str = "localhost"  # for dev uncomment it only
     # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
 
     cluster_api_url: str = "localhost"  # for dev uncomment it only
     # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
-    
+
     parent_collection_name: str = "pubmed_parent_hybrid"
     cluster_collection_name: str = "pubmed_cluster_hybrid"
     clinical_trial_collection_name: str = "clinical_trials_vector_db"

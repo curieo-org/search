@@ -1,21 +1,14 @@
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import requests
 from llama_index.core.bridge.pydantic import Field, PrivateAttr
-from llama_index.core.callbacks import CBEventType, EventPayload
 from llama_index.core.instrumentation import get_dispatcher
-from llama_index.core.instrumentation.events.rerank import (
-    ReRankEndEvent,
-    ReRankStartEvent,
-)
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
-from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
-from pydantic import SecretStr
+from llama_index.core.schema import MetadataMode, QueryBundle
 from llmlingua import PromptCompressor
 
-from app.settings import RerankingSettings
 from app.rag.utils.models import RetrievedResult
+from app.settings import RerankingSettings
 from app.utils.logging import setup_logger
 
 dispatcher = get_dispatcher(__name__)
@@ -67,14 +60,13 @@ class LongLLMLinguaPostprocessor(BaseNodePostprocessor):
         self,
         model_name: str = "microsoft/phi-2",
         device_map: str = "cpu",
-        model_config: Optional[dict] = {},
+        model_config: dict | None = {},
         metadata_mode: MetadataMode = MetadataMode.ALL,
         instruction_str: str = DEFAULT_INSTRUCTION_STR,
         target_token: int = 300,
         rank_method: str = "longllmlingua",
     ):
         """LongLLMLingua Compressor for Node Context."""
-        from llmlingua import PromptCompressor
 
         additional_compress_kwargs = {}
 
@@ -82,7 +74,7 @@ class LongLLMLinguaPostprocessor(BaseNodePostprocessor):
             model_name=model_name,
             device_map=device_map,
             model_config=model_config,
-            use_llmlingua2=True
+            use_llmlingua2=True,
         )
         super().__init__(
             metadata_mode=metadata_mode,
@@ -99,7 +91,7 @@ class LongLLMLinguaPostprocessor(BaseNodePostprocessor):
     def _postprocess_nodes(
         self,
         nodes: List[RetrievedResult],
-        query_bundle: Optional[QueryBundle] = None,
+        query_bundle: QueryBundle | None = None,
     ) -> List[RetrievedResult]:
         """Optimize a node text given the query by shortening the node text."""
         if query_bundle is None:
@@ -128,6 +120,4 @@ class LongLLMLinguaPostprocessor(BaseNodePostprocessor):
         compressed_prompt_txt_list = compressed_prompt_txt_list[1:-1]
 
         # return nodes for each list
-        return [
-            compressed_prompt_txt
-        ]
+        return [compressed_prompt_txt]

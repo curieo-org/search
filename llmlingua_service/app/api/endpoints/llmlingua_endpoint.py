@@ -1,4 +1,4 @@
-from fastapi import (APIRouter, Depends, Header, HTTPException)
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.logger import logger
 from pydantic import BaseModel
@@ -8,15 +8,20 @@ from app.llm_lingua.compress_prompt import LLMLinguaCompressor
 
 router = APIRouter()
 router.route_class = GzipRoute
-compressor = LLMLinguaCompressor(model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank")
+compressor = LLMLinguaCompressor(
+    model_name="microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+)
+
 
 class CompressPromptRequest(BaseModel):
     query: str = ""
     context_texts: str = ""
     target_token: int = 300
 
+
 class CompressPromptResponse(BaseModel):
     compressed_prompt: str
+
 
 @router.post("/compress_prompt/")
 async def compress_prompt(request: CompressPromptRequest) -> JSONResponse:
@@ -24,7 +29,7 @@ async def compress_prompt(request: CompressPromptRequest) -> JSONResponse:
         response = await compressor.compress_prompt(
             query_str=request.query,
             context_texts=request.context_texts,
-            target_token=request.target_token
+            target_token=request.target_token,
         )
         return CompressPromptResponse(compressed_prompt=response)
     except Exception as e:

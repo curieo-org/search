@@ -247,8 +247,8 @@ class PubmedSearchQueryEngine:
                         ),
                     }
                 )
-                for pubmed_id in nodes_dict.keys()
-                for child_node_id in nodes_dict[pubmed_id].get('children_node_ids', [])
+                for pubmed_id in nodes_dict
+                for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
                 if child_node_id in children_node_texts.keys()
             ]
 
