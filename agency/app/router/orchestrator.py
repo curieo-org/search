@@ -51,7 +51,7 @@ class Orchestrator:
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self, search_text: str, rerank_llm_lingua_call: bool = False
+        self, search_text: str, rerank_llm_lingua_call: bool = True
     ) -> SearchResultRecord | None:
         logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
@@ -60,16 +60,16 @@ class Orchestrator:
             (
                 extracted_pubmed_results,
                 extracted_pubmed_cluster_results,
-                # extracted_web_results,
+                extracted_web_results,
             ) = await asyncio.gather(
                 self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
                 self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-                # self.brave_search.call_brave_search_api(search_text=search_text),
+                self.brave_search.call_brave_search_api(search_text=search_text),
             )
             extracted_results = (
                 extracted_pubmed_results
                 + extracted_pubmed_cluster_results
-                # + extracted_web_results
+                + extracted_web_results
             )
 
             # rerank call

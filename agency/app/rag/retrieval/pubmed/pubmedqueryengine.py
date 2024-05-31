@@ -64,13 +64,15 @@ class PubmedSearchQueryEngine:
 
         self.parent_client = AsyncQdrantClient(
             url=self.settings.qdrant.parent_api_url,
-            port=self.settings.qdrant.parent_api_port,
+            grpc_port=self.settings.qdrant.parent_api_port,
+            prefer_grpc=True,
             api_key=self.settings.qdrant.api_key.get_secret_value(),
             https=False,
         )
         self.cluster_client = AsyncQdrantClient(
             url=self.settings.qdrant.cluster_api_url,
-            port=self.settings.qdrant.cluster_api_port,
+            grpc_port=self.settings.qdrant.cluster_api_port,
+            prefer_grpc=True,
             api_key=self.settings.qdrant.api_key.get_secret_value(),
             https=False,
         )
