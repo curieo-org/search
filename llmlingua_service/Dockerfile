@@ -13,6 +13,8 @@ COPY . /usr/src/.
 # install python dependencies
 RUN pip install --upgrade pip
 RUN pip install poetry
-RUN poetry install
+RUN poetry install --no-root
+
+EXPOSE 8080
 
 CMD ["app.main:app", "--reload", "--port", "8080"]
