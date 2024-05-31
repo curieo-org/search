@@ -4,7 +4,7 @@ CREATE TABLE threads
     thread_id   uuid    primary key         default uuid_generate_v1mc(),
     user_id     uuid            not null    references users (user_id),
     title       varchar(255)    not null,
-    context     jsonb           not null,
+    context     jsonb,
     created_at  timestamptz     not null    default now(),
     updated_at  timestamptz     not null    default now()
 );
