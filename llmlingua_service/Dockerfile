@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.12-slim
+FROM nvcr.io/nvidia/tritonserver:22.07-py3
 
 # set working directory
 WORKDIR /usr/src/
