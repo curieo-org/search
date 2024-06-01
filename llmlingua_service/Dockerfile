@@ -12,7 +12,7 @@ COPY . /usr/src/.
 
 # install python dependencies
 RUN pip install --upgrade pip
-RUN pip install poetry uvicorn
+RUN pip install poetry uvicorn packaging filelock
 RUN poetry config virtualenvs.create false
 RUN poetry install --compile --no-root
 
