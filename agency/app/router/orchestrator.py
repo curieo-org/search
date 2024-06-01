@@ -6,7 +6,7 @@ from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.rag.reranker.response_llmlingua import LongLLMLinguaPostprocessor
+from app.rag.reranker.response_reranker import RerankEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
 from app.rag.utils.models import RetrievedResult, SearchResultRecord
@@ -41,8 +41,7 @@ class Orchestrator:
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
-        # self.reranker = TextEmbeddingRerankPostprocessor()
-        self.llm_lingua_reranker = LongLLMLinguaPostprocessor()
+        self.reranker = RerankEngine(settings=settings.reranking)
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
                 model="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -51,7 +50,7 @@ class Orchestrator:
         )
 
     async def handle_pubmed_bioxriv_web_search(
-        self, search_text: str, rerank_llm_lingua_call: bool = True
+        self, search_text: str
     ) -> SearchResultRecord | None:
         logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
@@ -73,30 +72,21 @@ class Orchestrator:
             )
 
             # rerank call
-            if rerank_llm_lingua_call:
-                reranked_results = self.llm_lingua_reranker._postprocess_nodes(
-                    nodes=extracted_results,
-                    query_bundle=QueryBundle(query_str=search_text),
-                )
-            else:
-                reranked_results = self.reranker._postprocess_nodes(
-                    nodes=extracted_results,
-                    query_bundle=QueryBundle(query_str=search_text),
-                )
+            reranked_results = self.reranker.rerank_nodes(
+                query_bundle=QueryBundle(query_str=search_text),
+                nodes=extracted_results,
+            )
 
             # summarizer model
             result = self.summarizer.get_response(
                 query_str=search_text,
-                text_chunks=[TAG_RE.sub("", node) for node in reranked_results],
+                text_chunks=[reranked_results.compressed_prompt],
             )
-
-            # Metadata should be valid SourceRecords
-            sources = [node.metadata for node in reranked_results]
 
             return SearchResultRecord.model_validate(
                 {
                     "result": result,
-                    "sources": sources,
+                    "sources": reranked_results.reranked_sources,
                 },
             )
 

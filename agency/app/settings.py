@@ -55,6 +55,13 @@ class TogetherSettings(BaseSettings):
     prompt_config: TogetherPromptConfig = TogetherPromptConfig()
 
 
+class BioLLMSettings(BaseSettings):
+    # api_url: str = "http://openbiollm.dev.curieo.org/generate_stream"
+    api_url: str = "http://localhost:8001/generate_stream"
+    auth_token: SecretStr
+    max_new_tokens: int = 20
+
+
 class OpenAISettings(BaseSettings):
     api_key: SecretStr
 
@@ -72,10 +79,10 @@ class SpladeEmbeddingSettings(BaseSettings):
 
 
 class RerankingSettings(BaseSettings):
-    api: str = "http://text-rerank.dev.curieo.org/rerank"
+    # api: str = "http://search-llmlingua.dev.curieo.org/compress_prompt"
+    api: str = "http://localhost:8000/compress_prompt"
     auth_token: SecretStr
     top_count: int = 5
-    model: str = ""
 
 
 class TableInfoDirSettings(BaseSettings):
@@ -196,6 +203,7 @@ class Settings(BaseSettings):
     embedding: EmbeddingSettings
     spladeembedding: SpladeEmbeddingSettings
     reranking: RerankingSettings
+    biollm: BioLLMSettings
     qdrant: QdrantSettings
     llama_index_helper: LlamaIndexHelperSettings = LlamaIndexHelperSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()

@@ -12,9 +12,7 @@ query = "glp-1 combination therapy"
 
 
 async def get_search_results(query: str = ""):
-    data = await orchestrator.handle_pubmed_bioxriv_web_search(
-        search_text=query, rerank_llm_lingua_call=True
-    )
+    data = await orchestrator.handle_pubmed_bioxriv_web_search(search_text=query)
 
     # pubmed_query_engine = PubmedSearchQueryEngine(settings)
     # data = await pubmed_query_engine.call_pubmed_parent_vectors(search_text=query)

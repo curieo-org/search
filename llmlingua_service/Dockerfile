@@ -56,18 +56,6 @@ RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.
 # set working directory
 WORKDIR /usr/src/
 
-# install system dependencies and python 3.12
-# RUN apt-get -y update \
-#     && apt-get install -y software-properties-common \
-#     && apt-get -y update \
-#     && add-apt-repository universe
-# RUN apt-get -y update
-# RUN apt-get update && apt-get -y install python3.12 python3.12-dev python3.12-distutils python3.12-venv python3.12-pip
-# RUN ln -s /usr/bin/python3.12 /usr/bin/python
-# RUN ln -s /usr/bin/pip3.12 /usr/bin/pip
-# RUN apt-get update && apt-get -y install curl
-# RUN apt-get update && apt-get -y install libpq-dev gcc
-
 # install python dependencies
 RUN pip install --upgrade pip
 RUN pip install poetry uvicorn packaging filelock

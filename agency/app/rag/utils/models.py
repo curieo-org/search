@@ -42,6 +42,13 @@ class RetrievedResult(BaseModel):
     source: SourceRecord
 
 
+class RerankedResult(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    compressed_prompt: str
+    reranked_sources: list[SourceRecord]
+
+
 class SearchResultRecord(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
