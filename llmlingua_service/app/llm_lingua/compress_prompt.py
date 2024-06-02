@@ -8,7 +8,7 @@ import numpy as np
 class ProxyPromptCompressor(PromptCompressor):
     def __init__(self, model_name):
         self.proxy = PromptCompressor(
-            model_name=model_name, device_map="mps", use_llmlingua2=True
+            model_name=model_name, device_map="cuda", use_llmlingua2=True
         )
         self.instruction_str = "Given the context, please answer the final question"
 
