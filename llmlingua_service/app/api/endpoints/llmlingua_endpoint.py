@@ -24,8 +24,8 @@ class CompressPromptResponse(BaseModel):
     response: dict = {}
 
 
-@router.post("/compress_prompt/")
-async def compress_prompt(request: CompressPromptRequest) -> JSONResponse:
+@router.post("/compress")
+async def compress(request: CompressPromptRequest) -> JSONResponse:
     try:
         response = await compressor.compress_prompt(
             query_str=request.query,
