@@ -184,7 +184,6 @@ class PubmedSearchQueryEngine:
                 result[record[0]] = record[1]
             return result
 
-    @staticmethod
     def get_pubmed_url(self, pubmed_id: int) -> str:
         url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
 
