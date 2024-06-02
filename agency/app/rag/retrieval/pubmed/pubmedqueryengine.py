@@ -157,6 +157,33 @@ class PubmedSearchQueryEngine:
             for record in cursor.fetchall():
                 result[record[0]] = record[1]
             return result
+        
+    async def get_pubmed_record_titles(self, pubmed_ids: list[int]) -> dict[int, str]:
+        query = "SELECT identifier, title FROM {table_name} where identifier in ({ids})"
+
+        tuple_str = ", ".join(
+            f"'{item}'" if isinstance(item, str) else str(item)
+            for item in pubmed_ids
+        )
+
+        with self.engine.begin() as connection:
+            try:
+                cursor = connection.execute(
+                    text(
+                        query.format(
+                            table_name=self.settings.psql.record_title_table_name,
+                            ids=tuple_str,
+                        )
+                    )
+                )
+            except Exception as exc:
+                logger.exception("Failed to select records from the database.", exc)
+                return []
+
+            result = dict()
+            for record in cursor.fetchall():
+                result[record[0]] = record[1]
+            return result
 
     def get_pubmed_url(self, pubmed_id: int) -> str:
         url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
@@ -178,6 +205,12 @@ class PubmedSearchQueryEngine:
                 if n.score >= float(self.parent_relevance_criteria)
             ]
 
+            pubmed_ids = [
+                node.metadata.get("pubmedid", 0)
+                for node in filtered_nodes
+            ]
+            pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
+
             retrieved_results = [
                 RetrievedResult.model_validate(
                     {
@@ -187,7 +220,7 @@ class PubmedSearchQueryEngine:
                                 "url": self.get_pubmed_url(
                                     node.metadata.get("pubmedid", 0)
                                 ),
-                                "title": node.metadata.get("title", ""),
+                                "title": pubmed_titles.get(node.metadata.get("pubmedid", 0), ""),
                                 "abstract": node.get_text(),
                             }
                         ),
@@ -218,10 +251,14 @@ class PubmedSearchQueryEngine:
             ]
 
             # Create a dictionary of pubmed_id and children_node_ids
+            pubmed_ids = [
+                node.metadata.get("pubmedid", 0)
+                for node in filtered_nodes
+            ]
+            pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
             nodes_dict = {
                 node.metadata.get("pubmedid", 0): {
                     "children_node_ids": node.metadata.get("children_node_ids", []),
-                    "title": node.metadata.get("title", ""),
                 }
                 for node in filtered_nodes
             }
@@ -241,7 +278,7 @@ class PubmedSearchQueryEngine:
                         "source": PubmedSourceRecord.model_validate(
                             {
                                 "url": self.get_pubmed_url(pubmed_id),
-                                "title": nodes_dict[pubmed_id]["title"],
+                                "title": pubmed_titles.get(pubmed_id, ""),
                                 "abstract": children_node_texts.get(child_node_id, ""),
                             }
                         ),

@@ -178,6 +178,7 @@ class AIModelsSettings(BaseSettings):
 class PsqlSettings(BaseSettings):
     connection: SecretStr
     children_text_table_name: str = "pubmed_text_details"
+    record_title_table_name: str = "pubmed_titles"
 
 
 class Settings(BaseSettings):
