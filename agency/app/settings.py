@@ -73,7 +73,7 @@ class EmbeddingSettings(BaseSettings):
 
 
 class SpladeEmbeddingSettings(BaseSettings):
-    api: str = "http://localhost:8083"
+    api: str = "http://localhost:8081"
     api_key: SecretStr
     embed_batch_size: int = 4
 

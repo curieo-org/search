@@ -113,7 +113,6 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         **kwargs: Any,
     ) -> List[Embedding]:
         """Get a list of text embeddings, with batching."""
-        dispatch_event = dispatcher.get_dispatch_event()
 
         cur_batch: List[str] = []
         result_embeddings: List[Embedding] = []
@@ -126,7 +125,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
             cur_batch.append(text)
             if idx == len(texts) - 1 or len(cur_batch) == self.embed_batch_size:
                 # flush
-                dispatch_event(
+                dispatcher.event(
                     EmbeddingStartEvent(
                         model_dict=self.to_dict(),
                     )
