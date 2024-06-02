@@ -58,7 +58,6 @@ class TogetherSettings(BaseSettings):
 class BioLLMSettings(BaseSettings):
     model_name: str = "ivarflakstad/Llama3-OpenBioLLM-8B"
     api_url: str = "http://localhost:8085"
-    auth_token: SecretStr
     temperature: float = 0.1
     max_tokens: int = 1000
     prompt_token_limit: int = 3000
@@ -71,18 +70,18 @@ class OpenAISettings(BaseSettings):
 class EmbeddingSettings(BaseSettings):
     api_url: str = "http://localhost:8080"
     api_key: SecretStr
-    embed_batch_size: int = 4
+    batch_size: int = 4
 
 
 class SpladeEmbeddingSettings(BaseSettings):
     api: str = "http://localhost:8081"
     api_key: SecretStr
-    embed_batch_size: int = 4
+    batch_size: int = 4
 
 
 class PostProcessingSettings(BaseSettings):
     api: str = "http://localhost:8000/compress"
-    node_max_tokens_hard_limit: int = 512
+    max_tokens_per_node: int = 512
     compressed_target_token: int = 300
     top_n_sources: int = 10
 
@@ -114,8 +113,8 @@ class WandbSettings(BaseSettings):
     note: str = "Curieo Search"
 
 
-class SentrySettings(BaseSettings):
-    dsn: SecretStr
+class TracingSettings(BaseSettings):
+    sentry_dsn: SecretStr
     enable_tracing: bool = False
     environment: str = "development"
     phoenix_api: str = "http://127.0.0.1:6006/v1/traces"
@@ -127,25 +126,13 @@ class GroqSettings(BaseSettings):
 
 
 class QdrantSettings(BaseSettings):
-    parent_api_port: int = 6333
-    cluster_api_port: int = 7333
-    parent_api_url: str = "localhost"  # for dev uncomment it only
-    cluster_api_url: str = "localhost"  # for dev uncomment it only
-
-    parent_collection_name: str = "pubmed_parent_hybrid"
-    cluster_collection_name: str = "pubmed_cluster_hybrid"
-    clinical_trial_collection_name: str = "clinical_trials_vector_db"
-
+    api_port: int = 6333
+    api_url: str = "localhost"
     api_key: SecretStr
-
-    parent_top_k: int = 10
-    parent_sparse_top_k: int = 5
-
-    cluster_top_k: int = 5
-    cluster_sparse_top_k: int = 3
-
-    clinical_trial_top_k: int = 5
-    clinical_trial_metadata_field_name: str = "title"
+    collection_name: str = "pubmed_hybrid"
+    top_k: int = 10
+    sparse_top_k: int = 5
+    metadata_field_name: str = "title"
 
 
 class PubmedRetrievalSettings(BaseSettings):
@@ -198,14 +185,16 @@ class Settings(BaseSettings):
     nebula_graph: NebulaGraphSettings
     redis: RedisSettings
     wandb: WandbSettings | None = None
-    sentry: SentrySettings
+    tracing: TracingSettings
     groq: GroqSettings
     dspy: DspySettings = DspySettings()
     embedding: EmbeddingSettings
     spladeembedding: SpladeEmbeddingSettings
     post_process: PostProcessingSettings = PostProcessingSettings()
-    biollm: BioLLMSettings
-    qdrant: QdrantSettings
+    biollm: BioLLMSettings = BioLLMSettings()
+    pubmed_parent_qdrant: QdrantSettings
+    pubmed_cluster_qdrant: QdrantSettings
+    clinical_trial_qdrant: QdrantSettings
     pubmed_retrieval: PubmedRetrievalSettings = PubmedRetrievalSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()

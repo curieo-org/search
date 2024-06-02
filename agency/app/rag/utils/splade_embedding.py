@@ -47,7 +47,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         base_url: str = DEFAULT_URL,
         text_instruction: str | None = None,
         query_instruction: str | None = None,
-        embed_batch_size: int = DEFAULT_EMBED_BATCH_SIZE,
+        batch_size: int = DEFAULT_EMBED_BATCH_SIZE,
         timeout: float = 60.0,
         truncate_text: bool = True,
         callback_manager: CallbackManager | None = None,
@@ -58,7 +58,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
             model_name=model_name,
             text_instruction=text_instruction,
             query_instruction=query_instruction,
-            embed_batch_size=embed_batch_size,
+            batch_size=batch_size,
             timeout=timeout,
             truncate_text=truncate_text,
             callback_manager=callback_manager,
@@ -123,7 +123,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
 
         for idx, text in queue_with_progress:
             cur_batch.append(text)
-            if idx == len(texts) - 1 or len(cur_batch) == self.embed_batch_size:
+            if idx == len(texts) - 1 or len(cur_batch) == self.batch_size:
                 # flush
                 dispatcher.event(
                     EmbeddingStartEvent(

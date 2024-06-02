@@ -24,7 +24,7 @@ class PromptCompressorEngine:
     ) -> PromptCompressorResult | None:
         try:
             text_list = [
-                node.text[: self.settings.node_max_tokens_hard_limit] for node in nodes
+                node.text[: self.settings.max_tokens_per_node] for node in nodes
             ]
 
             api_response = await call_internal_api(

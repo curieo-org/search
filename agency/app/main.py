@@ -16,7 +16,7 @@ _cleanup_coroutines: list = []
 
 async def start_services() -> None:
     # tracing
-    setup_tracing(app_settings.sentry)
+    setup_tracing(app_settings.tracing)
 
     # db connection
     # embedding connection

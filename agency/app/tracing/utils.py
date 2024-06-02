@@ -12,13 +12,13 @@ from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.grpc import GRPCIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-from app.settings import SentrySettings
+from app.settings import TracingSettings
 
 
-def setup_tracing(settings: SentrySettings) -> None:
+def setup_tracing(settings: TracingSettings) -> None:
     if settings.environment == "production":
         sentry_sdk.init(
-            dsn=settings.dsn.get_secret_value(),
+            sentry_dsn=settings.sentry_dsn.get_secret_value(),
             enable_tracing=settings.enable_tracing,
             integrations=[
                 AsyncioIntegration(),

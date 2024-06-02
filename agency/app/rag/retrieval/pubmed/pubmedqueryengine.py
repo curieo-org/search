@@ -37,7 +37,7 @@ class PubmedSearchQueryEngine:
             base_url=self.settings.embedding.api_url,
             auth_token=self.settings.embedding.api_key.get_secret_value(),
             timeout=60,
-            embed_batch_size=self.settings.embedding.embed_batch_size,
+            batch_size=self.settings.embedding.batch_size,
         )
 
         self.splade_model = SpladeEmbeddingsInference(
@@ -45,25 +45,25 @@ class PubmedSearchQueryEngine:
             base_url=self.settings.spladeembedding.api,
             auth_token=self.settings.spladeembedding.api_key.get_secret_value(),
             timeout=60,
-            embed_batch_size=self.settings.spladeembedding.embed_batch_size,
+            batch_size=self.settings.spladeembedding.batch_size,
         )
 
         self.parent_client = AsyncQdrantClient(
-            url=self.settings.qdrant.parent_api_url,
-            port=self.settings.qdrant.parent_api_port,
-            api_key=self.settings.qdrant.api_key.get_secret_value(),
+            url=self.settings.pubmed_parent_qdrant.api_url,
+            port=self.settings.pubmed_parent_qdrant.api_port,
+            api_key=self.settings.pubmed_parent_qdrant.api_key.get_secret_value(),
             https=False,
         )
         self.cluster_client = AsyncQdrantClient(
-            url=self.settings.qdrant.cluster_api_url,
-            port=self.settings.qdrant.cluster_api_port,
-            api_key=self.settings.qdrant.api_key.get_secret_value(),
+            url=self.settings.pubmed_cluster_qdrant.api_url,
+            port=self.settings.pubmed_cluster_qdrant.api_port,
+            api_key=self.settings.pubmed_cluster_qdrant.api_key.get_secret_value(),
             https=False,
         )
 
         self.parent_vector_store = CurieoVectorStore(
             aclient=self.parent_client,
-            collection_name=self.settings.qdrant.parent_collection_name,
+            collection_name=self.settings.pubmed_parent_qdrant.collection_name,
             enable_hybrid=True,
             sparse_query_fn=self.sparse_query_vectors,
             batch_size=20,
@@ -74,7 +74,7 @@ class PubmedSearchQueryEngine:
 
         self.cluster_vector_store = CurieoVectorStore(
             aclient=self.cluster_client,
-            collection_name=self.settings.qdrant.cluster_collection_name,
+            collection_name=self.settings.pubmed_cluster_qdrant.collection_name,
             enable_hybrid=True,
             sparse_query_fn=self.sparse_query_vectors,
             sparse_doc_fn=default_sparse_encoder(
@@ -96,8 +96,8 @@ class PubmedSearchQueryEngine:
         )
         self.parent_retriever = VectorIndexRetriever(
             index=self.parent_vectordb_index,
-            similarity_top_k=self.settings.qdrant.parent_top_k,
-            sparse_top_k=self.settings.qdrant.parent_sparse_top_k,
+            similarity_top_k=self.settings.pubmed_parent_qdrant.top_k,
+            sparse_top_k=self.settings.pubmed_parent_qdrant.sparse_top_k,
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
             embed_model=self.embed_model,
         )
@@ -109,8 +109,8 @@ class PubmedSearchQueryEngine:
         )
         self.cluster_retriever = VectorIndexRetriever(
             index=self.cluster_vectordb_index,
-            similarity_top_k=self.settings.qdrant.cluster_top_k,
-            sparse_top_k=self.settings.qdrant.cluster_sparse_top_k,
+            similarity_top_k=self.settings.pubmed_cluster_qdrant.top_k,
+            sparse_top_k=self.settings.pubmed_cluster_qdrant.sparse_top_k,
             vector_store_query_mode=VectorStoreQueryMode.HYBRID,
             embed_model=self.embed_model,
         )
