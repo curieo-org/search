@@ -37,7 +37,7 @@ class PubmedSearchQueryEngine:
             base_url=self.settings.embedding.api_url,
             auth_token=self.settings.embedding.api_key.get_secret_value(),
             timeout=60,
-            batch_size=self.settings.embedding.batch_size,
+            embed_batch_size=self.settings.embedding.batch_size,
         )
 
         self.splade_model = SpladeEmbeddingsInference(
