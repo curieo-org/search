@@ -57,7 +57,7 @@ class TogetherSettings(BaseSettings):
 
 class BioLLMSettings(BaseSettings):
     # api_url: str = "http://openbiollm.dev.curieo.org/generate_stream"
-    api_url: str = "http://localhost:8001/generate_stream"
+    api_url: str = "http://localhost:8085/generate_stream"
     auth_token: SecretStr
     max_new_tokens: int = 20
 
@@ -78,11 +78,11 @@ class SpladeEmbeddingSettings(BaseSettings):
     embed_batch_size: int = 4
 
 
-class RerankingSettings(BaseSettings):
+class PostProcessingSettings(BaseSettings):
     # api: str = "http://search-llmlingua.dev.curieo.org/compress_prompt"
-    api: str = "http://localhost:8000/compress_prompt"
-    auth_token: SecretStr
-    top_count: int = 5
+    api: str = "http://localhost:8020/compress_prompt"
+    node_max_tokens_hard_limit : int = 512
+    compressed_target_token: int = 300
 
 
 class TableInfoDirSettings(BaseSettings):
@@ -125,8 +125,8 @@ class GroqSettings(BaseSettings):
 
 
 class QdrantSettings(BaseSettings):
-    parent_api_port: int = 6334
-    cluster_api_port: int = 6335
+    parent_api_port: int = 6333
+    cluster_api_port: int = 7333
     # api_port: int = 6333
     parent_api_url: str = "localhost"  # for dev uncomment it only
     # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
@@ -202,7 +202,7 @@ class Settings(BaseSettings):
     dspy: DspySettings = DspySettings()
     embedding: EmbeddingSettings
     spladeembedding: SpladeEmbeddingSettings
-    reranking: RerankingSettings
+    post_process: PostProcessingSettings = PostProcessingSettings()
     biollm: BioLLMSettings
     qdrant: QdrantSettings
     llama_index_helper: LlamaIndexHelperSettings = LlamaIndexHelperSettings()

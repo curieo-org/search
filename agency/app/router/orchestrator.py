@@ -6,7 +6,7 @@ from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.rag.reranker.response_reranker import RerankEngine
+from app.rag.post_process.prompt_compressor import PromptCompressorEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
 from app.rag.utils.models import RetrievedResult, SearchResultRecord
@@ -18,30 +18,13 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 
 class Orchestrator:
-    """Orchestrator is responsible for routing the search engine query.
-
-    It currently supports 2 routes:
-    1. Pubmed
-        1.1 Pubmed Parents
-        1.2 Pubmed Children
-    2. Brave API search
-
-    TODO: enable support for
-    3. Clinical trials
-    4. Drug chembl
-    """
-
     def __init__(self, settings: Settings):
         self.settings = settings
-        # self.router = RouterModule()
-        # self.router.load(settings.dspy.orchestrator_router_prompt_program)
 
-        # self.clinical_trial_search = ClinicalTrialText2SQLEngine(settings)
-        # self.drug_chembl_search = DrugChEMBLText2CypherEngine(settings)
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
-        self.reranker = RerankEngine(settings=settings.reranking)
+        self.compress_engine = PromptCompressorEngine(settings=settings.post_process)
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
                 model="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -49,32 +32,34 @@ class Orchestrator:
             ),
         )
 
-    async def handle_pubmed_bioxriv_web_search(
+    async def handle_pubmed_web_search(
         self, search_text: str
     ) -> SearchResultRecord | None:
-        logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
+        logger.info(f"handle_pubmed_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
-        reranked_results = []
         try:
             (
                 extracted_pubmed_results,
-                extracted_pubmed_cluster_results,
-                extracted_web_results,
+                #extracted_pubmed_cluster_results,
+                #extracted_web_results,
             ) = await asyncio.gather(
                 self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
-                self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text),
+                #self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
+                #self.brave_search.call_brave_search_api(search_text=search_text),
             )
             extracted_results = (
                 extracted_pubmed_results
-                + extracted_pubmed_cluster_results
-                + extracted_web_results
+                #+ extracted_pubmed_cluster_results
+                #+ extracted_web_results
             )
 
-            # rerank call
-            reranked_results = self.reranker.rerank_nodes(
+            # post process call
+            if len(extracted_results) == 0:
+                return None
+            
+            compressed_prompt = await self.compress_engine.compress_nodes(
                 query_bundle=QueryBundle(query_str=search_text),
-                nodes=extracted_results,
+                nodes=extracted_results
             )
 
             # summarizer model
