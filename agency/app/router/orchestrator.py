@@ -43,20 +43,22 @@ class Orchestrator:
         logger.info(f"handle_pubmed_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
         try:
-            (
-                extracted_pubmed_results,
-                extracted_pubmed_cluster_results,
-                extracted_web_results,
-            ) = await asyncio.gather(
-                self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
-                self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text),
-            )
-            extracted_results = (
-                extracted_pubmed_results
-                + extracted_pubmed_cluster_results
-                + extracted_web_results
-            )
+            # (
+            #     # extracted_pubmed_results,
+            #     # extracted_pubmed_cluster_results,
+            #     extracted_web_results,
+            # ) = await asyncio.gather(
+            #     # self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
+            #     # self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
+            #     self.brave_search.call_brave_search_api(search_text=search_text),
+            # )
+            # extracted_results = (
+            #     # extracted_pubmed_results
+            #     # + extracted_pubmed_cluster_results
+            #     + extracted_web_results
+            # )
+
+            extracted_results = await self.brave_search.call_brave_search_api(search_text=search_text)
 
             # post process call
             if len(extracted_results) == 0:

@@ -24,7 +24,7 @@ class BraveSearchQueryEngine:
 
     def __init__(self, settings: BraveSettings):
         self.settings = settings
-        self.default_timeout = 5.0
+        self.default_timeout = 3.0
 
     async def search_request(self, search_text: str) -> httpx.Response | None:
         logger.info("brave_search: " + search_text)
