@@ -157,13 +157,12 @@ class PubmedSearchQueryEngine:
             for record in cursor.fetchall():
                 result[record[0]] = record[1]
             return result
-        
+
     async def get_pubmed_record_titles(self, pubmed_ids: list[int]) -> dict[int, str]:
         query = "SELECT identifier, title FROM {table_name} where identifier in ({ids})"
 
         tuple_str = ", ".join(
-            f"'{item}'" if isinstance(item, str) else str(item)
-            for item in pubmed_ids
+            f"'{item}'" if isinstance(item, str) else str(item) for item in pubmed_ids
         )
 
         with self.engine.begin() as connection:
@@ -206,10 +205,7 @@ class PubmedSearchQueryEngine:
                 if n.score >= float(self.parent_relevance_criteria)
             ]
 
-            pubmed_ids = [
-                node.metadata.get("pubmedid", 0)
-                for node in filtered_nodes
-            ]
+            pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]
             pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
 
             retrieved_results = [
@@ -221,7 +217,9 @@ class PubmedSearchQueryEngine:
                                 "url": self.get_pubmed_url(
                                     node.metadata.get("pubmedid", 0)
                                 ),
-                                "title": pubmed_titles.get(node.metadata.get("pubmedid", 0), ""),
+                                "title": pubmed_titles.get(
+                                    node.metadata.get("pubmedid", 0), ""
+                                ),
                                 "abstract": node.get_text(),
                             }
                         ),
@@ -252,10 +250,7 @@ class PubmedSearchQueryEngine:
             ]
 
             # Create a dictionary of pubmed_id and children_node_ids
-            pubmed_ids = [
-                node.metadata.get("pubmedid", 0)
-                for node in filtered_nodes
-            ]
+            pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]
             pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
             nodes_dict = {
                 node.metadata.get("pubmedid", 0): {

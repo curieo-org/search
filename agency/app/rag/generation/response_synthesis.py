@@ -1,7 +1,5 @@
+from llama_index.core.prompts.default_prompt_selectors import DEFAULT_TEXT_QA_PROMPT
 from llama_index.llms.huggingface import TextGenerationInference
-from llama_index.core.prompts.default_prompt_selectors import (
-    DEFAULT_TEXT_QA_PROMPT
-)
 
 from app.settings import BioLLMSettings
 from app.utils.logging import setup_logger
@@ -10,14 +8,13 @@ logger = setup_logger("ResponseSynthesisEngine")
 
 
 class ResponseSynthesisEngine:
-    def __init__(self,
-                settings: BioLLMSettings):
+    def __init__(self, settings: BioLLMSettings):
         self.settings = settings
         self.summarizer_llm = TextGenerationInference(
             model_name=self.settings.model_name,
             model_url=self.settings.api_url,
             temperature=self.settings.temperature,
-            max_tokens=self.settings.max_tokens
+            max_tokens=self.settings.max_tokens,
         )
         self.language = "en-US"
 
@@ -30,10 +27,9 @@ class ResponseSynthesisEngine:
         search_text: str,
         context_str: str,
     ) -> str:
-        context_str = context_str[:self.settings.prompt_token_limit]
+        context_str = context_str[: self.settings.prompt_token_limit]
         return DEFAULT_TEXT_QA_PROMPT.format(
-            context_str=context_str,
-            query_str=search_text
+            context_str=context_str, query_str=search_text
         )
 
     async def call_llm_service(
@@ -54,4 +50,4 @@ class ResponseSynthesisEngine:
                 exc_info=ex,
                 stack_info=True,
             )
-            return None 
+            return None

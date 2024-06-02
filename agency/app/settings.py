@@ -84,7 +84,7 @@ class SpladeEmbeddingSettings(BaseSettings):
 class PostProcessingSettings(BaseSettings):
     # api: str = "http://search-llmlingua.dev.curieo.org/compress"
     api: str = "http://localhost:8000/compress"
-    node_max_tokens_hard_limit : int = 512
+    node_max_tokens_hard_limit: int = 512
     compressed_target_token: int = 300
 
 

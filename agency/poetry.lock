@@ -1973,6 +1973,24 @@ postgres = ["asyncpg (>=0.28.0,<0.29.0)", "pgvector (>=0.1.0,<0.2.0)", "psycopg2
 query-tools = ["guidance (>=0.0.64,<0.0.65)", "jsonpath-ng (>=1.6.0,<2.0.0)", "lm-format-enforcer (>=0.4.3,<0.5.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "scikit-learn", "spacy (>=3.7.1,<4.0.0)"]
 
 [[package]]
+name = "llama-index-llms-huggingface"
+version = "0.2.2"
+description = "llama-index llms huggingface integration"
+optional = false
+python-versions = "<4.0,>=3.8.1"
+files = [
+    {file = "llama_index_llms_huggingface-0.2.2-py3-none-any.whl", hash = "sha256:ed6dbe46b86eae444153117a80f7d4bdaea63ca3cc4f63af84280fd84db264f6"},
+    {file = "llama_index_llms_huggingface-0.2.2.tar.gz", hash = "sha256:6461b1320dbaa60956fe8955fad81615862495349ad7ec849170a7dca66ad9c1"},
+]
+
+[package.dependencies]
+huggingface-hub = ">=0.23.0,<0.24.0"
+llama-index-core = ">=0.10.41,<0.11.0"
+text-generation = ">=0.7.0,<0.8.0"
+torch = ">=2.1.2,<3.0.0"
+transformers = {version = ">=4.37.0,<5.0.0", extras = ["torch"]}
+
+[[package]]
 name = "llama-index-llms-openai"
 version = "0.1.21"
 description = "llama-index llms openai integration"
@@ -4579,6 +4597,22 @@ doc = ["reno", "sphinx"]
 test = ["pytest", "tornado (>=4.5)", "typeguard"]
 
 [[package]]
+name = "text-generation"
+version = "0.7.0"
+description = "Hugging Face Text Generation Python Client"
+optional = false
+python-versions = "<4.0,>=3.7"
+files = [
+    {file = "text_generation-0.7.0-py3-none-any.whl", hash = "sha256:02ab337a0ee0e7c70e04a607b311c261caae74bde46a7d837c6fdd150108f4d8"},
+    {file = "text_generation-0.7.0.tar.gz", hash = "sha256:689200cd1f0d4141562af2515393c2c21cdbd9fac21c8398bf3043cdcc14184e"},
+]
+
+[package.dependencies]
+aiohttp = ">=3.8,<4.0"
+huggingface-hub = ">=0.12,<1.0"
+pydantic = ">2,<3"
+
+[[package]]
 name = "tiktoken"
 version = "0.7.0"
 description = "tiktoken is a fast BPE tokeniser for use with OpenAI's models"
@@ -4867,6 +4901,7 @@ files = [
 ]
 
 [package.dependencies]
+accelerate = {version = ">=0.21.0", optional = true, markers = "extra == \"torch\""}
 filelock = "*"
 huggingface-hub = ">=0.23.0,<1.0"
 numpy = ">=1.17"
@@ -4876,6 +4911,7 @@ regex = "!=2019.12.17"
 requests = "*"
 safetensors = ">=0.4.1"
 tokenizers = ">=0.19,<0.20"
+torch = {version = "*", optional = true, markers = "extra == \"torch\""}
 tqdm = ">=4.27"
 
 [package.extras]
@@ -5596,4 +5632,4 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "a6a9c6c5344cb7ea459d2113ec54b4acd5e4947d648137675c06074a2becf5b2"
+content-hash = "5496407bf8ec36e08b1269c6d134149a9ab2803c6f9d3641dca988001764a2e8"
