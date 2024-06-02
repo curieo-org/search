@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 
 import pydantic
 import redis.asyncio as aioredis
@@ -44,8 +45,10 @@ class RedisCache(AsyncCache[RedisKey, RedisValue]):
 
             if isinstance(value, pydantic.BaseModel):
                 await self.redis.set(key, value.model_dump_json(), ex=expire)
-
-            await self.redis.set(key, value, ex=expire)
+            elif isinstance(value, dict):
+                await self.redis.set(key, json.dumps(value), ex=expire)
+            else:
+                await self.redis.set(key, value, ex=expire)
 
         except aioredis.RedisError as e:
             logger.exception("Setting value in redis failed: ", e)

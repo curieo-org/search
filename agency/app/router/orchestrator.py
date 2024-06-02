@@ -1,7 +1,6 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
 import re
-import time
 
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
@@ -71,11 +70,9 @@ class Orchestrator:
             if compressed_prompt is None:
                 return None
 
-            start_time = time.time()
             result = self.summarizer.get_response(
                 query_str=search_text, text_chunks=compressed_prompt.prompt_list
             )
-            print(time.time() - start_time)
 
             # result = await self.response_synthesis.call_llm_service(
             #     search_text=search_text,
@@ -91,7 +88,7 @@ class Orchestrator:
 
         except Exception as e:
             logger.exception(
-                "Orchestrator.handle_pubmed_bioxriv_web_search failed -",
+                "Orchestrator.handle_pubmed_web_search failed -",
                 exc_info=e,
                 stack_info=True,
             )

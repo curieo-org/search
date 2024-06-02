@@ -36,7 +36,7 @@ class ResponseSynthesisEngine:
         self,
         search_text: str,
         context_str: str,
-    ) -> str:
+    ) -> str | None:
         logger.info("call_llm_service_api. search_text: " + search_text)
 
         try:

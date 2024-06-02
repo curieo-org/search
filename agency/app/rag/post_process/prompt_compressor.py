@@ -44,6 +44,10 @@ class PromptCompressorEngine:
                         nodes[source_index].source for source_index in result["sources"]
                     ],
                 )
+
+                compressed_result.sources = compressed_result.sources[
+                    : self.settings.top_n_sources
+                ]
                 return compressed_result
             return None
 

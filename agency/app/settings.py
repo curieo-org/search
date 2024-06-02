@@ -56,7 +56,6 @@ class TogetherSettings(BaseSettings):
 
 
 class BioLLMSettings(BaseSettings):
-    # api_url: str = "http://openbiollm.dev.curieo.org/generate_stream"
     model_name: str = "ivarflakstad/Llama3-OpenBioLLM-8B"
     api_url: str = "http://localhost:8085"
     auth_token: SecretStr
@@ -82,10 +81,10 @@ class SpladeEmbeddingSettings(BaseSettings):
 
 
 class PostProcessingSettings(BaseSettings):
-    # api: str = "http://search-llmlingua.dev.curieo.org/compress"
     api: str = "http://localhost:8000/compress"
     node_max_tokens_hard_limit: int = 512
     compressed_target_token: int = 300
+    top_n_sources: int = 10
 
 
 class TableInfoDirSettings(BaseSettings):
@@ -130,16 +129,13 @@ class GroqSettings(BaseSettings):
 class QdrantSettings(BaseSettings):
     parent_api_port: int = 6333
     cluster_api_port: int = 7333
-    # api_port: int = 6333
     parent_api_url: str = "localhost"  # for dev uncomment it only
-    # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
-
     cluster_api_url: str = "localhost"  # for dev uncomment it only
-    # api_url: str = "http://qdrant.qdrant.svc.cluster.local" #for prod uncomment it only
 
     parent_collection_name: str = "pubmed_parent_hybrid"
     cluster_collection_name: str = "pubmed_cluster_hybrid"
     clinical_trial_collection_name: str = "clinical_trials_vector_db"
+
     api_key: SecretStr
 
     parent_top_k: int = 10
@@ -152,9 +148,10 @@ class QdrantSettings(BaseSettings):
     clinical_trial_metadata_field_name: str = "title"
 
 
-class LlamaIndexHelperSettings(BaseSettings):
+class PubmedRetrievalSettings(BaseSettings):
     parent_relevance_criteria: float = 0.1
     cluster_relevance_criteria: float = 0.1
+    url_prefix: str = "https://pubmed.ncbi.nlm.nih.gov"
 
 
 class DspySettings(BaseSettings):
@@ -178,7 +175,7 @@ class AIModelsSettings(BaseSettings):
     pubmed_response_synthesizer_model: str = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 
-class PsqlSettings(BaseSettings):
+class PubmedDatabaseSettings(BaseSettings):
     connection: SecretStr
     children_text_table_name: str = "pubmed_text_details"
     record_title_table_name: str = "pubmed_titles"
@@ -192,7 +189,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
-    psql: PsqlSettings
+    pubmed_database: PubmedDatabaseSettings
     project: ProjectSettings = ProjectSettings()
     search: SearchSettings = SearchSettings()
     brave: BraveSettings
@@ -209,7 +206,7 @@ class Settings(BaseSettings):
     post_process: PostProcessingSettings = PostProcessingSettings()
     biollm: BioLLMSettings
     qdrant: QdrantSettings
-    llama_index_helper: LlamaIndexHelperSettings = LlamaIndexHelperSettings()
+    pubmed_retrieval: PubmedRetrievalSettings = PubmedRetrievalSettings()
     table_info_dir: TableInfoDirSettings = TableInfoDirSettings()
     ai_models: AIModelsSettings = AIModelsSettings()
 

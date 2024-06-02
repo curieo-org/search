@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Tuple
 
 from llama_index.core import StorageContext, VectorStoreIndex
@@ -6,8 +7,8 @@ from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from llama_index.vector_stores.qdrant.utils import default_sparse_encoder
 from qdrant_client import AsyncQdrantClient
-from sqlalchemy import create_engine, text
 
+from app.rag.retrieval.pubmed.utils.database import PubmedDatabaseUtils
 from app.rag.utils.models import PubmedSourceRecord, RetrievedResult
 from app.rag.utils.splade_embedding import SpladeEmbeddingsInference
 from app.settings import Settings
@@ -20,31 +21,16 @@ logger = setup_logger("PubmedSearchQueryEngine")
 class PubmedSearchQueryEngine:
     """Calls the pubmed database, processes the data and returns the result."""
 
-    def sparse_query_vectors(
-        self,
-        texts: List[str],
-    ) -> Tuple[List[List[int]], List[List[float]]]:
-        splade_embeddings = self.splade_model.get_text_embedding_batch(texts)
-        indices = [
-            [entry.get("index") for entry in sublist] for sublist in splade_embeddings
-        ]
-        vectors = [
-            [entry.get("value") for entry in sublist] for sublist in splade_embeddings
-        ]
-
-        assert len(indices) == len(vectors)
-        return indices, vectors
-
     def __init__(self, settings: Settings):
         self.settings = settings
 
         self.parent_relevance_criteria = (
-            self.settings.llama_index_helper.parent_relevance_criteria
+            self.settings.pubmed_retrieval.parent_relevance_criteria
         )
         self.cluster_relevance_criteria = (
-            self.settings.llama_index_helper.cluster_relevance_criteria
+            self.settings.pubmed_retrieval.cluster_relevance_criteria
         )
-        self.engine = create_engine(self.settings.psql.connection.get_secret_value())
+        self.pubmed_database = PubmedDatabaseUtils(settings.pubmed_database)
 
         self.embed_model = TextEmbeddingsInference(
             model_name="",
@@ -129,65 +115,29 @@ class PubmedSearchQueryEngine:
             embed_model=self.embed_model,
         )
 
-    async def get_children_node_text(
-        self, children_node_ids: list[str]
-    ) -> dict[str, str]:
-        query = "SELECT id, node_text FROM {table_name} where id in ({ids})"
+    def sparse_query_vectors(
+        self,
+        texts: List[str],
+    ) -> Tuple[List[List[int]], List[List[float]]]:
+        try:
+            splade_embeddings = self.splade_model.get_text_embedding_batch(texts)
+            indices = [
+                [entry.get("index") for entry in sublist]
+                for sublist in splade_embeddings
+            ]
+            vectors = [
+                [entry.get("value") for entry in sublist]
+                for sublist in splade_embeddings
+            ]
 
-        tuple_str = ", ".join(
-            f"'{item}'" if isinstance(item, str) else str(item)
-            for item in children_node_ids
-        )
-
-        with self.engine.begin() as connection:
-            try:
-                cursor = connection.execute(
-                    text(
-                        query.format(
-                            table_name=self.settings.psql.children_text_table_name,
-                            ids=tuple_str,
-                        )
-                    )
-                )
-            except Exception as exc:
-                logger.exception("Failed to select records from the database.", exc)
-                return []
-
-            result = dict()
-            for record in cursor.fetchall():
-                result[record[0]] = record[1]
-            return result
-
-    async def get_pubmed_record_titles(self, pubmed_ids: list[int]) -> dict[int, str]:
-        query = "SELECT identifier, title FROM {table_name} where identifier in ({ids})"
-
-        tuple_str = ", ".join(
-            f"'{item}'" if isinstance(item, str) else str(item) for item in pubmed_ids
-        )
-
-        with self.engine.begin() as connection:
-            try:
-                cursor = connection.execute(
-                    text(
-                        query.format(
-                            table_name=self.settings.psql.record_title_table_name,
-                            ids=tuple_str,
-                        )
-                    )
-                )
-            except Exception as exc:
-                logger.exception("Failed to select records from the database.", exc)
-                return []
-
-            result = dict()
-            for record in cursor.fetchall():
-                result[record[0]] = record[1]
-            return result
+            assert len(indices) == len(vectors)
+            return indices, vectors
+        except Exception as e:
+            logger.exception("failed to query vectors from the splade model", e)
+            return [], []
 
     def get_pubmed_url(self, pubmed_id: int) -> str:
-        url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
-
-        return f"{url_prefix}/{pubmed_id}"
+        return f"{self.settings.pubmed_retrieval.url_prefix}/{pubmed_id}"
 
     async def call_pubmed_parent_vectors(
         self, search_text: str
@@ -205,7 +155,9 @@ class PubmedSearchQueryEngine:
             ]
 
             pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]
-            pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
+            pubmed_titles = await self.pubmed_database.get_pubmed_record_titles(
+                pubmed_ids
+            )
 
             retrieved_results = [
                 RetrievedResult.model_validate(
@@ -250,7 +202,6 @@ class PubmedSearchQueryEngine:
 
             # Create a dictionary of pubmed_id and children_node_ids
             pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]
-            pubmed_titles = await self.get_pubmed_record_titles(pubmed_ids)
             nodes_dict = {
                 node.metadata.get("pubmedid", 0): {
                     "children_node_ids": node.metadata.get("children_node_ids", []),
@@ -262,8 +213,13 @@ class PubmedSearchQueryEngine:
                 for sublist in nodes_dict.values()
                 for item in sublist["children_node_ids"]
             ]
-            children_node_texts = await self.get_children_node_text(
-                all_children_node_ids
+
+            (
+                pubmed_titles,
+                children_node_texts,
+            ) = await asyncio.gather(
+                self.pubmed_database.get_pubmed_record_titles(pubmed_ids),
+                self.pubmed_database.get_children_node_text(all_children_node_ids),
             )
 
             result_nodes = [

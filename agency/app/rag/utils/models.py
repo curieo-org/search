@@ -27,8 +27,8 @@ class BraveSourceRecord(SourceModel, BraveSearchResult):
 class PubmedSourceRecord(SourceModel, PubmedSearchResult):
     def to_grpc_source(self) -> Source:
         return Source(
-            url=self.url,
-            metadata={"title": self.title, "abstract": self.abstract},
+            url=str(self.url),
+            metadata={"title": self.title, "description": self.abstract},
         )
 
 
