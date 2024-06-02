@@ -28,18 +28,19 @@ class PromptCompressorEngine:
         try:
             text_list = [node.text[:self.settings.node_max_tokens_hard_limit] for node in nodes]
 
-            result = call_internal_api(
+            api_response = await call_internal_api(
                 url=self.settings.api,
                 data={
                     "query": query_bundle.query_str,
                     "target_token": self.settings.compressed_target_token,
                     "context_texts_list": text_list,
                 }
-            ).get('response', {})
+            )
 
+            result = api_response.get("response", {})
             if result.get("compressed_tokens"):
                 compressed_result = PromptCompressorResult(
-                    prompt=result.get("compressed_prompt", ""),
+                    prompt_list=result.get("compressed_prompt_list", ""),
                     sources=[
                         nodes[source_index].source for source_index in result["sources"]
                     ],

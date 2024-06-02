@@ -45,7 +45,7 @@ class RetrievedResult(BaseModel):
 class PromptCompressorResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    prompt: str
+    prompt_list: list[str]
     sources: list[SourceRecord]
 
 

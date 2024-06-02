@@ -62,11 +62,11 @@ async def httpx_get(
         timeout=timeout,
     )
 
-def call_internal_api(url: str, data: dict):
+async def call_internal_api(url: str, data: dict):
     headers = {"Content-Type": "application/json"}
 
-    with httpx.Client() as client:
-        response = client.post(
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
             url,
             headers=headers,
             json=data

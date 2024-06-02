@@ -57,9 +57,12 @@ class TogetherSettings(BaseSettings):
 
 class BioLLMSettings(BaseSettings):
     # api_url: str = "http://openbiollm.dev.curieo.org/generate_stream"
-    api_url: str = "http://localhost:8085/generate_stream"
+    model_name: str = "ivarflakstad/Llama3-OpenBioLLM-8B"
+    api_url: str = "http://localhost:8085"
     auth_token: SecretStr
-    max_new_tokens: int = 20
+    temperature: float = 0.1
+    max_tokens: int = 1000
+    prompt_token_limit: int = 3000
 
 
 class OpenAISettings(BaseSettings):
@@ -79,8 +82,8 @@ class SpladeEmbeddingSettings(BaseSettings):
 
 
 class PostProcessingSettings(BaseSettings):
-    # api: str = "http://search-llmlingua.dev.curieo.org/compress_prompt"
-    api: str = "http://localhost:8020/compress_prompt"
+    # api: str = "http://search-llmlingua.dev.curieo.org/compress"
+    api: str = "http://localhost:8000/compress"
     node_max_tokens_hard_limit : int = 512
     compressed_target_token: int = 300
 

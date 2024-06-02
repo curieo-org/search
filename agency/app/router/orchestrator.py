@@ -1,15 +1,17 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
 import re
+import time
 
-from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
+from llama_index.core.response_synthesizers import SimpleSummarize
 
 from app.rag.post_process.prompt_compressor import PromptCompressorEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
 from app.rag.utils.models import RetrievedResult, SearchResultRecord
+from app.rag.generation.response_synthesis import ResponseSynthesisEngine
 from app.settings import Settings
 from app.utils.logging import setup_logger
 
@@ -25,9 +27,12 @@ class Orchestrator:
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
         self.compress_engine = PromptCompressorEngine(settings=settings.post_process)
+        # self.response_synthesis = ResponseSynthesisEngine(
+        #     settings=settings.biollm
+        # )
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
-                model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                model="meta-llama/Llama-3-70b-chat-hf",
                 api_key=self.settings.together.api_key.get_secret_value(),
             ),
         )
@@ -63,15 +68,25 @@ class Orchestrator:
             )
 
             # summarizer model
+            if compressed_prompt is None:
+                return None
+            
+            start_time = time.time()
             result = self.summarizer.get_response(
                 query_str=search_text,
-                text_chunks=[reranked_results.compressed_prompt],
+                text_chunks=compressed_prompt.prompt_list
             )
+            print(time.time() - start_time)
+            
+            # result = await self.response_synthesis.call_llm_service(
+            #     search_text=search_text,
+            #     context_str=compressed_prompt.prompt
+            # )
 
             return SearchResultRecord.model_validate(
                 {
                     "result": result,
-                    "sources": reranked_results.reranked_sources,
+                    "sources": compressed_prompt.sources,
                 },
             )
 
@@ -82,80 +97,3 @@ class Orchestrator:
                 stack_info=True,
             )
             return None
-
-    async def handle_clinical_trial_search(
-        self,
-        search_text: str,
-    ) -> SearchResultRecord | None:
-        # TODO: Enable once stable and infallible
-        """# clinical trial call
-        logger.info(
-            "handle_clinical_trial_search.router_id clinical trial Entered."
-        )
-        try:
-            sql_response = await self.clinical_trial_search.call_text2sql(
-                search_text=search_text
-            )
-            result = str(sql_response)
-            sources = [result]  # TODO: clinical trial sql sources impl.
-
-            logger.info(f"sql_response: {result}")
-
-            return SearchResultRecord(result=result, sources=sources)
-        except Exception as e:
-            logger.exception(
-                "Orchestrator.handle_clinical_trial_search.sqlResponse Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        """
-        return None
-
-    async def handle_drug_search(self, search_text: str) -> SearchResultRecord | None:
-        # TODO: Enable once stable and infallible
-        """# drug information call
-        logger.info(
-            "Orchestrator.handle_drug_search drug_information_choice "
-            "Entered."
-        )
-        try:
-            cypher_response = await self.drug_chembl_search.call_text2cypher(
-                search_text=search_text
-            )
-            result = str(cypher_response)
-            sources = [result]  # TODO: chembl cypher sources impl
-            logger.info(
-                f"Orchestrator.handle_drug_search.cypher_response "
-                f"cypher_response: {result}"
-            ).
-
-            return SearchResultRecord(result=result, sources=sources)
-        except Exception as e:
-            logger.exception(
-                "Orchestrator.handle_drug_search.cypher_response Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        """
-        return None
-
-    # TODO: Enable once stable and infallible
-    """
-    # initialize router with bad value
-    router_id = -1
-
-    # user not specified
-    if route_category == RouteCategory.NOT_SELECTED:
-        logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
-        try:
-            router_id = int(self.router(search_text).answer)
-        except Exception as e:
-            logger.exception(
-                "query_and_get_answer.router_id Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
-
-    # if routing fails, sql and cypher calls fail, routing to pubmed or brave
-    """
