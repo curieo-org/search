@@ -18,7 +18,7 @@ from app.settings import TracingSettings
 def setup_tracing(settings: TracingSettings) -> None:
     if settings.environment == "production":
         sentry_sdk.init(
-            sentry_dsn=settings.sentry_dsn.get_secret_value(),
+            dsn=settings.sentry_dsn.get_secret_value(),
             enable_tracing=settings.enable_tracing,
             integrations=[
                 AsyncioIntegration(),
