@@ -43,15 +43,21 @@ class Orchestrator:
         logger.info(f"handle_pubmed_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
         try:
-            (
-                extracted_web_results,
-                extracted_pubmed_results,
-                extracted_pubmed_cluster_results,
-            ) = await asyncio.gather(
-                self.brave_search.call_brave_search_api(search_text=search_text),
-                self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text),
-                self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text),
-            )
+            #credit goes to Ivar
+            async with asyncio.TaskGroup() as tg:
+                extracted_pubmed_task = tg.create_task(
+                    self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text)
+                )
+                extracted_pubmed_cluster_task = tg.create_task(
+                    self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text)
+                )
+                extracted_web_task = tg.create_task(
+                    self.brave_search.call_brave_search_api(search_text=search_text)
+                )
+            extracted_pubmed_results = extracted_pubmed_task.result()
+            extracted_pubmed_cluster_results = extracted_pubmed_cluster_task.result()
+            extracted_web_results = extracted_web_task.result()
+
             extracted_results = (
                 extracted_pubmed_results
                 + extracted_pubmed_cluster_results
