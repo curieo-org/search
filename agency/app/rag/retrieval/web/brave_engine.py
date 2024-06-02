@@ -48,7 +48,6 @@ class BraveSearchQueryEngine:
 
         return await httpx_get(url=url, headers=headers, timeout=self.default_timeout)
 
-    @fcached("agency.brave.search.{search_text}")
     async def cached_search(
         self,
         search_text: str,
