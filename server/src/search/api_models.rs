@@ -56,6 +56,12 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateThreadRequest {
+    pub thread_id: uuid::Uuid,
+    pub title: String,
+}
+
 //#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 //pub struct BraveSource {
 //    pub url: String,

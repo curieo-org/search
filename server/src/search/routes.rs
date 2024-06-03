@@ -70,6 +70,19 @@ async fn get_one_thread_handler(
 }
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn update_thread_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Json(update_thread_request): Json<api_models::UpdateThreadRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    services::update_thread(&pool, &user_id, &update_thread_request).await?;
+
+    Ok(StatusCode::OK)
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn update_search_reaction_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -87,6 +100,7 @@ pub fn routes() -> Router<AppState> {
         .route("/", get(get_search_query_handler))
         .route("/searches", get(get_one_search_result_handler))
         .route("/threads", get(get_one_thread_handler))
+        .route("/threads", patch(update_thread_handler))
         .route("/history", get(get_threads_handler))
         .route("/reaction", patch(update_search_reaction_handler))
 }

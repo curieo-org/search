@@ -191,6 +191,25 @@ pub async fn get_one_thread(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
+pub async fn update_thread(
+    pool: &PgPool,
+    user_id: &Uuid,
+    thread_update_request: &api_models::UpdateThreadRequest,
+) -> crate::Result<data_models::Thread> {
+    let thread = sqlx::query_as!(
+        data_models::Thread,
+        "update threads set title = $1 where thread_id = $2 and user_id = $3 returning *",
+        thread_update_request.title,
+        thread_update_request.thread_id,
+        user_id,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    return Ok(thread);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
 pub async fn update_search_reaction(
     pool: &PgPool,
     user_id: &Uuid,
