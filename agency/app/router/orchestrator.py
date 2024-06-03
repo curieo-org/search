@@ -43,13 +43,17 @@ class Orchestrator:
         logger.info(f"handle_pubmed_web_search. search_text: {search_text}")
         extracted_results = list[RetrievedResult]
         try:
-            #credit goes to Ivar
+            # async calls to pubmed and brave search
             async with asyncio.TaskGroup() as tg:
                 extracted_pubmed_task = tg.create_task(
-                    self.pubmed_search.call_pubmed_parent_vectors(search_text=search_text)
+                    self.pubmed_search.call_pubmed_parent_vectors(
+                        search_text=search_text
+                    )
                 )
                 extracted_pubmed_cluster_task = tg.create_task(
-                    self.pubmed_search.call_pubmed_cluster_vectors(search_text=search_text)
+                    self.pubmed_search.call_pubmed_cluster_vectors(
+                        search_text=search_text
+                    )
                 )
                 extracted_web_task = tg.create_task(
                     self.brave_search.call_brave_search_api(search_text=search_text)

@@ -4,7 +4,6 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from app.caching.redis import fcached
 from app.rag.retrieval.web.types import WebSearchApiResponse
 from app.rag.utils.models import RetrievedResult
 from app.settings import BraveSettings
