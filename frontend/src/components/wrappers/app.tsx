@@ -2,8 +2,7 @@ import { LayoutProps } from '@/app/layout'
 import { auth } from '@/auth'
 import { Slide, ToastContainer } from 'react-toastify'
 import { P } from '../lib/typography'
-import { WrappedWithNavMenu } from './app copy'
-import AuthRequired from './auth-required'
+import { AuthRequired, Authenticated } from './app-middleware'
 
 export default function App({ children }: LayoutProps) {
   return (
@@ -32,7 +31,7 @@ async function AppMiddleware({ children }: LayoutProps) {
   let session = await auth()
 
   if (session) {
-    return <WrappedWithNavMenu>{children}</WrappedWithNavMenu>
+    return <Authenticated>{children}</Authenticated>
   } else {
     return <AuthRequired>{children}</AuthRequired>
   }

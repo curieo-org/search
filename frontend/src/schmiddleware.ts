@@ -1,8 +1,8 @@
-import { auth } from '@/auth'
+import { next_auth } from '@/auth'
 import { authPaths } from '@/constants/route'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export default auth(req => {
+export default next_auth(req => {
   console.debug(req)
   console.debug('How can I tell if this is working?')
 

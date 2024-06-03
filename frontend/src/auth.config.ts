@@ -17,21 +17,14 @@ export const authConfig: NextAuthConfig = {
   },
   providers: [], // Set in auth.ts
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      console.debug(user, account, profile, email, credentials)
-      return user.id == '1' ? true : false
+    async signIn() {
+      return true
     },
     authorized({ auth, request: { nextUrl } }) {
-      console.error('oh dear god', auth, nextUrl)
       let isLoggedIn = !!auth?.user
-      let isOnDashboard = nextUrl.pathname.startsWith('/')
-
-      if (isOnDashboard) {
-        return isLoggedIn
-      } else if (!isLoggedIn) {
+      if (!isLoggedIn) {
         return Response.redirect(new URL('auth/signin', nextUrl))
       }
-
       return true
     },
   },
