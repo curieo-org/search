@@ -32,7 +32,7 @@ class Search(AgencyService):
 
         logger.info(f"pubmed_bioxriv_web_search. query: {query}")
         try:
-            if search_result := await orchestrator.handle_pubmed_bioxriv_web_search(
+            if search_result := await orchestrator.handle_pubmed_web_search(
                 query,
             ):
                 logger.info(f"pubmed_bioxriv_web_search. result: {search_result}")

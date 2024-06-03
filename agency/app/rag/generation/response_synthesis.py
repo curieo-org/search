@@ -1,31 +1,22 @@
-import json
-from urllib.parse import urlparse
+from llama_index.core.prompts.default_prompt_selectors import DEFAULT_TEXT_QA_PROMPT
+from llama_index.llms.huggingface import TextGenerationInference
 
-import pydantic
-import requests
-
-from app.settings import Settings
+from app.settings import BioLLMSettings
 from app.utils.logging import setup_logger
 
 logger = setup_logger("ResponseSynthesisEngine")
 
 
-class ResponseSynthesisRecord(pydantic.BaseModel):
-    result: str
-    source: list[str]
-
-
 class ResponseSynthesisEngine:
-    """Implements the logic to call the LLM in the last layer and returns the results.
-
-    It uses the preprocessed service and prompt template. Returns the output as a list.
-    """
-
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: BioLLMSettings):
         self.settings = settings
-        self.language = settings.project.prompt_language
-        self.together = settings.together
-        self.prompt_config = self.together.prompt_config
+        self.summarizer_llm = TextGenerationInference(
+            model_name=self.settings.model_name,
+            model_url=self.settings.api_url,
+            temperature=self.settings.temperature,
+            max_tokens=self.settings.max_tokens,
+        )
+        self.language = "en-US"
 
     @staticmethod
     def clean_response_text(response_text: str) -> str:
@@ -34,81 +25,24 @@ class ResponseSynthesisEngine:
     def get_prompt_v3(
         self,
         search_text: str,
-        reranked_results: list[dict[str, str]],
-    ) -> tuple[str, list[str]]:
-        logger.info(
-            f"LLMService.get_prompt_v3. search_text: {search_text}, reranked_results"
-            f".len: {len(reranked_results)}",
+        context_str: str,
+    ) -> str:
+        context_str = context_str[: self.settings.prompt_token_limit]
+        return DEFAULT_TEXT_QA_PROMPT.format(
+            context_str=context_str, query_str=search_text
         )
 
-        context_str = ""
-        urls = []
-        for result in reranked_results:
-            domain = urlparse(result["url"]).netloc.replace("www.", "")
-            urls.append(result["url"])
-            context_str += f"Source {domain}\n"
-
-            context_str += f"{result["text"]}\n"
-            context_str += "\n\n"
-
-        prompt_token_limit = self.prompt_config.prompt_token_limit
-        context_str = context_str[:prompt_token_limit]
-        prompt = f"""
-        Web search result:
-        {context_str}
-
-        Instructions: Using the provided web search results, write a comprehensive
-        reply to the given query. Make sure to cite results using [number] notation
-        after the reference. If the provided search results refer to multiple
-        subjects with the same name, write separate answers for each subject. Answer
-        in language: {self.language} If the context is insufficient, reply "I cannot
-        answer because my reference sources don't have related info" in language
-        {self.language}.
-        Query: {search_text}
-        """
-
-        return prompt, urls
-
-    async def call_llm_service_api(
+    async def call_llm_service(
         self,
         search_text: str,
-        reranked_results: list[dict[str, str]],
-    ) -> ResponseSynthesisRecord:
+        context_str: str,
+    ) -> str | None:
         logger.info("call_llm_service_api. search_text: " + search_text)
-        logger.info(
-            "call_llm_service_api. reranked_results length: "
-            + str(len(reranked_results)),
-        )
 
         try:
-            headers = {
-                "Authorization": "Bearer " + self.together.api_key.get_secret_value(),
-                "accept": "application/json",
-                "content-type": "application/json",
-            }
-
-            prompt, urls = self.get_prompt_v3(search_text, reranked_results)
-
-            payload = json.dumps(
-                {
-                    "model": self.together.model,
-                    "prompt": "<s>[INST] " + prompt + " [/INST]",
-                    "max_tokens": 1024,
-                    "stop": ["</s>", "[/INST]"],
-                    "temperature": 0.1,
-                    "top_p": 0.7,
-                    "top_k": 50,
-                    "repetition_penalty": 1,
-                    "n": 1,
-                },
-            )
-
-            response = requests.request(
-                "POST",
-                self.together.api_root,
-                headers=headers,
-                data=payload,
-            )
+            prompt = self.get_prompt_v3(search_text, context_str)
+            response = self.summarizer_llm.complete(prompt)
+            return self.clean_response_text(response)
 
         except Exception as ex:
             logger.exception(
@@ -116,11 +50,4 @@ class ResponseSynthesisEngine:
                 exc_info=ex,
                 stack_info=True,
             )
-            raise ex
-
-        logger.info("call_llm_service_api. response: " + response.text)
-
-        return ResponseSynthesisRecord(
-            result=self.clean_response_text(response.json()["choices"][0]["text"]),
-            source=list(urls),
-        )
+            return None
