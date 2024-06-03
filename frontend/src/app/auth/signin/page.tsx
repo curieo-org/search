@@ -17,7 +17,7 @@ export default function SignIn() {
           action={async formData => {
             'use server'
             try {
-              await signIn('credentials', formData, { redirectTo: '/search', redirect: '/search' })
+              await signIn('credentials', formData)
             } catch (error) {
               if (error instanceof AuthError) {
                 return redirect(`/auth/error?error=${error.type}`)

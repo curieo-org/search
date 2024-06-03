@@ -30,7 +30,7 @@ async fn register_handler(
 async fn login_handler(
     mut auth_session: AuthSession,
     Form(creds): Form<PasswordCredentials>,
-) -> crate::Result<()> {
+) -> crate::Result<Json<UserRecord>> {
     let user = match auth_session
         .authenticate(Credentials::Password(creds))
         .await
@@ -48,7 +48,7 @@ async fn login_handler(
     //        return Redirect::to(next).into_response();
     //    }
     //}
-    Ok(())
+    Ok(Json(UserRecord::from(user)))
 }
 
 pub const CSRF_STATE_KEY: &str = "auth.csrf-state";
@@ -138,14 +138,9 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
 
 #[tracing::instrument(level = "debug", skip_all)]
 async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
-    error!("Oh heck!");
     auth_session
         .user
         .map(UserRecord::from)
-        .map(|u| {
-            error!("User: {u:?}");
-            u
-        })
         .map(Json::from)
         .ok_or_else(|| AppError::Unauthorized)
 }

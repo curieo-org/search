@@ -4,7 +4,7 @@ import { encodeAsUrlSearchParams } from '@/utils'
 import { BackendAPIClient } from '@/utils/backend-api-client'
 import { AxiosResponse } from 'axios'
 import NextAuth, { Session, User } from 'next-auth'
-import { AccessDenied, OAuthCallbackError } from '@auth/core/errors'
+import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
 import { cookies } from 'next/headers'
 
@@ -26,21 +26,31 @@ export const {
       authorize: async (credentials, req) => {
         async function login(p: AuthParams): Promise<AxiosResponse<AuthResponse>> {
           return BackendAPIClient.post(
-            '/auth/login',
+            'auth/login',
             encodeAsUrlSearchParams({
               username: p.username.trim(),
               password: p.password,
             })
           )
         }
-        const response = await login(credentials as AuthParams)
-        console.error('response.data', response.data)
-        if (response.status === 200 && response.data) {
-          return {
-            id: response.data.user_id,
-            name: response.data.email,
-          } as User
+
+        console.error('credentials', credentials)
+        console.error('req', req)
+        try {
+          const response = await login(credentials as AuthParams)
+          console.error('response', response)
+          console.error('response.data', response.data)
+
+          if (200 >= response.status && response.status < 400 && response.data) {
+            return {
+              id: response.data.user_id,
+              name: response.data.email,
+            } as User
+          }
+        } catch (e) {
+          console.error('e', e)
         }
+
         throw new AccessDenied('Could not log in')
       },
     }),
@@ -58,7 +68,6 @@ export function getCsrfToken() {
 export async function auth(): Promise<Session | null> {
   const session = await next_auth()
   if (session?.user) {
-    console.error('session', session)
     session.user = {
       name: session.user.name,
       email: session.user.email,
@@ -69,7 +78,6 @@ export async function auth(): Promise<Session | null> {
 }
 
 export async function signUp(p: AuthParams): Promise<AxiosResponse<AuthResponse>> {
-  console.error('p', p)
   return BackendAPIClient.post(
     '/auth/signup',
     encodeAsUrlSearchParams({
