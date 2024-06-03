@@ -6,6 +6,7 @@ pub mod auth;
 pub mod cache;
 mod err;
 mod health_check;
+pub mod rag;
 pub mod routing;
 pub mod search;
 pub mod secrets;

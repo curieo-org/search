@@ -2,13 +2,22 @@ syntax = "proto3";
 
 package agency;
 
+enum SourceType {
+    PDF = 0;
+    Image = 1;
+    URL = 2;
+}
+
 message SearchRequest {
     string query = 1;
 }
 
 message Source {
     string url = 1;
-    map<string, string> metadata = 2;
+    string title = 2;
+    string description = 3;
+    SourceType source_type = 4;
+    map<string, string> metadata = 5;
 }
 
 message SearchResponse {

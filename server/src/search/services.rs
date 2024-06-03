@@ -1,97 +1,135 @@
-use crate::cache::CachePool;
-use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{SearchRequest, SearchResponse};
-use crate::search::{
-    SearchHistory, SearchHistoryByIdRequest, SearchHistoryRequest, SearchQueryRequest,
-    SearchReactionRequest, TopSearchRequest,
-};
-use color_eyre::eyre::eyre;
-use rand::Rng;
+use crate::proto::SearchResponse as AgencySearchResponse;
+use crate::search::{api_models, data_models};
 use sqlx::PgPool;
-use tonic::transport::Channel;
 use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn search(
-    cache: &CachePool,
-    agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &SearchQueryRequest,
-) -> crate::Result<SearchResponse> {
-    if let Some(response) = cache.get(&search_query.query).await {
-        return Ok(response);
-    }
-
-    let request = tonic::Request::new(SearchRequest {
-        query: search_query.query.clone(),
-    });
-
-    let response: SearchResponse = agency_service
-        .pubmed_bioxriv_web_search(request)
-        .await
-        .map_err(|e| eyre!("Request to agency failed: {e}"))?
-        .into_inner();
-
-    if response.status != 200 {
-        return Err(eyre!("Failed to get search results").into());
-    }
-
-    cache.set(&search_query.query, &response).await;
-
-    return Ok(response);
-}
-
-#[tracing::instrument(level = "debug", ret, err)]
-pub async fn insert_search_history(
+pub async fn insert_new_search(
     pool: &PgPool,
-    cache: &CachePool,
     user_id: &Uuid,
-    search_query: &SearchQueryRequest,
-    search_response: &SearchResponse,
-) -> crate::Result<SearchHistory> {
-    let session_id = search_query.session_id.unwrap_or(Uuid::new_v4());
+    search_query: &api_models::SearchQueryRequest,
+) -> crate::Result<data_models::Search> {
+    let thread = match search_query.thread_id {
+        Some(thread_id) => {
+            sqlx::query_as!(
+                data_models::Thread,
+                "select * from threads where thread_id = $1",
+                thread_id,
+            )
+            .fetch_one(pool)
+            .await?
+        }
+        None => {
+            sqlx::query_as!(
+                data_models::Thread,
+                "insert into threads (user_id, title) values ($1, $2) returning *",
+                &user_id,
+                &search_query.query,
+            )
+            .fetch_one(pool)
+            .await?
+        }
+    };
 
-    let search_history = sqlx::query_as!(
-        SearchHistory,
-        "insert into search_history (user_id, session_id, query, result, sources) values ($1, $2, $3, $4, $5) returning *",
-        user_id,
-        &session_id,
+    let search = sqlx::query_as!(
+        data_models::Search,
+        "insert into searches (thread_id, query, result) values ($1, $2, $3) returning *",
+        &thread.thread_id,
         search_query.query,
+        &String::from(""),
+    )
+    .fetch_one(pool)
+    .await?;
+
+    return Ok(search);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn update_search_result(
+    pool: &PgPool,
+    user_id: &Uuid,
+    search: &data_models::Search,
+    search_response: &AgencySearchResponse,
+) -> crate::Result<api_models::SearchByIdResponse> {
+    let sources = sqlx::query_as!(
+        data_models::Source,
+        "insert into sources (title, description, url, source_type, metadata) \
+            select * from unnest($1::text[], $2::text[], $3::text[], $4::int[], $5::jsonb[]) \
+            on conflict (url) do update set title = excluded.title, description = excluded.description, \
+            source_type = excluded.source_type returning *",
+        &search_response.sources.iter().map(|s| s.title.clone()).collect::<Vec<String>>(),
+        &search_response.sources.iter().map(|s| s.description.clone()).collect::<Vec<String>>(),
+        &search_response.sources.iter().map(|s| s.url.clone()).collect::<Vec<String>>(),
+        &search_response.sources.iter().map(|s| s.source_type as i32).collect::<Vec<i32>>(),
+        &search_response.sources.iter().map(|s| serde_json::to_value(s.metadata.clone()).unwrap()).collect::<Vec<serde_json::Value>>(),
+    )
+    .fetch_all(pool)
+    .await?;
+
+    sqlx::query!(
+        "insert into search_sources (search_id, source_id) \
+            select * from unnest($1::uuid[], $2::uuid[])",
+        &vec![search.search_id; sources.len()],
+        &sources.iter().map(|s| s.source_id).collect::<Vec<Uuid>>(),
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let updated_search = sqlx::query_as!(
+        data_models::Search,
+        "update searches set result = $1 where search_id = $2 returning *",
         search_response.result,
-        serde_json::to_value(&search_response.sources).map_err(|e| eyre!("Serialization failed: {e}"))?
+        search.search_id,
     )
     .fetch_one(pool)
     .await?;
 
-    return Ok(search_history);
+    return Ok(api_models::SearchByIdResponse {
+        result: updated_search.result,
+        sources,
+    });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn get_one_search_history(
+pub async fn get_one_search(
     pool: &PgPool,
     user_id: &Uuid,
-    search_history_by_id_request: &SearchHistoryByIdRequest,
-) -> crate::Result<SearchHistory> {
-    let search_history = sqlx::query_as!(
-        SearchHistory,
-        "select * from search_history where user_id = $1 and search_history_id = $2",
+    search_by_id_request: &api_models::SearchByIdRequest,
+) -> crate::Result<api_models::SearchByIdResponse> {
+    let search = sqlx::query_as!(
+        data_models::Search,
+        "select * from searches where search_id = $1 and thread_id in \
+            (select thread_id from threads where user_id = $2)",
+        search_by_id_request.search_id,
         user_id,
-        search_history_by_id_request.search_history_id
     )
     .fetch_one(pool)
     .await?;
 
-    return Ok(search_history);
+    let sources = sqlx::query_as!(
+        data_models::Source,
+        "select * from sources where source_id in \
+            (select source_id from search_sources where search_id = $1)",
+        search.search_id,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    return Ok(api_models::SearchByIdResponse {
+        result: search.result,
+        sources,
+    });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn get_search_history(
+pub async fn get_threads(
     pool: &PgPool,
     user_id: &Uuid,
-    search_history_request: &SearchHistoryRequest,
-) -> crate::Result<Vec<SearchHistory>> {
-    let search_history = sqlx::query_as!(
-        SearchHistory,
-        "select * from search_history where user_id = $1 order by created_at desc limit $2 offset $3",
+    search_history_request: &api_models::SearchHistoryRequest,
+) -> crate::Result<api_models::SearchHistoryResponse> {
+    let threads = sqlx::query_as!(
+        data_models::Thread,
+        "select * from threads where user_id = $1 order by created_at desc limit $2 offset $3",
         user_id,
         search_history_request.limit.unwrap_or(10) as i64,
         search_history_request.offset.unwrap_or(0) as i64
@@ -99,44 +137,73 @@ pub async fn get_search_history(
     .fetch_all(pool)
     .await?;
 
-    return Ok(search_history);
+    return Ok(api_models::SearchHistoryResponse { threads });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn get_top_searches(
-    cache: &CachePool,
-    top_search_request: &TopSearchRequest,
-) -> crate::Result<Vec<String>> {
-    let random_number = rand::thread_rng().gen_range(0.0..1.0);
-    if random_number < 0.1 {
-        cache.zremrangebyrank("search_history").await?;
-    }
+pub async fn get_one_thread(
+    pool: &PgPool,
+    user_id: &Uuid,
+    thread_by_id_request: &api_models::SearchThreadRequest,
+) -> crate::Result<api_models::SearchThreadResponse> {
+    let searches = sqlx::query_as!(
+        data_models::Search,
+        "select * from searches where thread_id in \
+            (select thread_id from threads where thread_id = $1 and user_id = $2) \
+            order by created_at desc limit $3 offset $4",
+        thread_by_id_request.thread_id,
+        user_id,
+        thread_by_id_request.limit.unwrap_or(10) as i64,
+        thread_by_id_request.offset.unwrap_or(0) as i64
+    )
+    .fetch_all(pool)
+    .await?;
 
-    let limit = top_search_request.limit.unwrap_or(10);
-    if !(1..=100).contains(&limit) {
-        Err(eyre!("limit must be a number between 1 and 100"))?;
-    }
+    let sources = sqlx::query_as!(
+        data_models::Source,
+        "select * from sources where source_id in \
+            (select source_id from search_sources where search_id = any($1::uuid[]))",
+        &searches.iter().map(|s| s.search_id).collect::<Vec<Uuid>>(),
+    )
+    .fetch_all(pool)
+    .await?;
 
-    let top_searches: Vec<String> = cache.zrevrange("search_history", 1, limit).await?;
+    let searches = searches
+        .into_iter()
+        .map(|s| {
+            let sources = sources
+                .iter()
+                .filter(|source| {
+                    sources
+                        .iter()
+                        .any(|search_source| search_source.source_id == source.source_id)
+                })
+                .cloned()
+                .collect::<Vec<data_models::Source>>();
+            api_models::SearchByIdResponse {
+                result: s.result,
+                sources,
+            }
+        })
+        .collect::<Vec<api_models::SearchByIdResponse>>();
 
-    return Ok(top_searches);
+    return Ok(api_models::SearchThreadResponse { searches });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn update_search_reaction(
     pool: &PgPool,
     user_id: &Uuid,
-    search_reaction_request: &SearchReactionRequest,
-) -> crate::Result<SearchHistory> {
-    let search_history = sqlx::query_as!(
-        SearchHistory,
-        "update search_history set reaction = $1 where search_history_id = $2 and user_id = $3 returning *",
+    search_reaction_request: &api_models::SearchReactionRequest,
+) -> crate::Result<data_models::Search> {
+    let search = sqlx::query_as!(
+        data_models::Search,
+        "update searches set reaction = $1 where search_id = $2 returning *",
         search_reaction_request.reaction,
-        search_reaction_request.search_history_id,
-        user_id
+        search_reaction_request.search_id,
     )
     .fetch_one(pool)
     .await?;
 
-    return Ok(search_history);
+    return Ok(search);
 }
