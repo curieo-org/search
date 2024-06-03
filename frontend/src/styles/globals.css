@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 /* width */
-::-webkit-scrollbar {
+.scrollbar-hidden::-webkit-scrollbar {
+  width: 6px;
+  display: none;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
   width: 6px;
 }
 
