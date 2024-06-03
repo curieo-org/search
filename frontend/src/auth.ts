@@ -3,7 +3,7 @@ import { AuthParams, AuthResponse } from '@/types/auth'
 import { encodeAsUrlSearchParams } from '@/utils'
 import { BackendAPIClient } from '@/utils/backend-api-client'
 import { AxiosResponse } from 'axios'
-import NextAuth, { Session, User } from 'next-auth'
+import NextAuth, { AuthError, Session, User } from 'next-auth'
 import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
 import { cookies } from 'next/headers'
@@ -24,33 +24,37 @@ export const {
         password: { label: 'password', type: 'password' },
       },
       authorize: async (credentials, req) => {
-        async function login(p: AuthParams): Promise<AxiosResponse<AuthResponse>> {
-          return BackendAPIClient.post(
-            'auth/login',
-            encodeAsUrlSearchParams({
+        async function login(p: AuthParams): Promise<AuthResponse | null> {
+          'use server'
+          const response = await fetch(`${process.env.NEXT_AUTH_URL}/backend-api/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: encodeAsUrlSearchParams({
               username: p.username.trim(),
               password: p.password,
-            })
-          )
+            }),
+          })
+          if (response.ok) {
+            return (await response.json()) as AuthResponse
+          }
+          return null
         }
 
-        console.error('credentials', credentials)
-        console.error('req', req)
         try {
           const response = await login(credentials as AuthParams)
-          console.error('response', response)
-          console.error('response.data', response.data)
-
-          if (200 >= response.status && response.status < 400 && response.data) {
+          if (response !== null) {
             return {
-              id: response.data.user_id,
-              name: response.data.email,
+              id: response.user_id,
+              name: response.email,
             } as User
           }
         } catch (e) {
-          console.error('e', e)
+          if (e instanceof AuthError) {
+            throw e
+          }
         }
-
         throw new AccessDenied('Could not log in')
       },
     }),

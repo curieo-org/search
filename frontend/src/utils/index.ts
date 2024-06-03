@@ -1,4 +1,4 @@
-export function encodeAsUrlSearchParams(record: Record<string, any> = {}) {
+export function encodeAsUrlSearchParams(record: Record<string, any> = {}): string {
   const params = new URLSearchParams()
   Object.entries(record).forEach(entry => {
     const [key, value] = entry
