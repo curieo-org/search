@@ -38,10 +38,10 @@ cp .env.template .env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/curieo_search
 
 # (Optional) create new tables or schemas
-# replace xxx with the current ordering in the `migrations` directory
+# maintain current ordering in the `migrations` directory
 # make sure that the order of schema creation 
 # is not create error in the database
-touch migrations/xxx_schema_name.sql
+sqlx migrate add schema_name
 
 # configure the database
 sqlx migrate run
