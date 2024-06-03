@@ -1,12 +1,13 @@
 import { useAppContext } from '@/components/wrappers/app'
-import { BackendAPIClient } from '@/helpers/axios-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { useSearchStore } from '@/stores/search/search-store'
 import { SearchResult } from '@/types/search'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
 
 export const useSearchQuery = () => {
   const queryClient = useQueryClient()
-  const { sessionId } = useAppContext()
+  const sessionId = 1
   const {
     state: { searchQuery },
   } = useSearchStore()

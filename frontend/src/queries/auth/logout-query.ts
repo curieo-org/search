@@ -1,5 +1,5 @@
 import { logoutMessage } from '@/constants/messages'
-import { BackendAPIClient } from '@/helpers/backend-api-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { LogoutResponse } from '@/types/auth'
 
 export function useLogoutQuery() {

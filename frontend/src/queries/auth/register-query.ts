@@ -1,17 +1,21 @@
-import { BackendAPIClient } from '@/helpers/backend-api-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { useAuthResponseStore } from '@/stores/auth/auth-response-store'
 import { AuthParams, AuthResponse } from '@/types/auth'
+import { encodeAsUrlSearchParams } from '@/utils'
 
 export function useRegisterQuery() {
   const { setAuthResponseState } = useAuthResponseStore()
 
-  function register(params: AuthParams): Promise<AuthResponse> {
+  function register(p: AuthParams): Promise<AuthResponse> {
     return new Promise(async function (resolve, reject) {
-      const payload = new URLSearchParams()
-      payload.append('email', params.username.trim())
-      payload.append('username', params.username.trim())
-      payload.append('password', params.password)
-      BackendAPIClient.post('/auth/register', payload)
+      BackendAPIClient.post(
+        '/auth/register',
+        encodeAsUrlSearchParams({
+          email: p.username.trim(),
+          username: p.username.trim(),
+          password: p.password,
+        })
+      )
         .then(res => {
           setAuthResponseState('authResponse', res.data as AuthResponse)
           resolve(res.data as AuthResponse)

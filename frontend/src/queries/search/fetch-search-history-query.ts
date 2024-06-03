@@ -1,4 +1,4 @@
-import { BackendAPIClient } from '@/helpers/backend-api-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { SearchResult } from '@/types/search'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import _ from 'lodash'

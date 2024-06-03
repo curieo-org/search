@@ -1,6 +1,6 @@
 'use client'
 
-import { handleOpenLinkInNewTab } from '@/helpers/navigation'
+import { handleOpenLinkInNewTab } from '@/utils/navigation'
 import { HTMLAttributes, MouseEvent, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { H3, P } from '../lib/typography'

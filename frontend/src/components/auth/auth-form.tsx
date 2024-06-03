@@ -1,7 +1,7 @@
 'use client'
 
 import { emailErrorMessage, passwordErrorMessage, welcomeMessage } from '@/constants/messages'
-import { signinPagePath } from '@/constants/route'
+import { signinPagePath, signupPagePath } from '@/constants/route'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useLoginQuery } from '@/queries/auth/login-query'
 import { useRegisterQuery } from '@/queries/auth/register-query'
@@ -80,7 +80,7 @@ export default function AuthForm(props: AuthFormProps) {
   const handleContinueWithMicrosoft = () => {}
 
   const handleToggleAuthPurpose = () => {
-    props.authPurpose === 'register' ? router.push(signinPagePath) : router.push('/register')
+    props.authPurpose === 'register' ? router.push(signinPagePath) : router.push(signupPagePath)
   }
 
   return (

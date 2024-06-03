@@ -1,14 +1,15 @@
 import { httpAdapter } from 'next-auth-http-adapter'
 
 export const adapter = httpAdapter({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: 'backend-api/',
   headers: {
-    Authorization: process.env.NEXTAUTH_SECRET!,
+    Authorization: process.env.AUTH_SECRET!,
     // or set any global headers to be able to authenticate your requests to your backend
   },
   // you can provide any other
   adapterProcedures: {
     createUser(user) {
+      console.debug('Creating user')
       return {
         path: 'auth/register/',
         method: 'POST',

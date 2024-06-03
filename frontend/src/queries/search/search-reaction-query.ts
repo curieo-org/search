@@ -1,4 +1,4 @@
-import { BackendAPIClient } from '@/helpers/axios-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SearchReactionBody, SearchResult } from '@/types/search'
 

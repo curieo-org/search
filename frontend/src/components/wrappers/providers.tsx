@@ -2,7 +2,7 @@ import { LayoutProps } from '@/app/layout'
 import { ThemeProvider } from 'next-themes'
 import React from 'react'
 import ClientProviders from '@/components/wrappers/client-providers'
-import { auth } from '@/middleware/auth/config'
+import { auth } from '@/auth'
 import { SessionProvider } from 'next-auth/react'
 
 export default async function Providers({ children }: LayoutProps) {
@@ -15,7 +15,7 @@ export default async function Providers({ children }: LayoutProps) {
     }
   }
   return (
-    <SessionProvider basePath={'/auth'} session={session}>
+    <SessionProvider session={session}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <ClientProviders>{children}</ClientProviders>
       </ThemeProvider>

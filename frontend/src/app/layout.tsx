@@ -6,8 +6,6 @@ import type { Metadata } from 'next'
 import { Onest } from 'next/font/google'
 import { ReactNode } from 'react'
 import 'react-toastify/dist/ReactToastify.css'
-import { SessionProvider } from 'next-auth/react'
-import { auth } from '@/middleware/auth/config'
 
 const onest = Onest({ subsets: ['latin'] })
 

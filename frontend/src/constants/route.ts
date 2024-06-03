@@ -1,10 +1,11 @@
 // export const publicPages = []
-export const authPages = ['/register', '/auth/signin', '/p/hmm', 'hmm', '/auth/hmm']
+export const authPaths = ['/auth/signup', '/auth/signin', '/auth/signout', '/auth/error']
 // export const protectedPages = ['/search', '/settings']
 export const pagesWithNavMenu = ['/search', '/settings']
 
-export const exactAppPaths = ['/register', '/signin', '/search', '/settings']
+export const exactAppPaths = ['/signup', '/signin', '/signout', '/search', '/settings']
 export const dynamicAppPaths = ['/search/']
 
 export const signinPagePath = '/auth/signin'
+export const signupPagePath = '/auth/signup'
 export const searchPagePath = '/search'

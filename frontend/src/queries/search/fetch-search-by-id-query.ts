@@ -1,4 +1,4 @@
-import { BackendAPIClient } from '@/helpers/backend-api-client'
+import { BackendAPIClient } from '@/utils/backend-api-client'
 import { SearchByIdParams, SearchResult } from '@/types/search'
 import { useQuery } from '@tanstack/react-query'
 

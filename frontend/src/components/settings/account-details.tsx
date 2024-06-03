@@ -9,7 +9,7 @@ import SettingsInfoItem from './settings-info-item'
 type AccountDetailsProps = HTMLAttributes<HTMLDivElement>
 
 export default function AccountDetails(props: AccountDetailsProps) {
-  const { data: userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useFetchUserProfile()
+  const { data: userProfile } = useFetchUserProfile()
 
   return (
     <div className={twMerge('flex flex-col w-full', props.className)}>

@@ -1,5 +1,5 @@
 import { copyResetTime } from '@/constants/config'
-import { copyToClipboard } from '@/helpers/browser'
+import { copyToClipboard } from '@/utils/browser'
 import { useSearchReactionMutation } from '@/queries/search/search-reaction-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { HTMLAttributes, useState } from 'react'

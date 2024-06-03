@@ -11,6 +11,7 @@ use axum::routing::{get, post};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
 use color_eyre::eyre::eyre;
+use log::{debug, error, log};
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -137,9 +138,14 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
 
 #[tracing::instrument(level = "debug", skip_all)]
 async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
+    error!("Oh heck!");
     auth_session
         .user
         .map(UserRecord::from)
+        .map(|u| {
+            error!("User: {u:?}");
+            u
+        })
         .map(Json::from)
         .ok_or_else(|| AppError::Unauthorized)
 }
@@ -152,4 +158,5 @@ pub fn routes() -> Router<AppState> {
         .route("/oauth_callback", get(oauth_callback_handler))
         .route("/logout", get(logout_handler))
         .route("/get-session", get(get_session_handler))
+        .route("/callback/credentials", post(login_handler))
 }
