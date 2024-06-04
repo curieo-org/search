@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+import httpx
 import llama_index.core.instrumentation as instrument
 from llama_index.core.base.embeddings.base import (
     DEFAULT_EMBED_BATCH_SIZE,
@@ -38,8 +39,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
     )
     auth_token: str | Callable[[str], str] | None = Field(
         default=None,
-        description="Authentication token or authentication \
-            token generating function for authenticated requests",
+        description="Auth token or function returning an auth token",
     )
 
     def __init__(
@@ -71,8 +71,6 @@ class SpladeEmbeddingsInference(BaseEmbedding):
         return "SpladeEmbeddingsInference"
 
     def _call_api(self, texts: list[str]) -> list[list[float]]:
-        import httpx
-
         headers = {"Content-Type": "application/json"}
         if self.auth_token is not None:
             if callable(self.auth_token):

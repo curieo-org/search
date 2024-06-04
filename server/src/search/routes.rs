@@ -67,9 +67,7 @@ async fn get_one_thread_handler(
     user: User,
     Query(get_thread_request): Query<api_models::GetThreadRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
-
-    let search_thread = services::get_one_thread(&pool, &user_id, &get_thread_request).await?;
+    let search_thread = services::get_one_thread(&pool, &user.user_id, &get_thread_request).await?;
 
     Ok((StatusCode::OK, Json(search_thread)))
 }

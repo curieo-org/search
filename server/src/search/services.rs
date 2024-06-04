@@ -61,7 +61,9 @@ pub async fn update_search_result(
         &search_response.sources.iter().map(|s| s.description.clone()).collect::<Vec<String>>(),
         &search_response.sources.iter().map(|s| s.url.clone()).collect::<Vec<String>>(),
         &search_response.sources.iter().map(|s| s.source_type as i32).collect::<Vec<i32>>(),
-        &search_response.sources.iter().map(|s| serde_json::to_value(s.metadata.clone()).unwrap()).collect::<Vec<serde_json::Value>>(),
+        &search_response.sources.iter().map(|s| serde_json::to_value(
+            s.metadata.clone()
+        ).unwrap_or(serde_json::json!({}))).collect::<Vec<serde_json::Value>>(),
     )
     .fetch_all(pool)
     .await?;
