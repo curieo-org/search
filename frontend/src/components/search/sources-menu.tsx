@@ -14,7 +14,7 @@ export default function SourcesMenu(props: SourcesMenuProps) {
         <LayersIcon className="text-typography-light dark:text-typography-dark" size={20} />
         <H2 className="font-medium">Sources</H2>
       </div>
-      <div className="flex flex-col gap-y-2">
+      <div className="flex flex-col gap-y-2.5">
         {props.sources.map((source, index) => (
           <LinkPreview
             style={{ animation: `fade-in ${Math.min(500 + index * 500, 3000)}ms` }}

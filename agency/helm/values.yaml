@@ -3,14 +3,14 @@
 # Declare variables to be passed into your templates.
 
 service:
-  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-agency:latest
+  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-agency:2.0
   replica_count: 1
   port: 50051
 
 resources:
   limits:
     cpu: 2
-    memory: 2Gi
+    memory: 4Gi
   requests:
-    memory: 512Mi
+    memory: 2Gi
     cpu: 1

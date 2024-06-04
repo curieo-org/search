@@ -12,21 +12,21 @@ from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.integrations.grpc import GRPCIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-from app.settings import SentrySettings
+from app.settings import TracingSettings
 
 
-def setup_tracing(settings: SentrySettings) -> None:
-    sentry_sdk.init(
-        dsn=settings.dsn.get_secret_value(),
-        enable_tracing=settings.enable_tracing,
-        integrations=[
-            AsyncioIntegration(),
-            GRPCIntegration(),
-            LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
-        ],
-    )
-
+def setup_tracing(settings: TracingSettings) -> None:
     if settings.environment == "production":
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn.get_secret_value(),
+            enable_tracing=settings.enable_tracing,
+            integrations=[
+                AsyncioIntegration(),
+                GRPCIntegration(),
+                LoggingIntegration(level=logging.INFO, event_level=logging.WARNING),
+            ],
+        )
+
         resource = Resource(
             attributes={
                 ResourceAttributes.PROJECT_NAME: settings.phoenix_project_name,

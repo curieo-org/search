@@ -67,7 +67,7 @@ export default function SearchResult() {
           </div>
         </div>
         <SourcesMenu
-          className="w-60 xl:w-96 max-h-screen overflow-y-scroll -mb-4 over py-2 pr-2 mr-1 pt-10 xl:pt-20 transition-all duration-300"
+          className="w-60 xl:w-96 max-h-screen overflow-y-scroll scrollbar-visible -mb-4 over py-2 pr-2 mr-1 pt-10 xl:pt-20 transition-all duration-300"
           sources={searchResult.sources}
         />
       </div>
