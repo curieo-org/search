@@ -16,6 +16,7 @@ pub mod startup;
 mod telemetry;
 pub mod users;
 pub mod utils;
+pub mod collections;
 
 pub mod proto {
     tonic::include_proto!("agency");
