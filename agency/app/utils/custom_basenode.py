@@ -1,7 +1,7 @@
 import json
 import time
 from enum import Enum, auto
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from llama_index.core.bridge.pydantic import BaseModel
 from llama_index.core.schema import (
@@ -16,7 +16,7 @@ DEFAULT_METADATA_TMPL = "{key}: {value}"
 TRUNCATE_LENGTH = 350
 WRAP_WIDTH = 70
 
-RelatedNodeType = Union[RelatedNodeInfo, List[RelatedNodeInfo]]
+RelatedNodeType = RelatedNodeInfo | list[RelatedNodeInfo]
 
 
 class MetadataMode(str, Enum):
@@ -39,7 +39,7 @@ class CurieoBaseNode(TextNode):
 
     obj: Any = None
 
-    def dict(self, **kwargs: Any) -> Dict[str, Any]:
+    def dict(self, **kwargs: Any) -> dict[str, Any]:
         from llama_index.core.storage.docstore.utils import doc_to_json
 
         data = super().dict(**kwargs)
@@ -64,7 +64,7 @@ class CurieoBaseNode(TextNode):
         node: TextNode,
         node_id_generate: bool = False,
         sparse_embedding: dict = {},
-    ):
+    ) -> "CurieoBaseNode":
         if node_id_generate:
             node.id_ = str(int(time.time() * 1000)) + "_" + node.id_
         return cls(
@@ -80,11 +80,11 @@ class CurieoBaseNode(TextNode):
     def class_name(cls) -> str:
         return "CURIEO_NODE"
 
-    def set_metadata(self, key: str, value: Any) -> None:
+    def set_metadata(self, _key: str, value: Any) -> None:
         """Set the content of the node."""
         self.text = value
 
-    def get_sparse_embedding(self) -> List[float]:
+    def get_sparse_embedding(self) -> list[float]:
         """Get sparse embedding.
 
         Errors if embedding is None.
