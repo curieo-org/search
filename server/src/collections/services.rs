@@ -14,7 +14,7 @@ pub async fn insert_new_collection(
         user_id,
         create_collections_request.name,
         create_collections_request.description,
-        create_collections_request.category,
+        i32::from(create_collections_request.category),
     )
     .fetch_one(pool)
     .await?;

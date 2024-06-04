@@ -5,6 +5,6 @@ use std::fmt::Debug;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateCollectionRequest {
   pub name: String,
-  pub description: String,
-  pub category: i32,
+  pub description: Option<String>,
+  pub category: CategoryType,
 }

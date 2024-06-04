@@ -4,7 +4,7 @@ use serde_json;
 use sqlx::FromRow;
 use std::fmt::Debug;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum CategoryType {
   CategoryA = 0,
   CategoryB = 1,
@@ -40,6 +40,16 @@ impl From<i32> for CategoryType {
           0 => CategoryType::CategoryA,
           1 => CategoryType::CategoryB,
           _ => CategoryType::CategoryC,
+      }
+  }
+}
+
+impl From<CategoryType> for i32 {
+  fn from(value: CategoryType) -> Self {
+      match value {
+          CategoryType::CategoryA => 0,
+          CategoryType::CategoryB => 1,
+          CategoryType::CategoryC => 2,
       }
   }
 }
