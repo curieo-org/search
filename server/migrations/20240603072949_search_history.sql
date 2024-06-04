@@ -5,7 +5,7 @@ CREATE TABLE searches
     thread_id   uuid            not null    references threads (thread_id),
     query       varchar(255)    not null,
     result      text            not null,
-    media_urls  text[]          not null,
+    media_urls  text[],
     reaction    boolean,
     created_at  timestamptz     not null    default now(),
     updated_at  timestamptz     not null    default now()

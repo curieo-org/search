@@ -66,23 +66,24 @@ pub async fn update_search_result(
     .fetch_all(pool)
     .await?;
 
-    sqlx::query!(
-        "insert into search_sources (search_id, source_id) \
-            select * from unnest($1::uuid[], $2::uuid[])",
-        &vec![search.search_id; sources.len()],
-        &sources.iter().map(|s| s.source_id).collect::<Vec<Uuid>>(),
-    )
-    .fetch_all(pool)
-    .await?;
-
-    let updated_search = sqlx::query_as!(
-        data_models::Search,
-        "update searches set result = $1 where search_id = $2 returning *",
-        search_response.result,
-        search.search_id,
-    )
-    .fetch_one(pool)
-    .await?;
+    let (search_source, updated_search) = tokio::join!(
+        sqlx::query!(
+            "insert into search_sources (search_id, source_id) \
+                select * from unnest($1::uuid[], $2::uuid[])",
+            &vec![search.search_id; sources.len()],
+            &sources.iter().map(|s| s.source_id).collect::<Vec<Uuid>>(),
+        )
+        .fetch_all(pool),
+        sqlx::query_as!(
+            data_models::Search,
+            "update searches set result = $1 where search_id = $2 returning *",
+            search_response.result,
+            search.search_id,
+        )
+        .fetch_one(pool),
+    );
+    search_source?;
+    let updated_search = updated_search?;
 
     return Ok(api_models::SearchByIdResponse {
         result: updated_search.result,

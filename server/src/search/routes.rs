@@ -22,8 +22,13 @@ async fn get_search_query_handler(
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_item = services::insert_new_search(&pool, &user_id, &search_query).await?;
-    let search_response = rag::search(&cache, &mut agency_service, &search_query).await?;
+    let (search_item, search_response) = tokio::join!(
+        services::insert_new_search(&pool, &user_id, &search_query),
+        rag::search(&cache, &mut agency_service, &search_query)
+    );
+    let search_item = search_item?;
+    let search_response = search_response?;
+
     let search_history =
         services::update_search_result(&pool, &user_id, &search_item, &search_response).await?;
 
@@ -98,7 +103,7 @@ async fn update_search_reaction_handler(
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(get_search_query_handler))
-        .route("/searches", get(get_one_search_result_handler))
+        .route("/one", get(get_one_search_result_handler))
         .route("/threads", get(get_one_thread_handler))
         .route("/threads", patch(update_thread_handler))
         .route("/history", get(get_threads_handler))
