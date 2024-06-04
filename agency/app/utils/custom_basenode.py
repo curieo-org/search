@@ -39,7 +39,7 @@ class CurieoBaseNode(TextNode):
 
     obj: Any = None
 
-    def dict(self, **kwargs: Any) -> dict[str, Any]:
+    def dict(self, **kwargs: Any) -> dict[str, Any]:  # noqa
         from llama_index.core.storage.docstore.utils import doc_to_json
 
         data = super().dict(**kwargs)
@@ -54,7 +54,7 @@ class CurieoBaseNode(TextNode):
             else:
                 data["obj"] = json.dumps(self.obj)
         except Exception:
-            raise ValueError("CurieoBaseNode obj is not serializable: " + str(self.obj))
+            raise ValueError("CurieoBaseNode obj is not serializable: " + str(self.obj))  # noqa
 
         return data
 
@@ -63,7 +63,7 @@ class CurieoBaseNode(TextNode):
         cls,
         node: TextNode,
         node_id_generate: bool = False,
-        sparse_embedding: dict = {},
+        sparse_embedding: dict = {},  # noqa
     ) -> "CurieoBaseNode":
         if node_id_generate:
             node.id_ = str(int(time.time() * 1000)) + "_" + node.id_

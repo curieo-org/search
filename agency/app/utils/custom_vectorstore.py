@@ -35,7 +35,7 @@ class CurieoVectorStore(QdrantVectorStore):
             payloads = []
 
             for _, node in enumerate(node_batch):
-                assert isinstance(node, CurieoBaseNode)
+                assert isinstance(node, CurieoBaseNode)  # noqa
                 node_ids.append(node.node_id)
 
                 vectors.append(
