@@ -7,9 +7,9 @@ use uuid::Uuid;
 pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
-    search_query: &api_models::SearchQueryRequest,
+    search_query_request: &api_models::SearchQueryRequest,
 ) -> crate::Result<data_models::Search> {
-    let thread = match search_query.thread_id {
+    let thread = match search_query_request.thread_id {
         Some(thread_id) => {
             sqlx::query_as!(
                 data_models::Thread,
@@ -24,7 +24,7 @@ pub async fn insert_new_search(
                 data_models::Thread,
                 "insert into threads (user_id, title) values ($1, $2) returning *",
                 &user_id,
-                &search_query.query,
+                &search_query_request.query,
             )
             .fetch_one(pool)
             .await?
@@ -35,7 +35,7 @@ pub async fn insert_new_search(
         data_models::Search,
         "insert into searches (thread_id, query, result) values ($1, $2, $3) returning *",
         &thread.thread_id,
-        search_query.query,
+        search_query_request.query,
         &String::from(""),
     )
     .fetch_one(pool)
@@ -123,26 +123,26 @@ pub async fn get_one_search(
 pub async fn get_threads(
     pool: &PgPool,
     user_id: &Uuid,
-    search_history_request: &api_models::SearchHistoryRequest,
-) -> crate::Result<api_models::SearchHistoryResponse> {
+    thread_history_request: &api_models::ThreadHistoryRequest,
+) -> crate::Result<api_models::ThreadHistoryResponse> {
     let threads = sqlx::query_as!(
         data_models::Thread,
         "select * from threads where user_id = $1 order by created_at desc limit $2 offset $3",
         user_id,
-        search_history_request.limit.unwrap_or(10) as i64,
-        search_history_request.offset.unwrap_or(0) as i64
+        thread_history_request.limit.unwrap_or(10) as i64,
+        thread_history_request.offset.unwrap_or(0) as i64
     )
     .fetch_all(pool)
     .await?;
 
-    return Ok(api_models::SearchHistoryResponse { threads });
+    return Ok(api_models::ThreadHistoryResponse { threads });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn get_one_thread(
     pool: &PgPool,
     user_id: &Uuid,
-    thread_by_id_request: &api_models::SearchThreadRequest,
+    thread_by_id_request: &api_models::GetThreadRequest,
 ) -> crate::Result<api_models::SearchThreadResponse> {
     let searches = sqlx::query_as!(
         data_models::Search,
@@ -189,13 +189,13 @@ pub async fn get_one_thread(
 pub async fn update_thread(
     pool: &PgPool,
     user_id: &Uuid,
-    thread_update_request: &api_models::UpdateThreadRequest,
+    update_thread_request: &api_models::UpdateThreadRequest,
 ) -> crate::Result<data_models::Thread> {
     let thread = sqlx::query_as!(
         data_models::Thread,
         "update threads set title = $1 where thread_id = $2 and user_id = $3 returning *",
-        thread_update_request.title,
-        thread_update_request.thread_id,
+        update_thread_request.title,
+        update_thread_request.thread_id,
         user_id,
     )
     .fetch_one(pool)
