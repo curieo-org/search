@@ -5,7 +5,7 @@ oauth2_clients = []
 [cache]
 url = "redis://127.0.0.1/"
 max_sorted_size = 100
-enabled = true
+enabled = false
 ttl = 3600
 
 [log]

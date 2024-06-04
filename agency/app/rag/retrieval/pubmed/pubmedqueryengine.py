@@ -1,5 +1,4 @@
 import asyncio
-from typing import List, Tuple
 
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
@@ -117,8 +116,8 @@ class PubmedSearchQueryEngine:
 
     def sparse_query_vectors(
         self,
-        texts: List[str],
-    ) -> Tuple[List[List[int]], List[List[float]]]:
+        texts: list[str],
+    ) -> tuple[list[list[int]], list[list[float]]]:
         try:
             splade_embeddings = self.splade_model.get_text_embedding_batch(texts)
             indices = [
@@ -130,7 +129,12 @@ class PubmedSearchQueryEngine:
                 for sublist in splade_embeddings
             ]
 
-            assert len(indices) == len(vectors)
+            if len(indices) != len(vectors):
+                logger.error(
+                    "The length of indices and vectors \
+                        are not equal in sparse_query_vectors"
+                )
+                return [], []
             return indices, vectors
         except Exception as e:
             logger.exception("failed to query vectors from the splade model", e)
@@ -159,7 +163,7 @@ class PubmedSearchQueryEngine:
                 pubmed_ids
             )
 
-            retrieved_results = [
+            return [
                 RetrievedResult.model_validate(
                     {
                         "text": node.get_text(),
@@ -179,7 +183,6 @@ class PubmedSearchQueryEngine:
                 for node in filtered_nodes
             ]
 
-            return retrieved_results
         except Exception as e:
             logger.exception("failed to retrieve data from the database", e)
             return []
@@ -222,7 +225,7 @@ class PubmedSearchQueryEngine:
                 self.pubmed_database.get_children_node_text(all_children_node_ids),
             )
 
-            result_nodes = [
+            return [
                 RetrievedResult.model_validate(
                     {
                         "text": children_node_texts.get(child_node_id, ""),
@@ -237,10 +240,8 @@ class PubmedSearchQueryEngine:
                 )
                 for pubmed_id in nodes_dict
                 for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
-                if child_node_id in children_node_texts.keys()
+                if child_node_id in children_node_texts
             ]
-
-            return result_nodes
 
         except Exception as e:
             logger.exception("failed to retrieve data from the database", e)
