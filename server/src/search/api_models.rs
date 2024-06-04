@@ -1,3 +1,4 @@
+use crate::search::Search;
 use crate::search::{Source, Thread};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -18,7 +19,7 @@ pub struct SearchQueryRequest {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SearchByIdResponse {
-    pub result: String,
+    pub search: Search,
     pub sources: Vec<Source>,
 }
 
@@ -61,42 +62,3 @@ pub struct UpdateThreadRequest {
     pub thread_id: uuid::Uuid,
     pub title: String,
 }
-
-//#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-//pub struct BraveSource {
-//    pub url: String,
-//    pub page_age: Option<String>,
-//}
-//
-//#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-//#[serde(tag = "type")]
-//pub enum Source {
-//    Brave(BraveSource),
-//}
-
-// #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-// pub struct Sources(pub Vec<Source>);
-
-// impl From<serde_json::Value> for Sources {
-//     fn from(value: serde_json::Value) -> Self {
-//         if let serde_json::Value::Array(array) = value {
-//             Sources(
-//                 array
-//                     .into_iter()
-//                     .filter_map(|v| serde_json::from_value(v).ok())
-//                     .collect(),
-//             )
-//         } else {
-//             tracing::warn!("Invalid SearchSource: {:?}", value);
-//             Sources(vec![])
-//         }
-//     }
-// }
-
-// impl TryFrom<&Sources> for serde_json::Value {
-//     type Error = serde_json::Error;
-
-//     fn try_from(sources: &Sources) -> Result<Self, Self::Error> {
-//         serde_json::to_value(sources)
-//     }
-// }

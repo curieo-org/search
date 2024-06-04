@@ -86,7 +86,7 @@ pub async fn update_search_result(
     let updated_search = updated_search?;
 
     return Ok(api_models::SearchByIdResponse {
-        result: updated_search.result,
+        search: updated_search,
         sources,
     });
 }
@@ -116,10 +116,7 @@ pub async fn get_one_search(
     .fetch_all(pool)
     .await?;
 
-    return Ok(api_models::SearchByIdResponse {
-        result: search.result,
-        sources,
-    });
+    return Ok(api_models::SearchByIdResponse { search, sources });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -171,7 +168,7 @@ pub async fn get_one_thread(
 
     let searches = searches
         .into_iter()
-        .map(|s| {
+        .map(|search| {
             let sources = sources
                 .iter()
                 .filter(|source| {
@@ -181,10 +178,7 @@ pub async fn get_one_thread(
                 })
                 .cloned()
                 .collect::<Vec<data_models::Source>>();
-            api_models::SearchByIdResponse {
-                result: s.result,
-                sources,
-            }
+            api_models::SearchByIdResponse { search, sources }
         })
         .collect::<Vec<api_models::SearchByIdResponse>>();
 

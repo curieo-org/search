@@ -4,6 +4,7 @@ use startup::Application;
 
 pub mod auth;
 pub mod cache;
+pub mod custom_types;
 mod err;
 mod health_check;
 pub mod rag;
