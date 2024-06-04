@@ -3,9 +3,9 @@ syntax = "proto3";
 package agency;
 
 enum SourceType {
-    PDF = 0;
+    Pdf = 0;
     Image = 1;
-    URL = 2;
+    Url = 2;
 }
 
 message SearchRequest {
