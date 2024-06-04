@@ -2,11 +2,10 @@ import logging
 from typing import Any
 
 import httpx
-from llama_index.core.schema import NodeWithScore, TextNode
 from pydantic import ValidationError
 
-from app.caching.redis import fcached
 from app.rag.retrieval.web.types import WebSearchApiResponse
+from app.rag.utils.models import RetrievedResult
 from app.settings import BraveSettings
 from app.utils.httpx import httpx_get
 from app.utils.logging import setup_logger
@@ -24,7 +23,7 @@ class BraveSearchQueryEngine:
 
     def __init__(self, settings: BraveSettings):
         self.settings = settings
-        self.default_timeout = 2.0
+        self.default_timeout = 3.0
 
     async def search_request(self, search_text: str) -> httpx.Response | None:
         logger.info("brave_search: " + search_text)
@@ -48,7 +47,6 @@ class BraveSearchQueryEngine:
 
         return await httpx_get(url=url, headers=headers, timeout=self.default_timeout)
 
-    @fcached("agency.brave.search.{search_text}")
     async def cached_search(
         self,
         search_text: str,
@@ -70,15 +68,22 @@ class BraveSearchQueryEngine:
                 pass
         return None
 
-    async def call_brave_search_api(self, search_text: str) -> list[NodeWithScore]:
+    async def call_brave_search_api(self, search_text: str) -> list[RetrievedResult]:
         results = []
+
         if response := await self.brave_search(search_text):
-            logging.error(response)
+            logging.info(f"Brave search response: {response}")
+
             for result in response.web_results():
-                node = TextNode(
-                    text=result.description + "".join(result.get_extra_snippets()),
+                text = result.description + "".join(result.get_extra_snippets())
+
+                retrieved_result = RetrievedResult.model_validate(
+                    {
+                        "text": text,
+                        "source": result.model_dump(),
+                    }
                 )
-                node.metadata = result.model_dump()
-                results.append(NodeWithScore(node=node))
+
+                results.append(retrieved_result)
 
         return results

@@ -26,7 +26,7 @@ class SearchResult(Result):
     https://api.search.brave.com/app/documentation/web-search/responses#SearchResult
     """
 
-    type: str = "search_result"
+    type: str = "web_search_result"
 
     subtype: str = Field(
         default="generic",

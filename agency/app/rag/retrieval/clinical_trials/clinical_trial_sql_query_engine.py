@@ -191,7 +191,7 @@ class ClinicalTrialText2SQLEngine:
             sql_query,
             [
                 node.metadata.get(
-                    self.settings.qdrant.clinical_trial_metadata_field_name,
+                    self.settings.clinical_trial_qdrant.metadata_field_name,
                 )
                 for node in self.retriever.retrieve(question)
             ],
