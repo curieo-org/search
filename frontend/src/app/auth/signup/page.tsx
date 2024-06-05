@@ -18,7 +18,7 @@ export default function SignUp() {
           action={async formData => {
             'use server'
             try {
-              await signUp(formData as AuthParams)
+              await signUp(formData)
             } catch (error) {
               if (error instanceof AuthError) {
                 return redirect(`/auth/error?error=${error.type}`)

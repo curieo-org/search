@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { Slide, ToastContainer } from 'react-toastify'
 import { P } from '../lib/typography'
 import { AuthRequired, Authenticated } from './app-middleware'
+import { useSession } from 'next-auth/react'
 
 export default function App({ children }: LayoutProps) {
   return (
@@ -28,7 +29,7 @@ export default function App({ children }: LayoutProps) {
 }
 
 async function AppMiddleware({ children }: LayoutProps) {
-  let session = await auth()
+  const session = await auth()
 
   if (session) {
     return <Authenticated>{children}</Authenticated>

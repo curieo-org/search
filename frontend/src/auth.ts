@@ -1,6 +1,6 @@
 import { authConfig } from '@/auth.config'
 import { AuthParams, AuthResponse } from '@/types/auth'
-import { encodeAsUrlSearchParams } from '@/utils'
+import { encodeAsUrlSearchParams, formToUrlParams } from '@/utils'
 import { BackendAPIClient } from '@/utils/backend-api-client'
 import { AxiosResponse } from 'axios'
 import NextAuth, { AuthError, Session, User } from 'next-auth'
@@ -71,6 +71,7 @@ export function getCsrfToken() {
 
 export async function auth(): Promise<Session | null> {
   const session = await next_auth()
+  // Strips information from the returned user as a secondary defense against oversharing user info with the client
   if (session?.user) {
     session.user = {
       name: session.user.name,
@@ -81,12 +82,6 @@ export async function auth(): Promise<Session | null> {
   return session
 }
 
-export async function signUp(p: AuthParams): Promise<AxiosResponse<AuthResponse>> {
-  return BackendAPIClient.post(
-    '/auth/signup',
-    encodeAsUrlSearchParams({
-      username: p.username.trim(),
-      password: p.password,
-    })
-  )
+export async function signUp(f: FormData): Promise<AxiosResponse<AuthResponse>> {
+  return BackendAPIClient.post('/auth/signup', formToUrlParams(f))
 }

@@ -19,7 +19,7 @@ import { P } from '../lib/typography'
 import SpinnerLoading from '../util/spinner-loading'
 import PageWithNavMenu from './page-with-navmenu'
 
-export default function App({ children }: LayoutProps) {
+function App({ children }: LayoutProps) {
   return (
     <div className="w-full">
       <ToastContainer
@@ -45,7 +45,6 @@ export default function App({ children }: LayoutProps) {
 function AppMiddleware({ children }: LayoutProps) {
   const { data: session } = useSession()
   if (session) {
-    console.error('session', session?.toString())
     return <>{children}</>
   } else {
     return <SpinnerLoading />

@@ -1,7 +1,7 @@
-import { BackendAPIClient } from '@/utils/backend-api-client'
 import { SearchResult } from '@/types/search'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import _ from 'lodash'
+import { fetchSearchHistory } from '@/queries/settings/fetch-user-profile-query'
 
 export const useFetchSearchHistoryQuery = () => {
   return useInfiniteQuery({
@@ -12,10 +12,7 @@ export const useFetchSearchHistoryQuery = () => {
       return hasNextPage ? { offset: _.flatten(pages).length, limit: 10 } : undefined
     },
     async queryFn({ pageParam }) {
-      const { data } = await BackendAPIClient.get(
-        `/search/history?limit=${pageParam.limit ?? 10}${pageParam.offset ? `&offset=${pageParam.offset}` : ``}`
-      )
-      return data as SearchResult[]
+      await fetchSearchHistory(pageParam)
     },
   })
 }
