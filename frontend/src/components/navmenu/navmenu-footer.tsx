@@ -8,35 +8,37 @@ import ShiftLeft from '../icons/shift-left'
 import ShiftRight from '../icons/shift-right'
 import { Span } from '../lib/typography'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
 
 type NavmenuFooterProps = HTMLAttributes<HTMLDivElement>
 
 export default function NavmenuFooter(props: NavmenuFooterProps) {
-  // const router = useRouter()
-  // const {
-  //   state: { isNavmenuCollapsed },
-  //   toggleNavmenuState,
-  // } = useNavmenuStore()
+  const router = useRouter()
+  const {
+    state: { isNavmenuCollapsed },
+    toggleNavmenuState,
+  } = useNavmenuStore()
   const { data: session } = useSession()
 
   const toggleNavmenuCollaped = () => {
-    //toggleNavmenuState('isNavmenuCollapsed')
+    toggleNavmenuState('isNavmenuCollapsed')
   }
 
   const handleNavigateToSettingsPage = () => {
-    //router.push('/settings')
+    router.push('/settings')
   }
 
   return (
     <div
       className={twMerge(
         classNames('w-full flex flex-col mb-4', {
-          'items-center': true, //isNavmenuCollapsed,
+          'items-center': isNavmenuCollapsed,
         }),
         props.className
       )}
     >
-      {true ? (
+      {isNavmenuCollapsed ? (
         <ShiftRight size={35} className="cursor-pointer" onClick={toggleNavmenuCollaped} />
       ) : (
         <div>
@@ -48,9 +50,12 @@ export default function NavmenuFooter(props: NavmenuFooterProps) {
         <img
           src={session?.user?.image ? session?.user?.image : '/images/placeholder-user.png'}
           className="h-8 lg:h-10 w-auto"
+          alt="user image"
         />
-        {true && <Span className="text-xs lg:text-sm xl:text-base font-medium">{session?.user?.name}</Span>}
-        {true && <EngineIcon size={18} className="absolute right-2" />}
+        {!isNavmenuCollapsed && (
+          <Span className="text-xs lg:text-sm xl:text-base font-medium">{session?.user?.name}</Span>
+        )}
+        {!isNavmenuCollapsed && <EngineIcon size={18} className="absolute right-2" />}
       </div>
     </div>
   )
