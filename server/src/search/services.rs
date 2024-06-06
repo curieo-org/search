@@ -1,4 +1,4 @@
-use crate::proto::SearchResponse as AgencySearchResponse;
+use crate::rag::SearchResponse;
 use crate::search::{api_models, data_models};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -49,18 +49,18 @@ pub async fn update_search_result(
     pool: &PgPool,
     user_id: &Uuid,
     search: &data_models::Search,
-    search_response: &AgencySearchResponse,
+    search_response: &SearchResponse,
 ) -> crate::Result<api_models::SearchByIdResponse> {
     let sources = sqlx::query_as!(
         data_models::Source,
         "insert into sources (title, description, url, source_type, metadata) \
             select * from unnest($1::text[], $2::text[], $3::text[], $4::int[], $5::jsonb[]) \
             on conflict (url) do update set title = excluded.title, description = excluded.description, \
-            source_type = excluded.source_type returning *",
+            source_type = excluded.source_type, metadata = excluded.metadata returning *",
         &search_response.sources.iter().map(|s| s.title.clone()).collect::<Vec<String>>(),
         &search_response.sources.iter().map(|s| s.description.clone()).collect::<Vec<String>>(),
         &search_response.sources.iter().map(|s| s.url.clone()).collect::<Vec<String>>(),
-        &search_response.sources.iter().map(|s| s.source_type as i32).collect::<Vec<i32>>(),
+        &search_response.sources.iter().map(|s| s.source_type.clone() as i32).collect::<Vec<i32>>(),
         &search_response.sources.iter().map(|s| serde_json::to_value(
             s.metadata.clone()
         ).unwrap_or(serde_json::json!({}))).collect::<Vec<serde_json::Value>>(),

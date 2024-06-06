@@ -2,30 +2,22 @@ syntax = "proto3";
 
 package agency;
 
-enum SourceType {
-    Pdf = 0;
-    Image = 1;
-    Url = 2;
-}
-
 message SearchRequest {
     string query = 1;
 }
 
-message Source {
-    string url = 1;
+message PubmedSource {
+    string pubmed_id = 1;
     string title = 2;
-    string description = 3;
-    SourceType source_type = 4;
-    map<string, string> metadata = 5;
+    string abstract = 3;
 }
 
-message SearchResponse {
+message PubmedResponse {
     int32 status = 1;
-    string result = 2;
-    repeated Source sources = 3;
+    repeated PubmedSource sources = 3;
 }
 
 service AgencyService {
-    rpc pubmed_bioxriv_web_search(SearchRequest) returns (SearchResponse);
+    rpc pubmed_parent_search(SearchRequest) returns (PubmedResponse);
+    rpc pubmed_cluster_search(SearchRequest) returns (PubmedResponse);
 }

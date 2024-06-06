@@ -2,6 +2,7 @@ use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag;
 use crate::search::{api_models, services};
+use crate::settings::Settings;
 use crate::startup::AppState;
 use crate::users::User;
 use axum::extract::{Query, State};
@@ -14,6 +15,8 @@ use tonic::transport::Channel;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
+    State(settings): State<Settings>,
+    State(brave_api_config): State<rag::BraveAPIConfig>,
     State(pool): State<PgPool>,
     State(cache): State<CachePool>,
     State(mut agency_service): State<AgencyServiceClient<Channel>>,
@@ -24,7 +27,13 @@ async fn get_search_query_handler(
 
     let (search_item, search_response) = tokio::join!(
         services::insert_new_search(&pool, &user_id, &search_query_request),
-        rag::search(&cache, &mut agency_service, &search_query_request)
+        rag::search(
+            &settings,
+            &brave_api_config,
+            &cache,
+            &mut agency_service,
+            &search_query_request
+        )
     );
     let search_item = search_item?;
     let search_response = search_response?;

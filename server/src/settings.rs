@@ -1,5 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::CacheSettings;
+use crate::llms;
+use crate::rag;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
@@ -81,6 +83,9 @@ pub struct Settings {
     pub cache: CacheSettings,
     pub agency_api: Secret<String>,
     pub oauth2_clients: Vec<OAuth2Client>,
+    pub pubmed: rag::PubmedSettings,
+    pub brave: rag::BraveSettings,
+    pub llm: llms::LLMSettings,
 }
 
 impl Settings {

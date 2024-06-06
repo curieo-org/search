@@ -2,6 +2,7 @@ use crate::auth::oauth2::OAuth2Client;
 use crate::cache::CachePool;
 use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
+use crate::rag::brave_search;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -52,6 +53,7 @@ pub struct AppState {
     pub agency_service: AgencyServiceClient<Channel>,
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
+    pub brave_config: brave_search::BraveAPIConfig,
 }
 
 impl AppState {
@@ -61,6 +63,7 @@ impl AppState {
         agency_service: AgencyServiceClient<Channel>,
         oauth2_clients: Vec<OAuth2Client>,
         settings: Settings,
+        brave_config: brave_search::BraveAPIConfig,
     ) -> Result<Self> {
         Ok(Self {
             db,
@@ -68,14 +71,17 @@ impl AppState {
             agency_service,
             oauth2_clients,
             settings,
+            brave_config,
         })
     }
+
     pub async fn initialize(settings: Settings) -> Result<Self> {
         Ok(Self {
             db: db_connect(settings.db.expose()).await?,
             cache: CachePool::new(&settings.cache).await?,
             agency_service: agency_service_connect(settings.agency_api.expose()).await?,
             oauth2_clients: settings.oauth2_clients.clone(),
+            brave_config: brave_search::prepare_brave_api_config(&settings.brave),
             settings,
         })
     }
