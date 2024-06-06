@@ -21,7 +21,21 @@ async fn create_collection_handler(
     Ok((StatusCode::OK, Json(collection)))
 }
 
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn get_collections_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Query(get_collections_request): Query<api_models::GetCollectionsRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    let collections = services::get_collections(&pool, &user_id, &get_collections_request).await?;
+
+    Ok((StatusCode::OK, Json(collections)))
+}
+
 pub fn routes() -> Router<AppState> {
   Router::new()
       .route("/", post(create_collection_handler))
+      .route("/all", get(get_collections_handler))
 }
