@@ -6,8 +6,8 @@ from qdrant_client import AsyncQdrantClient
 from loguru import logger
 
 from app.settings import Settings
-from app.rag.retrieval.pubmed.utils.database import PubmedDatabaseUtils
-from app.rag.utils.models import RetrievedResult
+from app.utils.database_helper import PubmedDatabaseUtils
+from app.rag.utils.models import PubmedSourceResult
 from app.utils.custom_vectorstore import (
     CurieoVectorStore,
     CurieoQueryBundle,
@@ -86,7 +86,7 @@ class ClusterRetrievalEngine:
         )
 
         return [
-            RetrievedResult.model_validate(
+            PubmedSourceResult.model_validate(
                 {
                     "pubmed_id": self.get_pubmed_url(pubmed_id),
                     "title": pubmed_titles.get(pubmed_id, ""),

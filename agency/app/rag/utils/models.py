@@ -40,6 +40,13 @@ SourceRecord = BraveSourceRecord | PubmedSourceRecord
 class RetrievedResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    text: str
+    source: SourceRecord
+
+
+class PubmedSourceResult(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     pubmed_id: str
     title: str
     abstract: str
