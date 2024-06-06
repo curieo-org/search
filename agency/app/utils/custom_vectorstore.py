@@ -1,8 +1,17 @@
-from typing import Any
+from typing import Any, List, Optional
+from dataclasses import dataclass
 
-from llama_index.core.schema import BaseNode
+from llama_index.core.schema import (
+    BaseNode,
+    QueryBundle
+)
 from llama_index.core.utils import iter_batch
 from llama_index.vector_stores.qdrant import QdrantVectorStore
+from llama_index.core.indices.vector_store.retrievers import VectorIndexRetriever
+from llama_index.core.vector_stores.types import (
+    VectorStoreQueryMode,
+    MetadataFilters
+)
 from qdrant_client.http import models as rest
 
 from app.utils.custom_basenode import CurieoBaseNode
@@ -63,3 +72,58 @@ class CurieoVectorStore(QdrantVectorStore):
             ids.extend(node_ids)
 
         return points, ids
+
+
+@dataclass
+class CurieoVectorStoreQuery:
+    """Vector store query."""
+
+    query_embedding: Optional[List[float]] = None
+    sparse_embedding = None
+    similarity_top_k: int = 1
+    doc_ids: Optional[List[str]] = None
+    node_ids: Optional[List[str]] = None
+    query_str: Optional[str] = None
+    output_fields: Optional[List[str]] = None
+    embedding_field: Optional[str] = None
+
+    mode: VectorStoreQueryMode = VectorStoreQueryMode.DEFAULT
+
+    # NOTE: only for hybrid search (0 for bm25, 1 for vector search)
+    alpha: Optional[float] = None
+
+    # metadata filters
+    filters: Optional[MetadataFilters] = None
+
+    # only for mmr
+    mmr_threshold: Optional[float] = None
+
+    # NOTE: currently only used by postgres hybrid search
+    sparse_top_k: Optional[int] = None
+    # NOTE: return top k results from hybrid search. similarity_top_k is used for dense search top k
+    hybrid_top_k: Optional[int] = None
+
+
+@dataclass
+class CurieoQueryBundle(QueryBundle):
+    sparse_embedding: Optional[List[float]] = None
+    
+
+class CurieoVectorIndexRetriever(VectorIndexRetriever):
+    def _build_vector_store_query(
+        self, query_bundle_with_embeddings: CurieoQueryBundle
+    ) -> CurieoVectorStoreQuery:
+        return CurieoVectorStoreQuery(
+            query_embedding=query_bundle_with_embeddings.embedding,
+            sparse_embedding=query_bundle_with_embeddings.sparse_embedding,
+            similarity_top_k=self._similarity_top_k,
+            node_ids=self._node_ids,
+            doc_ids=self._doc_ids,
+            query_str=query_bundle_with_embeddings.query_str,
+            mode=self._vector_store_query_mode,
+            alpha=self._alpha,
+            filters=self._filters,
+            sparse_top_k=self._sparse_top_k,
+        )
+
+

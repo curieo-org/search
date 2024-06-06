@@ -107,7 +107,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
     async def _aget_query_embedding(self, _query: str) -> list[float]:
         return []
 
-    def get_text_embedding_batch(
+    async def get_text_embedding_batch(
         self,
         texts: list[str],
         show_progress: bool = False,
