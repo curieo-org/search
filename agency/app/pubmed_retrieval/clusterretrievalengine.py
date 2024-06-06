@@ -88,8 +88,8 @@ class ClusterRetrievalEngine:
         return [
             PubmedSourceResult.model_validate(
                 {
-                    "pubmed_id": self.get_pubmed_url(pubmed_id),
-                    "title": pubmed_titles.get(pubmed_id, ""),
+                    "pubmed_id": str(pubmed_id),
+                    "title": str(pubmed_titles.get(pubmed_id, "")),
                     "abstract": children_node_texts.get(child_node_id, "")
                 }
             )

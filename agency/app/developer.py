@@ -4,6 +4,7 @@ from settings import Settings
 from utils.logging import setup_logger
 from query_node_process.nodeprocessengine import QueryProcessorEngine
 from pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
+from pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
 from utils.custom_vectorstore import (
     CurieoVectorStore,
     CurieoQueryBundle,
@@ -14,6 +15,7 @@ settings = Settings()
 #orchestrator = Orchestrator(settings)
 queryprocessengine = QueryProcessorEngine(settings)
 parent = ParentRetrievalEngine(settings)
+cluster = ClusterRetrievalEngine(settings)
 logger = setup_logger("Developer")
 
 query = "Parasetamol in covid"
@@ -33,6 +35,14 @@ async def get_search_results(query: str = "") -> None:
         embedding=nodes["embedding"],
         sparse_embedding=nodes["sparse_embedding"]
     ))
+    
+    cluster_nodes = await cluster.retrieve_cluster_nodes(CurieoQueryBundle(
+        query_str=nodes["query_str"],
+        embedding=nodes["embedding"],
+        sparse_embedding=nodes["sparse_embedding"]
+    ))
+
+
     print()
 
 
