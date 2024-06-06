@@ -1,5 +1,5 @@
 use crate::collections::{api_models, data_models};
-use sqlx::PgPool;
+use sqlx::{PgPool, Error};
 use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -48,13 +48,30 @@ pub async fn update_collection(
         ",
         update_collection_request.name,
         update_collection_request.description,
-        update_collection_request.category.map(|category| category as i32),
+        update_collection_request.category.map(|s| s as i32),
         update_collection_request.collection_id,
     )
     .fetch_one(pool)
     .await?;
 
     return Ok(collection);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn delete_collection(
+    pool: &PgPool,
+    user_id: &Uuid,
+    delete_collection_request: &api_models::DeleteCollectionRequest,
+) -> Result<(), Error> {
+    sqlx::query_as!(
+        data_models::Collection,
+        "delete from collections where collection_id = $1",
+        delete_collection_request.collection_id,
+    )
+    .execute(pool)
+    .await?;
+
+    return Ok(());
 }
 
 #[tracing::instrument(level = "debug", ret, err)]

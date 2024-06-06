@@ -27,3 +27,8 @@ pub struct UpdateCollectionRequest {
   pub description: Option<String>,
   pub category: Option<CategoryType>,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCollectionRequest {
+  pub collection_id: uuid::Uuid,
+}

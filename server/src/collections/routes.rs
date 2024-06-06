@@ -4,7 +4,7 @@ use crate::users::User;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::{get, patch, post};
+use axum::routing::{get, patch, post, delete};
 use axum::{Json, Router};
 use sqlx::PgPool;
 
@@ -35,6 +35,19 @@ async fn update_collection_handler(
 }
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn delete_collection_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Json(delete_collection_request): Json<api_models::DeleteCollectionRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    services::delete_collection(&pool, &user_id, &delete_collection_request).await?;
+
+    Ok((StatusCode::OK, ()))
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_collections_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -51,5 +64,6 @@ pub fn routes() -> Router<AppState> {
   Router::new()
       .route("/", post(create_collection_handler))
       .route("/", patch(update_collection_handler))
+      .route("/", delete(delete_collection_handler))
       .route("/all", get(get_collections_handler))
 }
