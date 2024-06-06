@@ -73,8 +73,8 @@ class ParentRetrievalEngine:
         return [
             PubmedSourceResult.model_validate(
                 {
-                    "pubmed_id": node.metadata.get("pubmedid", 0),
-                    "title": pubmed_titles.get(node.metadata.get("pubmedid", 0), ""),
+                    "pubmed_id": str(node.metadata.get("pubmedid", 0)),
+                    "title": str(pubmed_titles.get(node.metadata.get("pubmedid", 0), "")),
                     "abstract": node.get_text()
                 }
             )

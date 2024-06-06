@@ -1,6 +1,5 @@
 import asyncio
 
-from router.orchestrator import Orchestrator
 from settings import Settings
 from utils.logging import setup_logger
 from query_node_process.nodeprocessengine import QueryProcessorEngine
