@@ -82,6 +82,24 @@ export async function auth(): Promise<Session | null> {
   return session
 }
 
-export async function signUp(f: FormData): Promise<AxiosResponse<AuthResponse>> {
-  return BackendAPIClient.post('/auth/signup', formToUrlParams(f))
+export class SignUpError extends AuthError {
+  static type = 'SignUpError'
+}
+
+export async function signUp(f: FormData): Promise<AuthResponse> {
+  // If email is not set we use username
+  if (!f.has('email')) {
+    f.set('email', f.get('username') || '')
+  }
+  let response = await fetch(`${process.env.NEXT_AUTH_URL}/backend-api/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: formToUrlParams(f),
+  })
+  if (response.ok) {
+    return (await response.json()) as AuthResponse
+  }
+  throw new SignUpError('Could not sign up')
 }

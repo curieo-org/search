@@ -1,3 +1,5 @@
+'use server'
+
 import { signinPagePath } from '@/constants/route'
 import axios from 'axios'
 
