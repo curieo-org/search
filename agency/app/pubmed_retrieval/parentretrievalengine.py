@@ -4,7 +4,7 @@ from llama_index.core import StorageContext
 from qdrant_client import AsyncQdrantClient
 
 from app.settings import Settings
-from app.utils.logging import setup_logger
+from loguru import logger
 from app.rag.retrieval.pubmed.utils.database import PubmedDatabaseUtils
 from app.rag.utils.models import RetrievedResult
 from app.utils.custom_vectorstore import (
@@ -14,7 +14,7 @@ from app.utils.custom_vectorstore import (
     CurieoVectorStoreIndex
 )
 
-logger = setup_logger("ParentRetrievalEngine")
+logger.add("file.log", rotation="500 MB", format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}")
 
 
 class ParentRetrievalEngine:
@@ -53,7 +53,7 @@ class ParentRetrievalEngine:
     ) -> dict:
         logger.info(f"query_process. search_text: {query.query_str}")   
         if not len(query.embedding) and not len(query.sparse_embedding):
-            return None
+            return []
         
         extracted_nodes = await self.parent_retriever.aretrieve(query)
         if not len(extracted_nodes):
