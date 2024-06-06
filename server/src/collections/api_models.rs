@@ -19,3 +19,11 @@ pub struct GetCollectionsRequest {
 pub struct GetCollectionsResponse {
   pub collections:Vec<Collection>
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCollectionRequest {
+  pub collection_id: uuid::Uuid,
+  pub name: Option<String>,
+  pub description: Option<String>,
+  pub category: Option<CategoryType>,
+}

@@ -22,6 +22,19 @@ async fn create_collection_handler(
 }
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn update_collection_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Json(update_collection_request): Json<api_models::UpdateCollectionRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    let collection = services::update_collection(&pool, &user_id, &update_collection_request).await?;
+
+    Ok((StatusCode::OK, Json(collection)))
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_collections_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -37,5 +50,6 @@ async fn get_collections_handler(
 pub fn routes() -> Router<AppState> {
   Router::new()
       .route("/", post(create_collection_handler))
+      .route("/", patch(update_collection_handler))
       .route("/all", get(get_collections_handler))
 }
