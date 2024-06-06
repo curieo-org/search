@@ -9,14 +9,14 @@ use tonic::transport::Channel;
 pub async fn search(
     cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &api_models::SearchQueryRequest,
+    search_query_request: &api_models::SearchQueryRequest,
 ) -> crate::Result<AgencySearchResponse> {
-    if let Some(response) = cache.get(&search_query.query).await {
+    if let Some(response) = cache.get(&search_query_request.query).await {
         return Ok(response);
     }
 
     let request = tonic::Request::new(AgencySearchRequest {
-        query: search_query.query.clone(),
+        query: search_query_request.query.clone(),
     });
 
     let response: AgencySearchResponse = agency_service
@@ -29,7 +29,7 @@ pub async fn search(
         return Err(eyre!("Failed to get search results").into());
     }
 
-    cache.set(&search_query.query, &response).await;
+    cache.set(&search_query_request.query, &response).await;
 
     return Ok(response);
 }

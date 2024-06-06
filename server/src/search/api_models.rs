@@ -24,18 +24,18 @@ pub struct SearchByIdResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SearchHistoryRequest {
+pub struct ThreadHistoryRequest {
     pub limit: Option<u8>,
     pub offset: Option<u8>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SearchHistoryResponse {
+pub struct ThreadHistoryResponse {
     pub threads: Vec<Thread>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SearchThreadRequest {
+pub struct GetThreadRequest {
     pub thread_id: uuid::Uuid,
     pub limit: Option<u8>,
     pub offset: Option<u8>,

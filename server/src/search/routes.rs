@@ -18,13 +18,13 @@ async fn get_search_query_handler(
     State(cache): State<CachePool>,
     State(mut agency_service): State<AgencyServiceClient<Channel>>,
     user: User,
-    Query(search_query): Query<api_models::SearchQueryRequest>,
+    Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
     let (search_item, search_response) = tokio::join!(
-        services::insert_new_search(&pool, &user_id, &search_query),
-        rag::search(&cache, &mut agency_service, &search_query)
+        services::insert_new_search(&pool, &user_id, &search_query_request),
+        rag::search(&cache, &mut agency_service, &search_query_request)
     );
     let search_item = search_item?;
     let search_response = search_response?;
@@ -39,11 +39,11 @@ async fn get_search_query_handler(
 async fn get_one_search_result_handler(
     State(pool): State<PgPool>,
     user: User,
-    Query(search_history_request): Query<api_models::SearchByIdRequest>,
+    Query(search_by_id_request): Query<api_models::SearchByIdRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_history = services::get_one_search(&pool, &user_id, &search_history_request).await?;
+    let search_history = services::get_one_search(&pool, &user_id, &search_by_id_request).await?;
 
     Ok((StatusCode::OK, Json(search_history)))
 }
@@ -52,11 +52,11 @@ async fn get_one_search_result_handler(
 async fn get_threads_handler(
     State(pool): State<PgPool>,
     user: User,
-    Query(search_history_request): Query<api_models::SearchHistoryRequest>,
+    Query(thread_history_request): Query<api_models::ThreadHistoryRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    let search_history = services::get_threads(&pool, &user_id, &search_history_request).await?;
+    let search_history = services::get_threads(&pool, &user_id, &thread_history_request).await?;
 
     Ok((StatusCode::OK, Json(search_history)))
 }
@@ -65,11 +65,9 @@ async fn get_threads_handler(
 async fn get_one_thread_handler(
     State(pool): State<PgPool>,
     user: User,
-    Query(search_thread_request): Query<api_models::SearchThreadRequest>,
+    Query(get_thread_request): Query<api_models::GetThreadRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
-
-    let search_thread = services::get_one_thread(&pool, &user_id, &search_thread_request).await?;
+    let search_thread = services::get_one_thread(&pool, &user.user_id, &get_thread_request).await?;
 
     Ok((StatusCode::OK, Json(search_thread)))
 }
