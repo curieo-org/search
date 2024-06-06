@@ -40,8 +40,9 @@ SourceRecord = BraveSourceRecord | PubmedSourceRecord
 class RetrievedResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    text: str
-    source: SourceRecord
+    pubmed_id: str
+    title: str
+    abstract: str
 
 
 class PromptCompressorResult(BaseModel):

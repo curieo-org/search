@@ -1,23 +1,54 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, cast
 from dataclasses import dataclass
 
 from llama_index.core.schema import (
     BaseNode,
-    QueryBundle
+    QueryBundle,
+    NodeWithScore
+)
+from llama_index.core import (
+    VectorStoreIndex,
+    StorageContext
 )
 from llama_index.core.utils import iter_batch
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core.indices.vector_store.retrievers import VectorIndexRetriever
+import llama_index.core.instrumentation as instrument
 from llama_index.core.vector_stores.types import (
     VectorStoreQueryMode,
-    MetadataFilters
+    MetadataFilters,
+    VectorStoreQueryResult
 )
+from llama_index.vector_stores.qdrant.utils import (
+    HybridFusionCallable,
+    relative_score_fusion,
+)
+from llama_index.core.embeddings.utils import EmbedType
 from qdrant_client.http import models as rest
+import llama_index.core.instrumentation as instrument
 
 from app.utils.custom_basenode import CurieoBaseNode
 
+dispatcher = instrument.get_dispatcher(__name__)
+
+
+@dataclass
+class CurieoQueryBundle(QueryBundle):
+    sparse_embedding: Optional[List[float]] = None
+
 
 class CurieoVectorStore(QdrantVectorStore):
+    def __init__(
+        self,
+        collection_name: str,
+        aclient: Optional[Any] = None
+    ):
+        super().__init__(
+            collection_name=collection_name,
+            aclient=aclient,
+            hybrid_fusion_fn=cast(HybridFusionCallable, relative_score_fusion)
+        )
+
     def node_process_to_metadata_dict(
         self, node: CurieoBaseNode, text_required: bool = True
     ) -> dict[str, Any]:
@@ -72,58 +103,128 @@ class CurieoVectorStore(QdrantVectorStore):
             ids.extend(node_ids)
 
         return points, ids
+    
+    async def aquery(
+        self, query_bundle: CurieoQueryBundle
+    ) -> VectorStoreQueryResult:
+        """
+        Asynchronously query vector store.
+        NOTE: this is not implemented for all vector stores. If not implemented,
+        it will just call query synchronously.
+        """
+        dense_embedding = cast(List[float], query_bundle.query_embedding)
+        sparse_indices, sparse_embedding = query_bundle.sparse_embedding
 
+        response = await self._aclient.search_batch(
+            collection_name=self.collection_name,
+            requests=[
+                rest.SearchRequest(
+                    vector=rest.NamedVector(
+                        name="text-dense",
+                        vector=dense_embedding,
+                    ),
+                    limit=query_bundle.similarity_top_k,
+                    filter=query_bundle.filters,
+                    with_payload=True,
+                ),
+                rest.SearchRequest(
+                    vector=rest.NamedSparseVector(
+                        name="text-sparse",
+                        vector=rest.SparseVector(
+                            indices=sparse_indices[0],
+                            values=sparse_embedding[0],
+                        ),
+                    ),
+                    limit=query_bundle.sparse_top_k,
+                    filter=query_bundle.filters,
+                    with_payload=True,
+                ),
+            ],
+        )
 
-@dataclass
-class CurieoVectorStoreQuery:
-    """Vector store query."""
+        # sanity check
+        assert len(response) == 2
 
-    query_embedding: Optional[List[float]] = None
-    sparse_embedding = None
-    similarity_top_k: int = 1
-    doc_ids: Optional[List[str]] = None
-    node_ids: Optional[List[str]] = None
-    query_str: Optional[str] = None
-    output_fields: Optional[List[str]] = None
-    embedding_field: Optional[str] = None
-
-    mode: VectorStoreQueryMode = VectorStoreQueryMode.DEFAULT
-
-    # NOTE: only for hybrid search (0 for bm25, 1 for vector search)
-    alpha: Optional[float] = None
-
-    # metadata filters
-    filters: Optional[MetadataFilters] = None
-
-    # only for mmr
-    mmr_threshold: Optional[float] = None
-
-    # NOTE: currently only used by postgres hybrid search
-    sparse_top_k: Optional[int] = None
-    # NOTE: return top k results from hybrid search. similarity_top_k is used for dense search top k
-    hybrid_top_k: Optional[int] = None
-
-
-@dataclass
-class CurieoQueryBundle(QueryBundle):
-    sparse_embedding: Optional[List[float]] = None
+        # flatten the response
+        return relative_score_fusion(
+            self.parse_to_query_result(response[0]),
+            self.parse_to_query_result(response[1]),
+            # NOTE: only for hybrid search (0 for sparse search, 1 for dense search)
+            alpha=query_bundle.alpha or 0.5,
+            # NOTE: use hybrid_top_k if provided, otherwise use similarity_top_k
+            top_k=query_bundle.hybrid_top_k or query_bundle.similarity_top_k,
+        )
     
 
-class CurieoVectorIndexRetriever(VectorIndexRetriever):
+class CurieoVectorStoreQuery:
+    def __init__(
+        self,
+        query_embedding: Optional[List[float]] = None,
+        sparse_embedding: Optional[List[float]] = None,
+        similarity_top_k: int = 1,
+        doc_ids: Optional[List[str]] = None,
+        node_ids: Optional[List[str]] = None,
+        query_str: Optional[str] = None,
+        output_fields: Optional[List[str]] = None,
+        embedding_field: Optional[str] = None,
+        mode: VectorStoreQueryMode = VectorStoreQueryMode.HYBRID,
+        alpha: Optional[float] = None,
+        filters: Optional[MetadataFilters] = None,
+        mmr_threshold: Optional[float] = None,
+        sparse_top_k: Optional[int] = None,
+        hybrid_top_k: Optional[int] = None,
+    ):
+        self.query_embedding = query_embedding
+        self.sparse_embedding = sparse_embedding
+        self.similarity_top_k = similarity_top_k
+        self.doc_ids = doc_ids
+        self.node_ids = node_ids
+        self.query_str = query_str
+        self.output_fields = output_fields
+        self.embedding_field = embedding_field
+        self.mode = mode
+        self.alpha = alpha
+        self.filters = filters
+        self.mmr_threshold = mmr_threshold
+        self.sparse_top_k = sparse_top_k
+        self.hybrid_top_k = hybrid_top_k
+
+
+class CurieoVectorIndexRetriever(VectorIndexRetriever): 
     def _build_vector_store_query(
-        self, query_bundle_with_embeddings: CurieoQueryBundle
+        self, query_bundle: QueryBundle
     ) -> CurieoVectorStoreQuery:
         return CurieoVectorStoreQuery(
-            query_embedding=query_bundle_with_embeddings.embedding,
-            sparse_embedding=query_bundle_with_embeddings.sparse_embedding,
+            query_embedding=query_bundle.embedding,
+            sparse_embedding=query_bundle.sparse_embedding,
             similarity_top_k=self._similarity_top_k,
             node_ids=self._node_ids,
             doc_ids=self._doc_ids,
-            query_str=query_bundle_with_embeddings.query_str,
+            query_str=query_bundle.query_str,
             mode=self._vector_store_query_mode,
             alpha=self._alpha,
             filters=self._filters,
             sparse_top_k=self._sparse_top_k,
         )
+    
+    @dispatcher.span
+    async def _aretrieve(self, query_bundle: CurieoQueryBundle) -> List[NodeWithScore]:
+        query = self._build_vector_store_query(query_bundle)
+        query_result = await self._vector_store.aquery(query)
+        return self._build_node_list_from_query_result(query_result)
+    
 
+class CurieoVectorStoreIndex(VectorStoreIndex):
+    def __init__(
+        self,
+        embed_model: Optional[EmbedType] = None,
+        storage_context: Optional[StorageContext] = None
+    ) -> None:
+        """Initialize params."""
+        self._use_async = True
 
+        super().__init__(
+            nodes=[],
+            embed_model=embed_model,
+            storage_context=storage_context,
+        )
