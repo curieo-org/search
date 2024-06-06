@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 enum Error {
   Configuration = 'Configuration',
   AccessDenied = 'AccessDenied',
+  SignUpError = 'SignUpError',
 }
 
 const errorMap = {
@@ -24,6 +25,14 @@ const errorMap = {
       <br />
       Unique error code:
       <br /> <code className="text-xs p-1 rounded-sm">AccessDenied</code>
+    </p>
+  ),
+  [Error.SignUpError]: (
+    <p>
+      There was a problem when signing up. Please contact us if this error persists.
+      <br />
+      Unique error code:
+      <br /> <code className="text-xs p-1 rounded-sm">SignUpError</code>
     </p>
   ),
 }

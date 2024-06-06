@@ -2,8 +2,7 @@ import { LayoutProps } from '@/app/layout'
 import { auth } from '@/auth'
 import { Slide, ToastContainer } from 'react-toastify'
 import { P } from '../lib/typography'
-import { AuthRequired, Authenticated } from './app-middleware'
-import { useSession } from 'next-auth/react'
+import { Authenticated, AuthRequired } from './app-middleware'
 
 export default function App({ children }: LayoutProps) {
   return (

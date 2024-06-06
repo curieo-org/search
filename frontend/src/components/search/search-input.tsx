@@ -3,7 +3,7 @@
 import { maxSearchInputHeight } from '@/constants/style'
 import { useSearchStore } from '@/stores/search/search-store'
 import classNames from 'classnames'
-import { ChangeEvent, HTMLAttributes, KeyboardEvent, useRef } from 'react'
+import { ChangeEvent, FormEvent, HTMLAttributes, KeyboardEvent, MouseEventHandler, useRef } from 'react'
 import PaperPlaneIcon from '../icons/paper-plane'
 import { Button, IconButton } from '../lib/button'
 import { Textarea } from '../lib/form'

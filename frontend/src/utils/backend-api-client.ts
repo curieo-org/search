@@ -3,8 +3,10 @@
 import { signinPagePath } from '@/constants/route'
 import axios from 'axios'
 
+const BASE_URL = `${process.env.NEXT_AUTH_URL}/backend-api`
+
 const BackendAPIClient = axios.create({
-  baseURL: `${process.env.NEXT_AUTH_URL}/backend-api`,
+  baseURL: BASE_URL,
   withCredentials: true,
 })
 

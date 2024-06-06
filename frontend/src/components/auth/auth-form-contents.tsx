@@ -7,7 +7,8 @@ import { useEffect } from 'react'
 import { z } from 'zod'
 import { Button } from '../lib/button'
 import { Input, PasswordInput } from '../lib/form'
-import { useAppContext } from '@/components/wrappers/app copy'
+
+import { useAppContext } from '@/components/wrappers/app-middleware'
 
 export default function AuthFormContents({ csrfToken }: { csrfToken: string }) {
   const { updateAuthStatus } = useAppContext()

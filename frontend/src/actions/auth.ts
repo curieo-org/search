@@ -18,7 +18,7 @@ export async function signin(formData: FormData) {
 export async function signup(formData: FormData) {
   try {
     await signUp(formData)
-    return redirect('/signin')
+    return redirect('/auth/signin')
   } catch (error) {
     if (error instanceof AuthError) {
       return redirect(`/auth/error?error=${error.type}`)
