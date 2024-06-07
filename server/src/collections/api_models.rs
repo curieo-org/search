@@ -10,6 +10,11 @@ pub struct CreateCollectionRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct GetOneCollectionRequest {
+  pub collection_id: uuid::Uuid,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GetCollectionsRequest {
   pub limit: Option<u8>,
   pub offset: Option<u8>,

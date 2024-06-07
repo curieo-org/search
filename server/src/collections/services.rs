@@ -24,6 +24,23 @@ pub async fn insert_new_collection(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
+pub async fn get_one_collection(
+    pool: &PgPool,
+    user_id: &Uuid,
+    get_one_collection_request: &api_models::GetOneCollectionRequest,
+) -> crate::Result<data_models::Collection> {
+    let collection = sqlx::query_as!(
+        data_models::Collection,
+        "select * from collections where collection_id = $1",
+        get_one_collection_request.collection_id,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    return Ok(collection);
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
 pub async fn update_collection(
     pool: &PgPool,
     user_id: &Uuid,
@@ -171,3 +188,4 @@ pub async fn delete_items_from_collection(
 
     return Ok(());
 }
+
