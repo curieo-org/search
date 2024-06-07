@@ -23,9 +23,11 @@ function curieoApiUrl(reqInfo?: RequestInfo): URL {
 }
 
 export async function curieoFetch(reqInfo: RequestInfo, init?: RequestInit): Promise<Response> {
-  const cookie = next_headers().get('cookie')!
+  const cookie = next_headers().get('cookie')
   let headers = init ? new Headers(init.headers) : new Headers()
-  headers.set('cookie', cookie)
+  if (cookie) {
+    headers.set('cookie', cookie)
+  }
   if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
