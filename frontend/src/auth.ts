@@ -1,12 +1,10 @@
 import { authConfig } from '@/auth.config'
 import { AuthParams, AuthResponse } from '@/types/auth'
 import { encodeAsUrlSearchParams, formToUrlParams } from '@/utils'
-import { BackendAPIClient } from '@/utils/backend-api-client'
-import { AxiosResponse } from 'axios'
 import NextAuth, { AuthError, Session, User } from 'next-auth'
 import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { curieoFetch } from '@/actions/fetch'
 
 export const {
@@ -27,7 +25,7 @@ export const {
       authorize: async (credentials, req) => {
         async function login(p: AuthParams): Promise<AuthResponse | null> {
           'use server'
-          const response = await fetch(`${process.env.NEXT_AUTH_URL}/backend-api/auth/login`, {
+          const response = await curieoFetch('/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
