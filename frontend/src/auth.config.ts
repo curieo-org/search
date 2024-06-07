@@ -7,13 +7,12 @@ export const authConfig: NextAuthConfig = {
     brandColor: '#9655FDFF', // Hex color code
     buttonText: '#9655FDFF', // Hex color code
   },
-  //adapter: adapter,
   pages: {
     signIn: '/auth/signin',
     signOut: '/auth/signout',
     error: '/auth/error',
-    verifyRequest: '/auth/verify-request',
-    newUser: '/auth/new-user',
+    // TODO: verifyRequest: '/auth/verify-request',
+    // TODO: newUser: '/auth/new-user',
   },
   providers: [], // Set in auth.ts
   callbacks: {

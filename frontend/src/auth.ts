@@ -7,6 +7,7 @@ import NextAuth, { AuthError, Session, User } from 'next-auth'
 import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
 import { cookies, headers } from 'next/headers'
+import { curieoFetch } from '@/actions/fetch'
 
 export const {
   handlers: { GET, POST },
@@ -91,7 +92,7 @@ export async function signUp(f: FormData): Promise<AuthResponse> {
   if (!f.has('email')) {
     f.set('email', f.get('username') || '')
   }
-  let response = await fetch(`${process.env.NEXT_AUTH_URL}/backend-api/auth/register`, {
+  let response = await curieoFetch('/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
