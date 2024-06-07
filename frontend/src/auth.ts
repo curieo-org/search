@@ -6,7 +6,7 @@ import { AxiosResponse } from 'axios'
 import NextAuth, { AuthError, Session, User } from 'next-auth'
 import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 export const {
   handlers: { GET, POST },

@@ -9,6 +9,7 @@ use color_eyre::eyre::eyre;
 use rand::Rng;
 use sqlx::PgPool;
 use tonic::transport::Channel;
+use tracing::debug;
 use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]

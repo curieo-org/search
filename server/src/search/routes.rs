@@ -14,6 +14,7 @@ use axum::routing::{get, patch};
 use axum::{Json, Router};
 use sqlx::PgPool;
 use tonic::transport::Channel;
+use tracing::debug;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_handler(
