@@ -9,7 +9,7 @@ use tracing::Level;
 use crate::auth::models::PostgresBackend;
 use crate::auth::sessions::{DashStore, RedisStore};
 use crate::startup::AppState;
-use crate::{auth, health_check, search, users};
+use crate::{auth, health_check, search, users, collections};
 
 pub fn router(state: AppState) -> color_eyre::Result<Router> {
     // Session layer.
@@ -38,6 +38,7 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
         //.layer(middleware::from_fn(some_auth_middleware))
         .nest("/search", search::routes())
         .nest("/users", users::routes())
+        .nest("/collections", collections::routes())
         .route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
         .nest("/auth", auth::routes());
 

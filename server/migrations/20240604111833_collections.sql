@@ -18,40 +18,25 @@ SELECT trigger_updated_at('collections');
 -- And creating an index on `user_id` to make it easier to find all collections for a given user
 CREATE INDEX collections_user_id ON collections (user_id);
 
--- Creating a join table for collections and sources
-CREATE TABLE collection_sources
+-- Creating a join table for collections and items
+CREATE TABLE collection_items
 (
-    collection_source_id    uuid primary key        default uuid_generate_v1mc(),
+    collection_item_id      uuid primary key        default uuid_generate_v1mc(),
     collection_id           uuid        not null    references collections (collection_id),
-    source_id               uuid        not null    references sources (source_id),
+    item_id                 uuid        not null,
+    item_type               integer     not null,
+
     created_at              timestamptz not null    default now(),
     updated_at              timestamptz not null    default now(),
 
-    unique (collection_id, source_id)
+    unique (collection_id, item_id)
 );
 
 -- And applying our `updated_at` trigger is as easy as this.
-SELECT trigger_updated_at('collection_sources');
+SELECT trigger_updated_at('collection_items');
 
--- And creating an index on `collection_id` and `source_id` to make it easier to find all sources for a given collection
-CREATE INDEX collection_sources_collection_id ON collection_sources (collection_id);
-CREATE INDEX collection_sources_source_id ON collection_sources (source_id);
+-- And creating an index on `collection_id` and `item_id` to make it easier to find all items for a given collection
+CREATE INDEX collection_items_collection_id ON collection_items (collection_id);
+CREATE INDEX collection_items_collection_id_item_type ON collection_items (collection_id, item_type);
 
--- And creating an join table for collections and searches
-CREATE TABLE collection_searches
-(
-    collection_search_id    uuid primary key        default uuid_generate_v1mc(),
-    collection_id           uuid        not null    references collections (collection_id),
-    search_id               uuid        not null    references searches (search_id),
-    created_at              timestamptz not null    default now(),
-    updated_at              timestamptz not null    default now(),
 
-    unique (collection_id, search_id)
-);
-
--- And applying our `updated_at` trigger is as easy as this.
-SELECT trigger_updated_at('collection_searches');
-
--- And creating an index on `collection_id` and `search_id` to make it easier to find all searches for a given collection
-CREATE INDEX collection_searches_collection_id ON collection_searches (collection_id);
-CREATE INDEX collection_searches_search_id ON collection_searches (search_id);
