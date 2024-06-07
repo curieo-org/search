@@ -21,8 +21,8 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     let caching_session_store = CachingSessionStore::new(DashStore::default(), session_store);
 
     let session_layer = SessionManagerLayer::new(caching_session_store)
-        .with_secure(false)
-        .with_same_site(SameSite::Lax) // Ensure we send the cookie from the OAuth redirect.
+        .with_secure(true)
+        .with_same_site(SameSite::Strict)
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 
     // Auth service.
@@ -35,7 +35,7 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
 
     let api_routes = Router::new()
         .nest("/users", users::routes())
-        //.route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
+        .route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
         .nest("/search", search::routes())
         .nest("/auth", auth::routes());
 
