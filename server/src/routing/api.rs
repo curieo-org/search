@@ -16,10 +16,8 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
     // as a request extension.
-
     let session_store = RedisStore::new(state.cache.clone());
     let caching_session_store = CachingSessionStore::new(DashStore::default(), session_store);
-
     let session_layer = SessionManagerLayer::new(caching_session_store)
         .with_secure(true)
         .with_same_site(SameSite::Strict)

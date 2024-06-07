@@ -6,7 +6,6 @@ import { search } from '@/actions/search'
 
 export const useSearchQuery = () => {
   const queryClient = useQueryClient()
-  //const [searchQuery, setSearchQuery] = useState('')
   const {
     state: { searchQuery },
   } = useSearchStore()
