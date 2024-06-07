@@ -52,7 +52,7 @@ impl From<i32> for CollectionItemType {
 }
 
 #[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
-pub struct CollectionItems {
+pub struct CollectionItem {
     pub collection_item_id: uuid::Uuid,
     pub collection_id: uuid::Uuid,
     pub item_id: uuid::Uuid,

@@ -73,6 +73,32 @@ async fn add_items_to_collection_handler(
     Ok((StatusCode::OK, ()))
 }
 
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn get_items_from_collection_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Query(get_items_from_collection_request): Query<api_models::GetItemsFromCollectionRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    let items = services::get_items_from_collection(&pool, &user_id, &get_items_from_collection_request).await?;
+
+    Ok((StatusCode::OK, Json(items)))
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn delete_items_from_collection_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Json(delete_items_from_collection_request): Json<api_models::DeleteItemsFromCollectionRequest>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = user.user_id;
+
+    services::delete_items_from_collection(&pool, &user_id, &delete_items_from_collection_request).await?;
+
+    Ok((StatusCode::OK, ()))
+}
+
 pub fn routes() -> Router<AppState> {
   Router::new()
       .route("/", post(create_collection_handler))
@@ -80,4 +106,6 @@ pub fn routes() -> Router<AppState> {
       .route("/", delete(delete_collection_handler))
       .route("/all", get(get_collections_handler))
       .route("/items", put(add_items_to_collection_handler))
+      .route("/items", get(get_items_from_collection_handler))
+      .route("/items", delete(delete_items_from_collection_handler))
 }
