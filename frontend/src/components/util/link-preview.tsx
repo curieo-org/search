@@ -41,11 +41,9 @@ export default function LinkPreview(props: LinkPreviewProps) {
         setPreviewData({ title, description, image })
         setLoading(false)
       } catch (error) {
-        console.error(error)
         setLoading(false)
       }
     }
-
     fetchData()
   }, [url])
 

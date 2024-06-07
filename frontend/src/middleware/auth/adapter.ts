@@ -9,7 +9,6 @@ export const adapter = httpAdapter({
   // you can provide any other
   adapterProcedures: {
     createUser(user) {
-      console.debug('Creating user')
       return {
         path: 'auth/register/',
         method: 'POST',
