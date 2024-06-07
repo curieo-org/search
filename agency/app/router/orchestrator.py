@@ -2,15 +2,16 @@
 import asyncio
 import re
 
-import dspy
 from llama_index.core.response_synthesizers import SimpleSummarize
 from llama_index.core.schema import QueryBundle
 from llama_index.llms.together import TogetherLLM
 
-from app.rag.reranker.response_reranker import TextEmbeddingRerankPostprocessor
+from app.rag.post_process.prompt_compressor import PromptCompressorEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
 from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
-from app.rag.utils.models import SearchResultRecord
+from app.rag.utils.models import RetrievedResult, SearchResultRecord
+
+# from app.rag.generation.response_synthesis import ResponseSynthesisEngine
 from app.settings import Settings
 from app.utils.logging import setup_logger
 
@@ -19,167 +20,86 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 
 class Orchestrator:
-    """Orchestrator is responsible for routing the search engine query.
-
-    It currently supports 2 routes:
-    1. Pubmed
-    2. Brave API search
-
-    TODO: enable support for
-    3. Clinical trials
-    4. Drug chembl
-    """
-
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.llm = dspy.OpenAI(
-            model=settings.ai_models.router,
-            api_key=settings.openai.api_key.get_secret_value(),
-        )
-        dspy.settings.configure(lm=self.llm)
-        # self.router = RouterModule()
-        # self.router.load(settings.dspy.orchestrator_router_prompt_program)
 
-        # self.clinical_trial_search = ClinicalTrialText2SQLEngine(settings)
-        # self.drug_chembl_search = DrugChEMBLText2CypherEngine(settings)
         self.pubmed_search = PubmedSearchQueryEngine(settings)
         self.brave_search = BraveSearchQueryEngine(settings.brave)
 
-        self.reranker = TextEmbeddingRerankPostprocessor.from_settings(
-            settings=self.settings.reranking,
-        )
+        self.compress_engine = PromptCompressorEngine(settings=settings.post_process)
+        # self.response_synthesis = ResponseSynthesisEngine(
+        #     settings=settings.biollm
+        # )
         self.summarizer = SimpleSummarize(
             llm=TogetherLLM(
-                model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                model="meta-llama/Llama-3-70b-chat-hf",
                 api_key=self.settings.together.api_key.get_secret_value(),
             ),
         )
 
-    async def handle_pubmed_bioxriv_web_search(
-        self,
-        search_text: str,
+    async def handle_pubmed_web_search(
+        self, search_text: str
     ) -> SearchResultRecord | None:
-        logger.info(f"handle_pubmed_bioxriv_web_search. search_text: {search_text}")
+        logger.info(f"handle_pubmed_web_search. search_text: {search_text}")
+        extracted_results = list[RetrievedResult]
         try:
-            extracted_pubmed_results, extracted_web_results = await asyncio.gather(
-                self.pubmed_search.call_pubmed_vectors(search_text=search_text),
-                self.brave_search.call_brave_search_api(search_text=search_text),
+            # async calls to pubmed and brave search
+            async with asyncio.TaskGroup() as tg:
+                extracted_pubmed_task = tg.create_task(
+                    self.pubmed_search.call_pubmed_parent_vectors(
+                        search_text=search_text
+                    )
+                )
+                extracted_pubmed_cluster_task = tg.create_task(
+                    self.pubmed_search.call_pubmed_cluster_vectors(
+                        search_text=search_text
+                    )
+                )
+                extracted_web_task = tg.create_task(
+                    self.brave_search.call_brave_search_api(search_text=search_text)
+                )
+            extracted_pubmed_results = extracted_pubmed_task.result()
+            extracted_pubmed_cluster_results = extracted_pubmed_cluster_task.result()
+            extracted_web_results = extracted_web_task.result()
+
+            extracted_results = (
+                extracted_pubmed_results
+                + extracted_pubmed_cluster_results
+                + extracted_web_results
             )
 
-            extracted_results = extracted_pubmed_results + extracted_web_results
-
-            logger.debug(
-                f"handle_pubmed_bioxriv_web_search.extracted_results count: "
-                f"{len(extracted_pubmed_results), len(extracted_web_results)}",
-            )
-
-            if not extracted_results:
+            # post process call
+            if len(extracted_results) == 0:
                 return None
 
-            # rerank call
-            reranked_results = self.reranker.postprocess_nodes(
-                nodes=extracted_results,
-                query_bundle=QueryBundle(query_str=search_text),
+            compressed_prompt = await self.compress_engine.compress_nodes(
+                query_bundle=QueryBundle(query_str=search_text), nodes=extracted_results
             )
+
+            # summarizer model
+            if compressed_prompt is None:
+                return None
 
             result = self.summarizer.get_response(
-                query_str=search_text,
-                text_chunks=[
-                    TAG_RE.sub("", node.get_content()) for node in reranked_results
-                ],
+                query_str=search_text, text_chunks=compressed_prompt.prompt_list
             )
 
-            # Metadata should be valid SourceRecords
-            sources = [node.metadata for node in reranked_results]
+            # result = await self.response_synthesis.call_llm_service(
+            #     search_text=search_text,
+            #     context_str=compressed_prompt.prompt
+            # )
 
             return SearchResultRecord.model_validate(
                 {
                     "result": result,
-                    "sources": sources,
+                    "sources": compressed_prompt.sources,
                 },
             )
 
         except Exception as e:
             logger.exception(
-                "Orchestrator.handle_pubmed_bioxriv_web_search failed -",
+                "Orchestrator.handle_pubmed_web_search failed -",
                 exc_info=e,
                 stack_info=True,
             )
             return None
-
-    async def handle_clinical_trial_search(
-        self,
-        search_text: str,
-    ) -> SearchResultRecord | None:
-        # TODO: Enable once stable and infallible
-        """# clinical trial call
-        logger.info(
-            "handle_clinical_trial_search.router_id clinical trial Entered."
-        )
-        try:
-            sql_response = await self.clinical_trial_search.call_text2sql(
-                search_text=search_text
-            )
-            result = str(sql_response)
-            sources = [result]  # TODO: clinical trial sql sources impl.
-
-            logger.info(f"sql_response: {result}")
-
-            return SearchResultRecord(result=result, sources=sources)
-        except Exception as e:
-            logger.exception(
-                "Orchestrator.handle_clinical_trial_search.sqlResponse Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        """
-        return None
-
-    async def handle_drug_search(self, search_text: str) -> SearchResultRecord | None:
-        # TODO: Enable once stable and infallible
-        """# drug information call
-        logger.info(
-            "Orchestrator.handle_drug_search drug_information_choice "
-            "Entered."
-        )
-        try:
-            cypher_response = await self.drug_chembl_search.call_text2cypher(
-                search_text=search_text
-            )
-            result = str(cypher_response)
-            sources = [result]  # TODO: chembl cypher sources impl
-            logger.info(
-                f"Orchestrator.handle_drug_search.cypher_response "
-                f"cypher_response: {result}"
-            ).
-
-            return SearchResultRecord(result=result, sources=sources)
-        except Exception as e:
-            logger.exception(
-                "Orchestrator.handle_drug_search.cypher_response Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        """
-        return None
-
-    # TODO: Enable once stable and infallible
-    """
-    # initialize router with bad value
-    router_id = -1
-
-    # user not specified
-    if route_category == RouteCategory.NOT_SELECTED:
-        logger.info(f"query_and_get_answer.router_id search_text: {search_text}")
-        try:
-            router_id = int(self.router(search_text).answer)
-        except Exception as e:
-            logger.exception(
-                "query_and_get_answer.router_id Exception -",
-                exc_info=e,
-                stack_info=True,
-            )
-        logger.info(f"query_and_get_answer.router_id router_id: {router_id}")
-
-    # if routing fails, sql and cypher calls fail, routing to pubmed or brave
-    """

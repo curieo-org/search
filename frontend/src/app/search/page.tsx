@@ -36,8 +36,8 @@ export default function Search() {
         <SearchResultPageSkeleton />
       ) : (
         <div className="w-full h-[90vh] flex justify-center items-center">
-          <div className="w-full flex flex-col items-center px-4">
-            <P className="mb-10 text-2xl xl:text-3xl transition-all duration-300">Fast-Track Your Research</P>
+          <div className="w-full max-w-[720px] flex flex-col items-center px-4">
+            <P className="mb-10 text-2xl xl:text-3xl transition-all duration-300">How can I help you today?</P>
             <SearchInput handleSearch={handleSearch} />
           </div>
         </div>

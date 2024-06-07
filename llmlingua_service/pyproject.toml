@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "llmlingua-service"
+version = "0.1.0"
+description = "the service will host llm linhua2"
+authors = ["raahulmona <157174139+raahulmona@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+llmlingua = "^0.2.2"
+fastapi = "^0.111.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
