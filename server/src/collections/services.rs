@@ -41,7 +41,7 @@ pub async fn update_collection(
                 else description
             end,
             category = case 
-                when $3::integer is not null then $3::integer
+                when $3::int is not null then $3::int
                 else category
             end
         where collection_id = $4 returning *
@@ -91,4 +91,23 @@ pub async fn get_collections(
     .await?;
 
     return Ok(api_models::GetCollectionsResponse { collections });
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn add_items_to_collection(
+    pool: &PgPool,
+    user_id: &Uuid,
+    add_items_to_collection_request: &api_models::AddItemsToCollectionRequest,
+) -> Result<(), Error> {
+    sqlx::query_as!(
+        data_models::CollectionItems,
+        "insert into collection_items (collection_id, item_id, item_type) select $1, unnest($2::uuid[]), unnest($3::int[])",
+        add_items_to_collection_request.collection_id,
+        &add_items_to_collection_request.items.iter().map(|item| item.item_id).collect::<Vec<uuid::Uuid>>(),
+        &add_items_to_collection_request.items.iter().map(|item| item.item_type as i32).collect::<Vec<i32>>(),
+    )
+    .execute(pool)
+    .await?;
+
+    return Ok(());
 }

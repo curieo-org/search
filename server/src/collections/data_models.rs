@@ -35,3 +35,29 @@ pub struct Collection {
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum CollectionItemType {
+  Search,
+  Source,
+}
+
+impl From<i32> for CollectionItemType {
+  fn from(value: i32) -> Self {
+      match value {
+          0 => CollectionItemType::Search,
+          _ => CollectionItemType::Source,
+      }
+  }
+}
+
+#[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
+pub struct CollectionItems {
+    pub collection_item_id: uuid::Uuid,
+    pub collection_id: uuid::Uuid,
+    pub item_id: uuid::Uuid,
+    pub item_type: CollectionItemType,
+
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+}

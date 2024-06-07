@@ -1,4 +1,4 @@
-use crate::collections::{CategoryType, Collection};
+use crate::collections::{CategoryType, Collection, CollectionItemType};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -32,3 +32,17 @@ pub struct UpdateCollectionRequest {
 pub struct DeleteCollectionRequest {
   pub collection_id: uuid::Uuid,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CollectionItem {
+  pub item_id: uuid::Uuid,
+  pub item_type:CollectionItemType,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AddItemsToCollectionRequest {
+  pub collection_id: uuid::Uuid,
+  pub items:Vec<CollectionItem>,
+}
+
+
