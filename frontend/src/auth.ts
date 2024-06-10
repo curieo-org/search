@@ -6,6 +6,7 @@ import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
 import { cookies } from 'next/headers'
 import { curieoFetch } from '@/actions/fetch'
+import { ResponseCookies } from 'next/dist/server/web/spec-extension/cookies'
 
 export const {
   handlers: { GET, POST },
@@ -36,6 +37,8 @@ export const {
             }),
           })
           if (response.ok) {
+            const setCookies = new ResponseCookies(response.headers)
+            setCookies.getAll().forEach(cookie => cookies().set(cookie))
             return (await response.json()) as AuthResponse
           }
           return null
