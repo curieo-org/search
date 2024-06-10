@@ -1,11 +1,11 @@
 import asyncio
 
-from settings import Settings
-from utils.logging import setup_logger
-from query_node_process.nodeprocessengine import QueryProcessorEngine
-from pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
-from pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
-from utils.custom_vectorstore import (
+from app.settings import Settings
+from app.utils.logging import setup_logger
+from app.query_node_process.nodeprocessengine import QueryProcessorEngine
+from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
+from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
+from app.utils.custom_vectorstore import (
     CurieoVectorStore,
     CurieoQueryBundle,
     CurieoVectorIndexRetriever
@@ -43,7 +43,8 @@ async def get_search_results(query: str = "") -> None:
     ))
 
 
-    print()
+    print("Parent Nodes: ", parent_nodes)
+    print("Cluster Nodes: ", cluster_nodes)
 
 
 if __name__ == "__main__":

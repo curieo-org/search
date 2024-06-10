@@ -6,7 +6,7 @@ from qdrant_client import AsyncQdrantClient
 from app.settings import Settings
 from loguru import logger
 from app.utils.database_helper import PubmedDatabaseUtils
-from app.rag.utils.models import PubmedSourceResult
+from app.grpc_types.agency_pb2 import PubmedSource
 from app.utils.custom_vectorstore import (
     CurieoVectorStore,
     CurieoQueryBundle,
@@ -50,7 +50,7 @@ class ParentRetrievalEngine:
 
     async def retrieve_parent_nodes(
         self, query: CurieoQueryBundle
-    ) -> dict:
+    ) -> list[PubmedSource]:
         logger.info(f"query_process. search_text: {query.query_str}")   
         if not len(query.embedding) and not len(query.sparse_embedding):
             return []
@@ -71,12 +71,10 @@ class ParentRetrievalEngine:
         pubmed_titles = await self.pubmed_database.get_pubmed_record_titles(pubmed_ids)
 
         return [
-            PubmedSourceResult.model_validate(
-                {
-                    "pubmed_id": str(node.metadata.get("pubmedid", 0)),
-                    "title": str(pubmed_titles.get(node.metadata.get("pubmedid", 0), "")),
-                    "abstract": node.get_text()
-                }
+            PubmedSource(
+                pubmed_id=str(node.metadata.get("pubmedid", 0)),
+                title=str(pubmed_titles.get(node.metadata.get("pubmedid", 0), "")),
+                abstract=node.get_text()
             )
             for node in filtered_nodes
         ]

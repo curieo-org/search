@@ -7,7 +7,7 @@ from loguru import logger
 
 from app.settings import Settings
 from app.utils.database_helper import PubmedDatabaseUtils
-from app.rag.utils.models import PubmedSourceResult
+from app.grpc_types.agency_pb2 import PubmedSource
 from app.utils.custom_vectorstore import (
     CurieoVectorStore,
     CurieoQueryBundle,
@@ -50,7 +50,7 @@ class ClusterRetrievalEngine:
 
     async def retrieve_cluster_nodes(
         self, query: CurieoQueryBundle
-    ) -> dict:
+    ) -> list[PubmedSource]:
         logger.info(f"search_text: {query.query_str}")   
         if not len(query.embedding) and not len(query.sparse_embedding):
             return []
@@ -86,12 +86,10 @@ class ClusterRetrievalEngine:
         )
 
         return [
-            PubmedSourceResult.model_validate(
-                {
-                    "pubmed_id": str(pubmed_id),
-                    "title": str(pubmed_titles.get(pubmed_id, "")),
-                    "abstract": children_node_texts.get(child_node_id, "")
-                }
+            PubmedSource(
+                pubmed_id=str(pubmed_id),
+                title=str(pubmed_titles.get(pubmed_id, "")),
+                abstract=children_node_texts.get(child_node_id, "")
             )
             for pubmed_id in nodes_dict
             for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])

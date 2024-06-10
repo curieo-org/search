@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, cast
+from typing import Any, List, Optional, cast, Tuple
 from dataclasses import dataclass
 
 from llama_index.core.schema import (
@@ -34,7 +34,7 @@ dispatcher = instrument.get_dispatcher(__name__)
 
 @dataclass
 class CurieoQueryBundle(QueryBundle):
-    sparse_embedding: Optional[List[float]] = None
+    sparse_embedding: Optional[Tuple[List[List[int]], List[List[float]]]] = None
 
 
 class CurieoVectorStore(QdrantVectorStore):
