@@ -1,3 +1,5 @@
+'use client'
+
 import classNames from 'classnames'
 import { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes, forwardRef, useState } from 'react'
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md'
@@ -53,13 +55,13 @@ Input.displayName = 'Input'
 
 const PasswordInput = forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)
-
   return (
     <Input
       ref={ref}
       className={className}
       {...props}
       placeholder="Password"
+      type={showPassword ? 'text' : 'password'}
       icon={
         showPassword ? (
           <MdOutlineVisibility
@@ -75,7 +77,6 @@ const PasswordInput = forwardRef<HTMLInputElement, InputProps>(({ className, ...
           />
         )
       }
-      type={showPassword ? 'text' : 'password'}
     />
   )
 })

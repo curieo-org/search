@@ -6,7 +6,7 @@ import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-
 import { useSearchQuery } from '@/queries/search/search-query'
 import { useSearchStore } from '@/stores/search/search-store'
 import { useRouter } from 'next/navigation'
-import { Fragment, useEffect } from 'react'
+import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 
 export default function Search() {
@@ -14,7 +14,7 @@ export default function Search() {
   const { reset } = useSearchStore()
   const { data, isLoading, isSuccess, isError, refetch: fetchSearchResult } = useSearchQuery()
   const handleSearch = () => {
-    fetchSearchResult()
+    fetchSearchResult().then(r => r)
   }
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function Search() {
   }, [isError])
 
   return (
-    <Fragment>
+    <>
       {isLoading ? (
         <SearchResultPageSkeleton />
       ) : (
@@ -42,6 +42,6 @@ export default function Search() {
           </div>
         </div>
       )}
-    </Fragment>
+    </>
   )
 }

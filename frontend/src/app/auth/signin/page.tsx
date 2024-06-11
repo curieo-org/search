@@ -1,6 +1,6 @@
 import AuthForm from '@/components/auth/auth-form'
 
-export default function Login() {
+export default async function SignIn() {
   return (
     <div className="w-full h-screen flex justify-center items-center">
       <AuthForm authPurpose="login" />

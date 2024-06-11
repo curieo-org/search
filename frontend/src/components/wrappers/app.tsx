@@ -1,23 +1,8 @@
-'use client'
-
 import { LayoutProps } from '@/app/layout'
-import { profileRefreshTime } from '@/constants/config'
-import {
-  authPages,
-  dynamicAppPaths,
-  exactAppPaths,
-  loginPagePath,
-  pagesWithNavMenu,
-  searchPagePath,
-} from '@/constants/route'
-import { fetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
-import { usePathname, useRouter } from 'next/navigation'
-import { Fragment, createContext, useContext, useEffect, useState } from 'react'
+import { auth } from '@/auth'
 import { Slide, ToastContainer } from 'react-toastify'
-import { v4 as uuidv4 } from 'uuid'
 import { P } from '../lib/typography'
-import SpinnerLoading from '../util/spinner-loading'
-import PageWithNavMenu from './page-with-navmenu'
+import { Authenticated, AuthRequired } from './app-middleware'
 
 export default function App({ children }: LayoutProps) {
   return (
@@ -29,113 +14,25 @@ export default function App({ children }: LayoutProps) {
         progressClassName="h-0.5 bg-primary"
         autoClose={3000}
       />
-
       <div className="min-h-screen w-full bg-background-light dark:bg-gradient-to-br dark:from-background-dark-top-left dark:to-background-dark-bottom-right">
         <div className="md:hidden w-full h-screen flex flex-col items-center justify-center">
-          <img src="/images/curieo-logo.svg" className="mb-4" />
+          <img src="/images/curieo-logo.svg" className="mb-4" alt="logo" />
           <P className="text-center text-xl">Please return to desktop view</P>
         </div>
-
         <div className="hidden md:block">
-          <AppContextProvider>
-            <AppMiddleware>{children}</AppMiddleware>
-          </AppContextProvider>
+          <AppMiddleware>{children}</AppMiddleware>
         </div>
       </div>
     </div>
   )
 }
 
-function AppMiddleware({ children }: LayoutProps) {
-  const pathName = usePathname()
-  const { authStatus } = useAppContext()
+async function AppMiddleware({ children }: LayoutProps) {
+  const session = await auth()
 
-  const isSignedIn = authStatus === 'authenticated'
-  const isSignedOut = authStatus === 'unauthenticated'
-
-  const isAuthPage = authPages.some(path => path === pathName)
-  const isAppPage =
-    exactAppPaths.some(path => path === pathName) || dynamicAppPaths.some(path => pathName.startsWith(path))
-
-  if (isSignedIn) {
-    if (isAuthPage || !isAppPage) {
-      return <RedirectedPage path={searchPagePath} />
-    }
-    return <WrappedWithNavMenu>{children}</WrappedWithNavMenu>
-  } else if (isAuthPage) {
-    return <WrappedWithNavMenu>{children}</WrappedWithNavMenu>
-  } else if (isSignedOut) {
-    return <RedirectedPage path={loginPagePath} />
+  if (session) {
+    return <Authenticated>{children}</Authenticated>
   } else {
-    return <SpinnerLoading />
+    return <AuthRequired>{children}</AuthRequired>
   }
-}
-
-function WrappedWithNavMenu({ children }: LayoutProps) {
-  const pathName = usePathname()
-  const isNavMenuVisible = pagesWithNavMenu.some(path => pathName.startsWith(path))
-
-  return <Fragment>{isNavMenuVisible ? <PageWithNavMenu>{children}</PageWithNavMenu> : children}</Fragment>
-}
-
-function RedirectedPage({ path }: { path: string }) {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.push(path)
-  }, [])
-
-  return <SpinnerLoading />
-}
-
-type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading'
-type AppContextType = {
-  sessionId: string | null
-  authStatus: AuthStatus
-  updateAuthStatus: (authStatus: AuthStatus) => void
-}
-
-const inititalContext = {
-  sessionId: null,
-  authStatus: 'loading' as AuthStatus,
-  updateAuthStatus: (authStatus: AuthStatus) => {},
-}
-
-const AppContext = createContext<AppContextType>(inititalContext)
-function AppContextProvider({ children }: LayoutProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
-  const [profileRefreshFlag, setProfileRefreshFlag] = useState(0)
-
-  useEffect(() => {
-    const newSessionId = uuidv4()
-    setSessionId(newSessionId)
-
-    const profileRefreshInterval = setInterval(() => {
-      setProfileRefreshFlag(prev => prev + 1)
-    }, profileRefreshTime)
-
-    return () => clearInterval(profileRefreshInterval)
-  }, [])
-
-  useEffect(() => refreshProfile(), [profileRefreshFlag])
-  useEffect(() => {
-    if (authStatus === 'loading') {
-      refreshProfile()
-    }
-  }, [authStatus])
-
-  function refreshProfile() {
-    fetchUserProfile()
-      .then(res => setAuthStatus('authenticated'))
-      .catch(err => setAuthStatus('unauthenticated'))
-  }
-
-  const updateAuthStatus = (authStatus: AuthStatus) => setAuthStatus(authStatus)
-
-  return <AppContext.Provider value={{ authStatus, updateAuthStatus, sessionId }}>{children}</AppContext.Provider>
-}
-
-export function useAppContext() {
-  return useContext(AppContext)
 }

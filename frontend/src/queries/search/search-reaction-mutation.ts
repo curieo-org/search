@@ -1,6 +1,6 @@
-import { AxiosClient } from '@/helpers/axios-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { SearchReactionBody, SearchResult } from '@/types/search'
+import { SearchReactionBody } from '@/types/search'
+import { searchReaction } from '@/actions/search'
 
 export const useSearchReactionMutation = () => {
   const queryClient = useQueryClient()
@@ -8,12 +8,11 @@ export const useSearchReactionMutation = () => {
   return useMutation({
     mutationKey: ['search-reaction'],
     async mutationFn(payload: SearchReactionBody) {
-      const { data } = await AxiosClient.patch(`/search/reaction`, payload)
-      return data as SearchResult
+      return await searchReaction(payload)
     },
-    onSuccess: data => {
+    onSuccess: async data => {
       queryClient.setQueryData(['search-by-id', data.search_history_id], data)
-      queryClient.invalidateQueries({ queryKey: ['search-history'] })
+      await queryClient.invalidateQueries({ queryKey: ['search-history'] })
     },
   })
 }

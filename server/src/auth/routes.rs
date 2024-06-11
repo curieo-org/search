@@ -3,6 +3,7 @@ use crate::auth::services::register;
 use crate::auth::{OAuthCredentials, PasswordCredentials};
 use crate::err::AppError;
 use crate::startup::AppState;
+use crate::users::UserRecord;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
@@ -10,6 +11,7 @@ use axum::routing::{get, post};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
 use color_eyre::eyre::eyre;
+use log::{debug, error, log};
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -28,7 +30,7 @@ async fn register_handler(
 async fn login_handler(
     mut auth_session: AuthSession,
     Form(creds): Form<PasswordCredentials>,
-) -> crate::Result<()> {
+) -> crate::Result<Json<UserRecord>> {
     let user = match auth_session
         .authenticate(Credentials::Password(creds))
         .await
@@ -46,7 +48,7 @@ async fn login_handler(
     //        return Redirect::to(next).into_response();
     //    }
     //}
-    Ok(())
+    Ok(Json(UserRecord::from(user)))
 }
 
 pub const CSRF_STATE_KEY: &str = "auth.csrf-state";
@@ -134,6 +136,15 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     Ok(())
 }
 
+#[tracing::instrument(level = "debug", skip_all)]
+async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
+    auth_session
+        .user
+        .map(UserRecord::from)
+        .map(Json::from)
+        .ok_or_else(|| AppError::Unauthorized)
+}
+
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/register", post(register_handler))
@@ -141,4 +152,6 @@ pub fn routes() -> Router<AppState> {
         .route("/oauth", post(oauth_handler))
         .route("/oauth_callback", get(oauth_callback_handler))
         .route("/logout", get(logout_handler))
+        .route("/get-session", get(get_session_handler))
+        .route("/callback/credentials", post(login_handler))
 }
