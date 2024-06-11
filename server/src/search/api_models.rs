@@ -2,6 +2,34 @@ use crate::search::Search;
 use crate::search::{Source, Thread};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::pin::Pin;
+use std::future::Future;
+use std::sync::Arc;
+
+pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<()>> + Send>>;
+
+pub struct UpdateResultProcessor {
+    pub processor: Arc<dyn Fn(String) -> BoxedFuture + Send + Sync>,
+}
+
+impl UpdateResultProcessor {
+    pub fn new(processor: Arc<dyn Fn(String) -> BoxedFuture + Send + Sync>) -> Self {
+        UpdateResultProcessor {
+            processor,
+        }
+    }
+
+    pub async fn process(&self, result: String) -> crate::Result<()> {
+        (self.processor)(result).await?;
+        Ok(())
+    }
+}
+
+impl Debug for UpdateResultProcessor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "UpdateResultProcessor")
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum RouteCategory {

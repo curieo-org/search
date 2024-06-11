@@ -33,7 +33,7 @@ pub struct BraveWebSearchResult {
     pub page_age: Option<String>,
     pub age: Option<String>,
     pub language: Option<String>,
-    pub extra_snippets: Vec<String>,
+    pub extra_snippets: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -133,8 +133,13 @@ pub async fn web_search(
 }
 
 fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult {
+    let extra_snippets = match result.extra_snippets {
+        Some(snippets) => snippets,
+        None => vec![],
+    };
+    
     RetrievedResult {
-        text: result.description.clone() + "\n\n" + result.extra_snippets.join("\n\n").as_str(),
+        text: result.description.clone() + "\n\n" + extra_snippets.join("\n\n").as_str(),
         source: Source {
             title: result.title,
             url: result.url,

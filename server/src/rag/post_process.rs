@@ -3,9 +3,10 @@ use crate::llms::{bio_llm, llm_lingua};
 use crate::rag::RetrievedResult;
 use crate::rag::SearchResponse;
 use crate::search::api_models;
+use tokio::sync::mpsc::Sender;
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn post_process_search_results(
+pub async fn rerank_search_results(
     llm_settings: &LLMSettings,
     search_query_request: &api_models::SearchQueryRequest,
     retrieved_results: Vec<RetrievedResult>,
@@ -26,19 +27,30 @@ pub async fn post_process_search_results(
     }
     reranked_sources.truncate(llm_settings.top_k_sources as usize);
 
-    let summaiized_results = bio_llm::generate_text(
+    Ok(SearchResponse {
+        result: compressed_results.compressed_prompt,
+        sources: reranked_sources,
+    })
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn summarize_search_results(
+    llm_settings: LLMSettings,
+    search_query_request: api_models::SearchQueryRequest,
+    search_response: String,
+    update_processor: api_models::UpdateResultProcessor,
+    tx: Sender<SearchResponse>,
+) -> crate::Result<()> {
+    bio_llm::generate_text_stream(
         llm_settings,
         bio_llm::BioLLMInput {
-            query: search_query_request.query.clone(),
-            retrieved_result: compressed_results.compressed_prompt,
+            query: search_query_request.query,
+            retrieved_result: search_response,
         },
+        update_processor,
+        tx,
     )
     .await?;
 
-    let response = SearchResponse {
-        result: summaiized_results.generated_text,
-        sources: reranked_sources,
-    };
-
-    Ok(response)
+    Ok(())
 }

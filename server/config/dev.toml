@@ -3,8 +3,9 @@ agency_api = "http://127.0.0.1:50051"
 oauth2_clients = []
 
 [llm]
-bio_llm_url = "http://localhost:8001/generate"
+bio_llm_url = "http://localhost:8001/generate_stream"
 llm_lingua_url = "http://localhost:8000/compress"
+toxicity_url = "http://localhost:8082/predict"
 
 [cache]
 url = "redis://127.0.0.1/"

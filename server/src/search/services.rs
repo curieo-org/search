@@ -1,7 +1,8 @@
-use crate::rag::SearchResponse;
+use crate::rag::Source;
 use crate::search::{api_models, data_models};
 use sqlx::PgPool;
 use uuid::Uuid;
+use color_eyre::eyre::eyre;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn insert_new_search(
@@ -45,52 +46,72 @@ pub async fn insert_new_search(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn update_search_result(
+pub async fn append_search_result(
     pool: &PgPool,
     user_id: &Uuid,
     search: &data_models::Search,
-    search_response: &SearchResponse,
-) -> crate::Result<api_models::SearchByIdResponse> {
+    result_suffix: &String,
+) -> crate::Result<()> {
+    sqlx::query!(
+        "update searches set result = result || $1 where search_id = $2 and thread_id in (select thread_id from threads where user_id = $3)",
+        result_suffix,
+        search.search_id,
+        user_id,
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn add_search_sources(
+    pool: &PgPool,
+    user_id: &Uuid,
+    search: &data_models::Search,
+    sources: &Vec<Source>,
+) -> crate::Result<()> {
+    if sources.len() == 0 {
+        return Err(eyre!("No sources to add").into());
+    }
+
     let sources = sqlx::query_as!(
         data_models::Source,
         "insert into sources (title, description, url, source_type, metadata) \
             select * from unnest($1::text[], $2::text[], $3::text[], $4::int[], $5::jsonb[]) \
             on conflict (url) do update set title = excluded.title, description = excluded.description, \
             source_type = excluded.source_type, metadata = excluded.metadata returning *",
-        &search_response.sources.iter().map(|s| s.title.clone()).collect::<Vec<String>>(),
-        &search_response.sources.iter().map(|s| s.description.clone()).collect::<Vec<String>>(),
-        &search_response.sources.iter().map(|s| s.url.clone()).collect::<Vec<String>>(),
-        &search_response.sources.iter().map(|s| s.source_type.clone() as i32).collect::<Vec<i32>>(),
-        &search_response.sources.iter().map(|s| serde_json::to_value(
+        &sources.iter().map(|s| s.title.clone()).collect::<Vec<String>>(),
+        &sources.iter().map(|s| s.description.clone()).collect::<Vec<String>>(),
+        &sources.iter().map(|s| s.url.clone()).collect::<Vec<String>>(),
+        &sources.iter().map(|s| s.source_type.clone() as i32).collect::<Vec<i32>>(),
+        &sources.iter().map(|s| serde_json::to_value(
             s.metadata.clone()
         ).unwrap_or(serde_json::json!({}))).collect::<Vec<serde_json::Value>>(),
     )
     .fetch_all(pool)
     .await?;
 
-    let (search_source, updated_search) = tokio::join!(
-        sqlx::query!(
-            "insert into search_sources (search_id, source_id) \
-                select * from unnest($1::uuid[], $2::uuid[])",
-            &vec![search.search_id; sources.len()],
-            &sources.iter().map(|s| s.source_id).collect::<Vec<Uuid>>(),
-        )
-        .fetch_all(pool),
-        sqlx::query_as!(
-            data_models::Search,
-            "update searches set result = $1 where search_id = $2 returning *",
-            search_response.result,
-            search.search_id,
-        )
-        .fetch_one(pool),
-    );
-    search_source?;
-    let updated_search = updated_search?;
+    sqlx::query!(
+        "insert into search_sources (search_id, source_id) \
+            select * from unnest($1::uuid[], $2::uuid[])",
+        &vec![search.search_id; sources.len()],
+        &sources.iter().map(|s| s.source_id).collect::<Vec<Uuid>>(),
+    )
+    .fetch_all(pool)
+    .await?;
 
-    return Ok(api_models::SearchByIdResponse {
-        search: updated_search,
-        sources,
-    });
+    // sqlx::query_as!(
+    //     data_models::Search,
+    //     "update searches set result = $1 where search_id = $2 returning *",
+    //     search_response.result,
+    //     search.search_id,
+    // )
+    // .fetch_one(pool)
+    // .await?;
+
+    return Ok(());
 }
 
 #[tracing::instrument(level = "debug", ret, err)]

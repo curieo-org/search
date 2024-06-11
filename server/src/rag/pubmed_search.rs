@@ -1,5 +1,5 @@
 use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{PubmedResponse, PubmedSource, SearchRequest};
+use crate::proto::{Embeddings, PubmedResponse, PubmedSource};
 use crate::rag::{RetrievedResult, Source};
 use crate::search::SourceType;
 use color_eyre::eyre::eyre;
@@ -33,11 +33,9 @@ fn convert_to_retrieved_result(
 pub async fn pubmed_parent_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     pubmed_settings: &PubmedSettings,
-    search_query: &str,
+    embeddings: &Embeddings,
 ) -> crate::Result<Vec<RetrievedResult>> {
-    let request = tonic::Request::new(SearchRequest {
-        query: search_query.to_string(),
-    });
+    let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
@@ -47,7 +45,7 @@ pub async fn pubmed_parent_search(
         .into_inner();
 
     if response.status != 200 {
-        return Err(eyre!("Failed to get search results").into());
+        return Err(eyre!("Failed to get pubmed parent search results").into());
     }
 
     let retrieved_results: Vec<RetrievedResult> = response
@@ -63,11 +61,9 @@ pub async fn pubmed_parent_search(
 pub async fn pubmed_cluster_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     pubmed_settings: &PubmedSettings,
-    search_query: &str,
+    embeddings: &Embeddings,
 ) -> crate::Result<Vec<RetrievedResult>> {
-    let request = tonic::Request::new(SearchRequest {
-        query: search_query.to_string(),
-    });
+    let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
@@ -77,7 +73,7 @@ pub async fn pubmed_cluster_search(
         .into_inner();
 
     if response.status != 200 {
-        return Err(eyre!("Failed to get search results").into());
+        return Err(eyre!("Failed to get pubmed cluster search results").into());
     }
 
     let retrieved_results: Vec<RetrievedResult> = response
