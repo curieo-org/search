@@ -14,6 +14,9 @@ pub struct UserRecord {
     pub user_id: uuid::Uuid,
     pub email: String,
     pub username: String,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
 }
 
 impl From<User> for UserRecord {
@@ -22,6 +25,9 @@ impl From<User> for UserRecord {
             user_id: user.user_id,
             email: user.email,
             username: user.username,
+            fullname: user.fullname,
+            title: user.title,
+            company: user.company,
         }
     }
 }
@@ -31,6 +37,9 @@ pub struct User {
     pub user_id: uuid::Uuid,
     pub email: String,
     pub username: String,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
     pub password_hash: Secret<Option<String>>,
     pub access_token: Secret<Option<String>>,
 
@@ -86,4 +95,14 @@ impl AuthUser for User {
 pub struct UpdatePasswordRequest {
     pub old_password: Secret<String>,
     pub new_password: Secret<String>,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateProfileRequest {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
 }

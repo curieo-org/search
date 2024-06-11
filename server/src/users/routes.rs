@@ -1,4 +1,4 @@
-use crate::auth::{AuthSession, PasswordCredentials};
+use crate::auth::AuthSession;
 use crate::auth::utils::verify_user_password;
 use crate::err::AppError;
 use crate::startup::AppState;
@@ -22,6 +22,18 @@ async fn get_user_handler(auth_session: AuthSession) -> crate::Result<Json<UserR
 }
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+async fn update_profile_handler(
+    State(pool): State<PgPool>,
+    user: User,
+    Json(update_profile_request): Json<models::UpdateProfileRequest>
+) -> crate::Result<Json<UserRecord>>  {
+    let user_id = user.user_id;
+    let updated_user = services::update_profile(&pool, &user_id, update_profile_request).await?;
+
+    Ok(Json(UserRecord::from(updated_user)))
+}
+
+#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn update_password_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -41,5 +53,6 @@ async fn update_password_handler(
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/me", get(get_user_handler))
+        .route("/me", patch(update_profile_handler))
         .route("/update-password", patch(update_password_handler))
 }
