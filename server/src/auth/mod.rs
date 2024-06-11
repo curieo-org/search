@@ -5,5 +5,5 @@ pub mod models;
 pub mod oauth2;
 pub mod routes;
 pub mod services;
+pub mod utils;
 pub(crate) mod sessions;
-mod utils;

@@ -81,3 +81,9 @@ impl AuthUser for User {
         &[]
     }
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePasswordRequest {
+    pub old_password: Secret<String>,
+    pub new_password: Secret<String>,
+}
