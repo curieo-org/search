@@ -35,7 +35,7 @@ class PubmedDatabaseUtils:
                 logger.exception("Failed to select records from the database.", exc)
                 return []
 
-            result = dict()
+            result = {}
             for record in cursor.fetchall():
                 result[record[0]] = record[1]
             return result
@@ -61,7 +61,7 @@ class PubmedDatabaseUtils:
                 logger.exception("Failed to select records from the database.", exc)
                 return []
 
-            result = dict()
+            result = {}
             for record in cursor.fetchall():
                 result[record[0]] = record[1].replace('"', "")
             return result

@@ -6,10 +6,10 @@ import { AccessDenied } from '@auth/core/errors'
 import Credentials from 'next-auth/providers/credentials'
 import { cookies } from 'next/headers'
 import { curieoFetch } from '@/actions/fetch'
+import { ResponseCookies } from 'next/dist/server/web/spec-extension/cookies'
 import Google from '@auth/core/providers/google'
 import { Provider } from '@auth/core/providers'
 import Apple from '@auth/core/providers/apple'
-import { ResponseCookies } from 'next/dist/server/web/spec-extension/cookies'
 
 const providers: Provider[] = [
   Credentials({
@@ -33,6 +33,8 @@ const providers: Provider[] = [
           }),
         })
         if (response.ok) {
+          const setCookies = new ResponseCookies(response.headers)
+          setCookies.getAll().forEach(cookie => cookies().set(cookie))
           return (await response.json()) as AuthResponse
         }
         return null

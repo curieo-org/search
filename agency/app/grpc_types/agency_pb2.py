@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t"v\n\x06Source\x12\x0b\n\x03url\x18\x01 \x01(\t\x12.\n\x08metadata\x18\x02 \x03(\x0b\x32\x1c.agency.Source.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"Q\n\x0eSearchResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12\x0e\n\x06result\x18\x02 \x01(\t\x12\x1f\n\x07sources\x18\x03 \x03(\x0b\x32\x0e.agency.Source2[\n\rAgencyService\x12J\n\x19pubmed_bioxriv_web_search\x12\x15.agency.SearchRequest\x1a\x16.agency.SearchResponseb\x06proto3'
+    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t"\xc3\x01\n\x06Source\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\'\n\x0bsource_type\x18\x04 \x01(\x0e\x32\x12.agency.SourceType\x12.\n\x08metadata\x18\x05 \x03(\x0b\x32\x1c.agency.Source.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"Q\n\x0eSearchResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12\x0e\n\x06result\x18\x02 \x01(\t\x12\x1f\n\x07sources\x18\x03 \x03(\x0b\x32\x0e.agency.Source*)\n\nSourceType\x12\x07\n\x03Pdf\x10\x00\x12\t\n\x05Image\x10\x01\x12\x07\n\x03Url\x10\x02\x32[\n\rAgencyService\x12J\n\x19pubmed_bioxriv_web_search\x12\x15.agency.SearchRequest\x1a\x16.agency.SearchResponseb\x06proto3'
 )
 
 _globals = globals()
@@ -25,14 +25,16 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     DESCRIPTOR._options = None
     _globals["_SOURCE_METADATAENTRY"]._options = None
     _globals["_SOURCE_METADATAENTRY"]._serialized_options = b"8\001"
+    _globals["_SOURCETYPE"]._serialized_start = 337
+    _globals["_SOURCETYPE"]._serialized_end = 378
     _globals["_SEARCHREQUEST"]._serialized_start = 24
     _globals["_SEARCHREQUEST"]._serialized_end = 54
-    _globals["_SOURCE"]._serialized_start = 56
-    _globals["_SOURCE"]._serialized_end = 174
-    _globals["_SOURCE_METADATAENTRY"]._serialized_start = 127
-    _globals["_SOURCE_METADATAENTRY"]._serialized_end = 174
-    _globals["_SEARCHRESPONSE"]._serialized_start = 176
-    _globals["_SEARCHRESPONSE"]._serialized_end = 257
-    _globals["_AGENCYSERVICE"]._serialized_start = 259
-    _globals["_AGENCYSERVICE"]._serialized_end = 350
+    _globals["_SOURCE"]._serialized_start = 57
+    _globals["_SOURCE"]._serialized_end = 252
+    _globals["_SOURCE_METADATAENTRY"]._serialized_start = 205
+    _globals["_SOURCE_METADATAENTRY"]._serialized_end = 252
+    _globals["_SEARCHRESPONSE"]._serialized_start = 254
+    _globals["_SEARCHRESPONSE"]._serialized_end = 335
+    _globals["_AGENCYSERVICE"]._serialized_start = 380
+    _globals["_AGENCYSERVICE"]._serialized_end = 471
 # @@protoc_insertion_point(module_scope)

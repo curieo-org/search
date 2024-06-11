@@ -1,6 +1,7 @@
 from collections.abc import Callable
-from typing import Any, List
+from typing import Any
 
+import httpx
 import llama_index.core.instrumentation as instrument
 from llama_index.core.base.embeddings.base import (
     DEFAULT_EMBED_BATCH_SIZE,
@@ -38,7 +39,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
     )
     auth_token: str | Callable[[str], str] | None = Field(
         default=None,
-        description="Authentication token or authentication token generating function for authenticated requests",
+        description="Auth token or function returning an auth token",
     )
 
     def __init__(
@@ -69,9 +70,7 @@ class SpladeEmbeddingsInference(BaseEmbedding):
     def class_name(cls) -> str:
         return "SpladeEmbeddingsInference"
 
-    def _call_api(self, texts: List[str]) -> List[List[float]]:
-        import httpx
-
+    def _call_api(self, texts: list[str]) -> list[list[float]]:
         headers = {"Content-Type": "application/json"}
         if self.auth_token is not None:
             if callable(self.auth_token):
@@ -90,32 +89,31 @@ class SpladeEmbeddingsInference(BaseEmbedding):
 
         return response.json()
 
-    def _get_text_embedding(self, text: str):
+    def _get_text_embedding(self, _text: str):
         return []
 
-    def _get_text_embeddings(self, texts: List[str]):
+    def _get_text_embeddings(self, texts: list[str]):
         """Get text embeddings."""
         texts = [
             format_text(text, self.model_name, self.text_instruction) for text in texts
         ]
         return self._call_api(texts)
 
-    def _get_query_embedding(self, query: str) -> List[float]:
+    def _get_query_embedding(self, _query: str) -> list[float]:
         return []
 
-    async def _aget_query_embedding(self, query: str) -> List[float]:
+    async def _aget_query_embedding(self, _query: str) -> list[float]:
         return []
 
     def get_text_embedding_batch(
         self,
-        texts: List[str],
+        texts: list[str],
         show_progress: bool = False,
-        **kwargs: Any,
-    ) -> List[Embedding]:
+        **_kwargs: Any,
+    ) -> list[Embedding]:
         """Get a list of text embeddings, with batching."""
-
-        cur_batch: List[str] = []
-        result_embeddings: List[Embedding] = []
+        cur_batch: list[str] = []
+        result_embeddings: list[Embedding] = []
 
         queue_with_progress = enumerate(
             get_tqdm_iterable(texts, show_progress, "Splade Embeddings")
