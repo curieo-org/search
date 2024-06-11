@@ -31,16 +31,11 @@ async fn update_password_handler(
     match verify_user_password(Some(user), update_password_request.old_password) {
         Ok(Some(_user)) => {
             services::update_password(&pool, &user_id, update_password_request.new_password).await?;
+            Ok((StatusCode::OK, ()))
         },
-        Ok(None) => {
-            return Err(eyre!("Failed to authenticate old password").into());
-        },
-        Err(_) => {
-            return Err(eyre!("Failed to authenticate old password").into());
-        }
-    };
-
-    return Ok((StatusCode::OK, ()));
+        _ => Err(eyre!("Failed to authenticate old password").into())
+        
+    }
 }
 
 pub fn routes() -> Router<AppState> {

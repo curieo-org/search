@@ -17,7 +17,7 @@ pub async fn update_password(
       password_hash.expose(),
       user_id
     )
-    .fetch_one(pool)
+    .execute(pool)
     .await?;
 
     return Ok(());
