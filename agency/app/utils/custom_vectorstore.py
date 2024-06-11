@@ -94,7 +94,7 @@ class CurieoVectorStore(QdrantVectorStore):
 
     async def aquery(self, query_bundle: CurieoQueryBundle) -> VectorStoreQueryResult:
         """Asynchronously query vector store.
-        
+
         NOTE: this is not implemented for all vector stores. If not implemented,
         it will just call query synchronously.
         """

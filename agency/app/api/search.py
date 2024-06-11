@@ -24,8 +24,14 @@ logger = setup_logger("Search_API")
 
 
 def prepare_query_bundle(request: Embeddings) -> CurieoQueryBundle:
-    sparse_indices = list(list(value for value in index.values) for index in request.sparse_indices) # noqa
-    sparse_embedding = list(list(value for value in vector.values) for vector in request.sparse_embedding) # noqa
+    sparse_indices = list(  # noqa
+        list(value for value in index.values)  # noqa
+        for index in request.sparse_indices
+    )
+    sparse_embedding = list(  # noqa
+        list(value for value in vector.values)  # noqa
+        for vector in request.sparse_embedding
+    )
     dense_embedding = list(request.dense_embedding) if request.dense_embedding else []
 
     return CurieoQueryBundle(
