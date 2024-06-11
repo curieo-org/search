@@ -1,31 +1,23 @@
-from typing import Any, List, Optional, cast, Tuple
 from dataclasses import dataclass
+from typing import Any, cast
 
-from llama_index.core.schema import (
-    BaseNode,
-    QueryBundle,
-    NodeWithScore
-)
-from llama_index.core import (
-    VectorStoreIndex,
-    StorageContext
-)
-from llama_index.core.utils import iter_batch
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.core.indices.vector_store.retrievers import VectorIndexRetriever
 import llama_index.core.instrumentation as instrument
+from llama_index.core import StorageContext, VectorStoreIndex
+from llama_index.core.embeddings.utils import EmbedType
+from llama_index.core.indices.vector_store.retrievers import VectorIndexRetriever
+from llama_index.core.schema import BaseNode, NodeWithScore, QueryBundle
+from llama_index.core.utils import iter_batch
 from llama_index.core.vector_stores.types import (
-    VectorStoreQueryMode,
     MetadataFilters,
-    VectorStoreQueryResult
+    VectorStoreQueryMode,
+    VectorStoreQueryResult,
 )
+from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.vector_stores.qdrant.utils import (
     HybridFusionCallable,
     relative_score_fusion,
 )
-from llama_index.core.embeddings.utils import EmbedType
 from qdrant_client.http import models as rest
-import llama_index.core.instrumentation as instrument
 
 from app.utils.custom_basenode import CurieoBaseNode
 
@@ -34,19 +26,15 @@ dispatcher = instrument.get_dispatcher(__name__)
 
 @dataclass
 class CurieoQueryBundle(QueryBundle):
-    sparse_embedding: Optional[Tuple[List[List[int]], List[List[float]]]] = None
+    sparse_embedding: tuple[list[list[int]], list[list[float]]] | None = None
 
 
 class CurieoVectorStore(QdrantVectorStore):
-    def __init__(
-        self,
-        collection_name: str,
-        aclient: Optional[Any] = None
-    ):
+    def __init__(self, collection_name: str, aclient: Any | None = None):
         super().__init__(
             collection_name=collection_name,
             aclient=aclient,
-            hybrid_fusion_fn=cast(HybridFusionCallable, relative_score_fusion)
+            hybrid_fusion_fn=cast(HybridFusionCallable, relative_score_fusion),
         )
 
     def node_process_to_metadata_dict(
@@ -103,16 +91,14 @@ class CurieoVectorStore(QdrantVectorStore):
             ids.extend(node_ids)
 
         return points, ids
-    
-    async def aquery(
-        self, query_bundle: CurieoQueryBundle
-    ) -> VectorStoreQueryResult:
-        """
-        Asynchronously query vector store.
+
+    async def aquery(self, query_bundle: CurieoQueryBundle) -> VectorStoreQueryResult:
+        """Asynchronously query vector store.
+        
         NOTE: this is not implemented for all vector stores. If not implemented,
         it will just call query synchronously.
         """
-        dense_embedding = cast(List[float], query_bundle.query_embedding)
+        dense_embedding = cast(list[float], query_bundle.query_embedding)
         sparse_indices, sparse_embedding = query_bundle.sparse_embedding
 
         response = await self._aclient.search_batch(
@@ -143,7 +129,8 @@ class CurieoVectorStore(QdrantVectorStore):
         )
 
         # sanity check
-        assert len(response) == 2
+        if len(response) != 2:
+            raise ValueError(f"Expected 2 responses, got {len(response)}")
 
         # flatten the response
         return relative_score_fusion(
@@ -154,25 +141,25 @@ class CurieoVectorStore(QdrantVectorStore):
             # NOTE: use hybrid_top_k if provided, otherwise use similarity_top_k
             top_k=query_bundle.hybrid_top_k or query_bundle.similarity_top_k,
         )
-    
+
 
 class CurieoVectorStoreQuery:
     def __init__(
         self,
-        query_embedding: Optional[List[float]] = None,
-        sparse_embedding: Optional[List[float]] = None,
+        query_embedding: list[float] | None = None,
+        sparse_embedding: list[float] | None = None,
         similarity_top_k: int = 1,
-        doc_ids: Optional[List[str]] = None,
-        node_ids: Optional[List[str]] = None,
-        query_str: Optional[str] = None,
-        output_fields: Optional[List[str]] = None,
-        embedding_field: Optional[str] = None,
+        doc_ids: list[str] | None = None,
+        node_ids: list[str] | None = None,
+        query_str: str | None = None,
+        output_fields: list[str] | None = None,
+        embedding_field: str | None = None,
         mode: VectorStoreQueryMode = VectorStoreQueryMode.HYBRID,
-        alpha: Optional[float] = None,
-        filters: Optional[MetadataFilters] = None,
-        mmr_threshold: Optional[float] = None,
-        sparse_top_k: Optional[int] = None,
-        hybrid_top_k: Optional[int] = None,
+        alpha: float | None = None,
+        filters: MetadataFilters | None = None,
+        mmr_threshold: float | None = None,
+        sparse_top_k: int | None = None,
+        hybrid_top_k: int | None = None,
     ):
         self.query_embedding = query_embedding
         self.sparse_embedding = sparse_embedding
@@ -190,7 +177,7 @@ class CurieoVectorStoreQuery:
         self.hybrid_top_k = hybrid_top_k
 
 
-class CurieoVectorIndexRetriever(VectorIndexRetriever): 
+class CurieoVectorIndexRetriever(VectorIndexRetriever):
     def _build_vector_store_query(
         self, query_bundle: QueryBundle
     ) -> CurieoVectorStoreQuery:
@@ -206,19 +193,19 @@ class CurieoVectorIndexRetriever(VectorIndexRetriever):
             filters=self._filters,
             sparse_top_k=self._sparse_top_k,
         )
-    
+
     @dispatcher.span
-    async def _aretrieve(self, query_bundle: CurieoQueryBundle) -> List[NodeWithScore]:
+    async def _aretrieve(self, query_bundle: CurieoQueryBundle) -> list[NodeWithScore]:
         query = self._build_vector_store_query(query_bundle)
         query_result = await self._vector_store.aquery(query)
         return self._build_node_list_from_query_result(query_result)
-    
+
 
 class CurieoVectorStoreIndex(VectorStoreIndex):
     def __init__(
         self,
-        embed_model: Optional[EmbedType] = None,
-        storage_context: Optional[StorageContext] = None
+        embed_model: EmbedType | None = None,
+        storage_context: StorageContext | None = None,
     ) -> None:
         """Initialize params."""
         self._use_async = True

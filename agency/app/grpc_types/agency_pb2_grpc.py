@@ -16,20 +16,20 @@ class AgencyServiceStub(object):
             channel: A grpc.Channel.
         """
         self.pubmed_parent_search = channel.unary_unary(
-                '/agency.AgencyService/pubmed_parent_search',
-                request_serializer=agency__pb2.Embeddings.SerializeToString,
-                response_deserializer=agency__pb2.PubmedResponse.FromString,
-                )
+            "/agency.AgencyService/pubmed_parent_search",
+            request_serializer=agency__pb2.Embeddings.SerializeToString,
+            response_deserializer=agency__pb2.PubmedResponse.FromString,
+        )
         self.pubmed_cluster_search = channel.unary_unary(
-                '/agency.AgencyService/pubmed_cluster_search',
-                request_serializer=agency__pb2.Embeddings.SerializeToString,
-                response_deserializer=agency__pb2.PubmedResponse.FromString,
-                )
+            "/agency.AgencyService/pubmed_cluster_search",
+            request_serializer=agency__pb2.Embeddings.SerializeToString,
+            response_deserializer=agency__pb2.PubmedResponse.FromString,
+        )
         self.embeddings_compute = channel.unary_unary(
-                '/agency.AgencyService/embeddings_compute',
-                request_serializer=agency__pb2.SearchInput.SerializeToString,
-                response_deserializer=agency__pb2.EmbeddingsOutput.FromString,
-                )
+            "/agency.AgencyService/embeddings_compute",
+            request_serializer=agency__pb2.SearchInput.SerializeToString,
+            response_deserializer=agency__pb2.EmbeddingsOutput.FromString,
+        )
 
 
 class AgencyServiceServicer(object):
@@ -38,96 +38,133 @@ class AgencyServiceServicer(object):
     def pubmed_parent_search(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def pubmed_cluster_search(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def embeddings_compute(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_AgencyServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'pubmed_parent_search': grpc.unary_unary_rpc_method_handler(
-                    servicer.pubmed_parent_search,
-                    request_deserializer=agency__pb2.Embeddings.FromString,
-                    response_serializer=agency__pb2.PubmedResponse.SerializeToString,
-            ),
-            'pubmed_cluster_search': grpc.unary_unary_rpc_method_handler(
-                    servicer.pubmed_cluster_search,
-                    request_deserializer=agency__pb2.Embeddings.FromString,
-                    response_serializer=agency__pb2.PubmedResponse.SerializeToString,
-            ),
-            'embeddings_compute': grpc.unary_unary_rpc_method_handler(
-                    servicer.embeddings_compute,
-                    request_deserializer=agency__pb2.SearchInput.FromString,
-                    response_serializer=agency__pb2.EmbeddingsOutput.SerializeToString,
-            ),
+        "pubmed_parent_search": grpc.unary_unary_rpc_method_handler(
+            servicer.pubmed_parent_search,
+            request_deserializer=agency__pb2.Embeddings.FromString,
+            response_serializer=agency__pb2.PubmedResponse.SerializeToString,
+        ),
+        "pubmed_cluster_search": grpc.unary_unary_rpc_method_handler(
+            servicer.pubmed_cluster_search,
+            request_deserializer=agency__pb2.Embeddings.FromString,
+            response_serializer=agency__pb2.PubmedResponse.SerializeToString,
+        ),
+        "embeddings_compute": grpc.unary_unary_rpc_method_handler(
+            servicer.embeddings_compute,
+            request_deserializer=agency__pb2.SearchInput.FromString,
+            response_serializer=agency__pb2.EmbeddingsOutput.SerializeToString,
+        ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'agency.AgencyService', rpc_method_handlers)
+        "agency.AgencyService", rpc_method_handlers
+    )
     server.add_generic_rpc_handlers((generic_handler,))
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class AgencyService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def pubmed_parent_search(request,
+    def pubmed_parent_search(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/agency.AgencyService/pubmed_parent_search',
+            "/agency.AgencyService/pubmed_parent_search",
             agency__pb2.Embeddings.SerializeToString,
             agency__pb2.PubmedResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def pubmed_cluster_search(request,
+    def pubmed_cluster_search(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/agency.AgencyService/pubmed_cluster_search',
+            "/agency.AgencyService/pubmed_cluster_search",
             agency__pb2.Embeddings.SerializeToString,
             agency__pb2.PubmedResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def embeddings_compute(request,
+    def embeddings_compute(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/agency.AgencyService/embeddings_compute',
+            "/agency.AgencyService/embeddings_compute",
             agency__pb2.SearchInput.SerializeToString,
             agency__pb2.EmbeddingsOutput.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )

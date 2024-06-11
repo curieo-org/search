@@ -1,12 +1,19 @@
 import sentry_sdk
 
-from app.grpc_types.agency_pb2 import SearchInput, PubmedResponse, EmbeddingsOutput, Embeddings, Double2D, Int2D
+from app.grpc_types.agency_pb2 import (
+    Double2D,
+    Embeddings,
+    EmbeddingsOutput,
+    Int2D,
+    PubmedResponse,
+    SearchInput,
+)
 from app.grpc_types.agency_pb2_grpc import AgencyService
-from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
 from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
+from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
 from app.query_node_process.nodeprocessengine import QueryProcessorEngine
-from app.utils.custom_vectorstore import CurieoQueryBundle
 from app.settings import app_settings
+from app.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
 
 pubmed_parent_engine = ParentRetrievalEngine(settings=app_settings)
@@ -17,15 +24,16 @@ logger = setup_logger("Search_API")
 
 
 def prepare_query_bundle(request: Embeddings) -> CurieoQueryBundle:
-    sparse_indices = [[value for value in index.values] for index in request.sparse_indices]
-    sparse_embedding = [[value for value in vector.values] for vector in request.sparse_embedding]
-    dense_embedding = [value for value in request.dense_embedding]
+    sparse_indices = list(list(value for value in index.values) for index in request.sparse_indices) # noqa
+    sparse_embedding = list(list(value for value in vector.values) for vector in request.sparse_embedding) # noqa
+    dense_embedding = list(request.dense_embedding) if request.dense_embedding else []
 
     return CurieoQueryBundle(
         query_str="",
         embedding=dense_embedding,
-        sparse_embedding=(sparse_indices, sparse_embedding)
+        sparse_embedding=(sparse_indices, sparse_embedding),
     )
+
 
 class Search(AgencyService):
     @staticmethod
@@ -66,7 +74,7 @@ class Search(AgencyService):
             logger.exception(e)
 
             return PubmedResponse(status=500, sources=[])
-        
+
     @staticmethod
     async def pubmed_cluster_search(
         request: Embeddings,
@@ -104,7 +112,7 @@ class Search(AgencyService):
             logger.exception(e)
 
             return PubmedResponse(status=500, sources=[])
-        
+
     @staticmethod
     async def embeddings_compute(
         request: SearchInput,
@@ -138,9 +146,13 @@ class Search(AgencyService):
                     status=200,
                     embeddings=Embeddings(
                         dense_embedding=dense_embedding,
-                        sparse_embedding=[Double2D(values=vector) for vector in sparse_embedding],
-                        sparse_indices=[Int2D(values=indices) for indices in sparse_indices]
-                    )
+                        sparse_embedding=[
+                            Double2D(values=vector) for vector in sparse_embedding
+                        ],
+                        sparse_indices=[
+                            Int2D(values=indices) for indices in sparse_indices
+                        ],
+                    ),
                 )
 
             logger.error("embeddings_compute. failed to retrieve search results")
@@ -148,10 +160,8 @@ class Search(AgencyService):
             return EmbeddingsOutput(
                 status=500,
                 embeddings=Embeddings(
-                    dense_embedding=[],
-                    sparse_embedding=[],
-                    sparse_indices=[]
-                )
+                    dense_embedding=[], sparse_embedding=[], sparse_indices=[]
+                ),
             )
         except Exception as e:
             logger.exception(e)
@@ -159,8 +169,6 @@ class Search(AgencyService):
             return EmbeddingsOutput(
                 status=500,
                 embeddings=Embeddings(
-                    dense_embedding=[],
-                    sparse_embedding=[],
-                    sparse_indices=[]
-                )
+                    dense_embedding=[], sparse_embedding=[], sparse_indices=[]
+                ),
             )

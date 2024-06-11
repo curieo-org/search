@@ -1,11 +1,12 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
+
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
-from app.settings import Settings
-from app.utils.logging import setup_logger
 from app.rag.utils.splade_embedding import SpladeEmbeddingsInference
+from app.settings import Settings
 from app.utils.custom_vectorstore import CurieoQueryBundle
+from app.utils.logging import setup_logger
 
 logger = setup_logger("QueryProcessorEngine")
 
@@ -54,22 +55,22 @@ class QueryProcessorEngine:
             logger.exception("failed to query vectors from the splade model", e)
             return [], []
 
-    async def query_process(
-        self, search_text: str
-    ) -> dict:
-        logger.info(f"query_process. search_text: {search_text}")   
+    async def query_process(self, search_text: str) -> dict:
+        logger.info(f"query_process. search_text: {search_text}")
         if not len(search_text):
             return None
-             
+
         try:
             async with asyncio.TaskGroup() as tg:
                 extract_dense_embedding_task = tg.create_task(
-                    self.embed_model.aget_agg_embedding_from_queries(queries=[search_text])
+                    self.embed_model.aget_agg_embedding_from_queries(
+                        queries=[search_text]
+                    )
                 )
                 extract_sparse_embedding_task = tg.create_task(
                     self.splade_model.get_text_embedding_batch(texts=[search_text])
                 )
-                
+
             dense_embeddings = extract_dense_embedding_task.result()
             sparse_embeddings = self.process_sparse_query_vectors(
                 splade_embeddings=extract_sparse_embedding_task.result()
@@ -78,7 +79,7 @@ class QueryProcessorEngine:
             return CurieoQueryBundle(
                 query_str=search_text,
                 embedding=dense_embeddings,
-                sparse_embedding=sparse_embeddings
+                sparse_embedding=sparse_embeddings,
             ).__dict__
 
         except Exception as e:

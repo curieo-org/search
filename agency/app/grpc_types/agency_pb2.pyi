@@ -1,7 +1,13 @@
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from typing import (
+    ClassVar as _ClassVar,
+    Iterable as _Iterable,
+    Mapping as _Mapping,
+    Optional as _Optional,
+    Union as _Union,
+)
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -25,7 +31,12 @@ class Embeddings(_message.Message):
     dense_embedding: _containers.RepeatedScalarFieldContainer[float]
     sparse_embedding: _containers.RepeatedCompositeFieldContainer[Double2D]
     sparse_indices: _containers.RepeatedCompositeFieldContainer[Int2D]
-    def __init__(self, dense_embedding: _Optional[_Iterable[float]] = ..., sparse_embedding: _Optional[_Iterable[_Union[Double2D, _Mapping]]] = ..., sparse_indices: _Optional[_Iterable[_Union[Int2D, _Mapping]]] = ...) -> None: ...
+    def __init__(
+        self,
+        dense_embedding: _Optional[_Iterable[float]] = ...,
+        sparse_embedding: _Optional[_Iterable[_Union[Double2D, _Mapping]]] = ...,
+        sparse_indices: _Optional[_Iterable[_Union[Int2D, _Mapping]]] = ...,
+    ) -> None: ...
 
 class SearchInput(_message.Message):
     __slots__ = ("query",)
@@ -39,7 +50,11 @@ class EmbeddingsOutput(_message.Message):
     EMBEDDINGS_FIELD_NUMBER: _ClassVar[int]
     status: int
     embeddings: Embeddings
-    def __init__(self, status: _Optional[int] = ..., embeddings: _Optional[_Union[Embeddings, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        status: _Optional[int] = ...,
+        embeddings: _Optional[_Union[Embeddings, _Mapping]] = ...,
+    ) -> None: ...
 
 class PubmedSource(_message.Message):
     __slots__ = ("pubmed_id", "title", "abstract")
@@ -49,7 +64,12 @@ class PubmedSource(_message.Message):
     pubmed_id: str
     title: str
     abstract: str
-    def __init__(self, pubmed_id: _Optional[str] = ..., title: _Optional[str] = ..., abstract: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        pubmed_id: _Optional[str] = ...,
+        title: _Optional[str] = ...,
+        abstract: _Optional[str] = ...,
+    ) -> None: ...
 
 class PubmedResponse(_message.Message):
     __slots__ = ("status", "sources")
@@ -57,4 +77,8 @@ class PubmedResponse(_message.Message):
     SOURCES_FIELD_NUMBER: _ClassVar[int]
     status: int
     sources: _containers.RepeatedCompositeFieldContainer[PubmedSource]
-    def __init__(self, status: _Optional[int] = ..., sources: _Optional[_Iterable[_Union[PubmedSource, _Mapping]]] = ...) -> None: ...
+    def __init__(
+        self,
+        status: _Optional[int] = ...,
+        sources: _Optional[_Iterable[_Union[PubmedSource, _Mapping]]] = ...,
+    ) -> None: ...

@@ -1,21 +1,27 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
-from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
-from llama_index.core import StorageContext
-from qdrant_client import AsyncQdrantClient
-from loguru import logger
 
-from app.settings import Settings
-from app.utils.database_helper import PubmedDatabaseUtils
+from llama_index.core import StorageContext
+from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
+from loguru import logger
+from qdrant_client import AsyncQdrantClient
+
 from app.grpc_types.agency_pb2 import PubmedSource
+from app.settings import Settings
 from app.utils.custom_vectorstore import (
-    CurieoVectorStore,
     CurieoQueryBundle,
     CurieoVectorIndexRetriever,
-    CurieoVectorStoreIndex
+    CurieoVectorStore,
+    CurieoVectorStoreIndex,
+)
+from app.utils.database_helper import PubmedDatabaseUtils
+
+logger.add(
+    "file.log",
+    rotation="500 MB",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
 )
 
-logger.add("file.log", rotation="500 MB", format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}")
 
 class ClusterRetrievalEngine:
     def __init__(self, settings: Settings):
@@ -31,7 +37,7 @@ class ClusterRetrievalEngine:
                 storage_context=StorageContext.from_defaults(
                     vector_store=CurieoVectorStore(
                         aclient=self.cluster_client,
-                        collection_name=self.settings.pubmed_cluster_qdrant.collection_name
+                        collection_name=self.settings.pubmed_cluster_qdrant.collection_name,
                     )
                 ),
                 embed_model=TextEmbeddingsInference(
@@ -40,25 +46,27 @@ class ClusterRetrievalEngine:
                     auth_token=self.settings.embedding.api_key.get_secret_value(),
                     timeout=60,
                     embed_batch_size=self.settings.embedding.batch_size,
-                )
+                ),
             ),
             similarity_top_k=self.settings.pubmed_cluster_qdrant.top_k,
             sparse_top_k=self.settings.pubmed_cluster_qdrant.sparse_top_k,
         )
-        self.cluster_relevance_criteria = self.settings.pubmed_retrieval.cluster_relevance_criteria
+        self.cluster_relevance_criteria = (
+            self.settings.pubmed_retrieval.cluster_relevance_criteria
+        )
         self.pubmed_database = PubmedDatabaseUtils(settings.pubmed_database)
 
     async def retrieve_cluster_nodes(
         self, query: CurieoQueryBundle
     ) -> list[PubmedSource]:
-        logger.info(f"search_text: {query.query_str}")   
+        logger.info(f"search_text: {query.query_str}")
         if not len(query.embedding) and not len(query.sparse_embedding):
             return []
-        
+
         extracted_nodes = await self.cluster_retriever.aretrieve(query)
         if not len(extracted_nodes):
             return []
-        
+
         filtered_nodes = [
             n
             for n in extracted_nodes
@@ -89,7 +97,7 @@ class ClusterRetrievalEngine:
             PubmedSource(
                 pubmed_id=str(pubmed_id),
                 title=str(pubmed_titles.get(pubmed_id, "")),
-                abstract=children_node_texts.get(child_node_id, "")
+                abstract=children_node_texts.get(child_node_id, ""),
             )
             for pubmed_id in nodes_dict
             for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
