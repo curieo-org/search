@@ -176,7 +176,6 @@ pub enum Credentials {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct PasswordCredentials {
     pub username: String,
     pub password: Secret<String>,

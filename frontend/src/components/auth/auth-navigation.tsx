@@ -12,17 +12,15 @@ export default function AuthNavigation({ authPurpose }: { authPurpose: AuthPurpo
     authPurpose === 'register' ? router.push(signinPagePath) : router.push(signupPagePath)
   }
   return (
-    <>
-      <div className="flex items-center mb-6">
-        <Span className="font-medium">
-          {authPurpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}
-        </Span>
-        <Button
-          className="bg-transparent hover:bg-transparent text-primary"
-          label={authPurpose === 'register' ? 'Login' : 'Sign up'}
-          onClick={handleToggleAuthPurpose}
-        />
-      </div>
-    </>
+    <div className="flex items-center mb-6">
+      <Span className="font-medium">
+        {authPurpose === 'register' ? 'Already have an account?' : 'Don’t have an account yet?'}
+      </Span>
+      <Button
+        className="bg-transparent hover:bg-transparent text-primary"
+        label={authPurpose === 'register' ? 'Login' : 'Sign up'}
+        onClick={handleToggleAuthPurpose}
+      />
+    </div>
   )
 }
