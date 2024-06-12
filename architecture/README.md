@@ -14,6 +14,7 @@
   - [User Flow](#user-flow)
     - [Features and User Actions](#features-and-user-actions)
   - [High Level Architecture](#high-level-architecture-2)
+  - [Single Search Query Flow](#single-search-query-flow)
   - [Data Models](#data-models)
     - [Frontend](#frontend)
     - [API Server](#api-server)
@@ -83,6 +84,9 @@ The `Search Web Services` component is responsible for providing the search func
 
 ## High Level Architecture
 ![High Level Architecture](images/search_hld.png)
+
+## Single Search Query Flow
+![Single Search Query Flow](images/search_single_query_flow.png)
 
 ## Data Models
 ![Data Models](images/search_uml.png)
