@@ -80,7 +80,7 @@ async fn get_search_query_handler(
     }));
 
     tokio::spawn(post_process::summarize_search_results(
-        settings.llm.clone(),
+        settings.summarizer.clone(),
         search_query_request,
         search_response.result,
         update_processor,

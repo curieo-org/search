@@ -86,6 +86,7 @@ pub struct Settings {
     pub pubmed: rag::PubmedSettings,
     pub brave: rag::BraveSettings,
     pub llm: llms::LLMSettings,
+    pub summarizer: llms::SummarizerSettings,
     pub max_search_query_length: u16,
 }
 

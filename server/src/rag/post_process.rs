@@ -1,5 +1,5 @@
-use crate::llms::LLMSettings;
-use crate::llms::{bio_llm, llm_lingua};
+use crate::llms::{llm_lingua, summarizer};
+use crate::llms::{LLMSettings, SummarizerSettings};
 use crate::rag::RetrievedResult;
 use crate::rag::SearchResponse;
 use crate::search::api_models;
@@ -35,15 +35,15 @@ pub async fn rerank_search_results(
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn summarize_search_results(
-    llm_settings: LLMSettings,
+    settings: SummarizerSettings,
     search_query_request: api_models::SearchQueryRequest,
     search_response: String,
     update_processor: api_models::UpdateResultProcessor,
     tx: Sender<SearchResponse>,
 ) -> crate::Result<()> {
-    bio_llm::generate_text_stream(
-        llm_settings,
-        bio_llm::BioLLMInput {
+    summarizer::generate_text_stream(
+        settings,
+        summarizer::SummarizerInput {
             query: search_query_request.query,
             retrieved_result: search_response,
         },
