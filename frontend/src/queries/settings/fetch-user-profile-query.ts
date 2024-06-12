@@ -1,20 +1,12 @@
-import { AxiosClient } from '@/helpers/axios-client'
+'use server'
+
 import { UserProfile } from '@/types/settings'
-import { useQuery } from '@tanstack/react-query'
+import { curieoFetch } from '@/actions/fetch'
 
-export function fetchUserProfile(): Promise<UserProfile> {
-  return new Promise(async function (resolve, reject) {
-    AxiosClient.get('/users/me')
-      .then(res => {
-        resolve(res.data as UserProfile)
-      })
-      .catch(err => reject(err))
-  })
-}
-
-export const useFetchUserProfile = () => {
-  return useQuery({
-    queryKey: ['user-profile'],
-    queryFn: fetchUserProfile,
-  })
+export async function fetchUserProfile(): Promise<UserProfile | null> {
+  const response = await curieoFetch('/users/me')
+  if (response.ok) {
+    return (await response.json()) as UserProfile
+  }
+  throw new Error('Could not retrieve user profile')
 }

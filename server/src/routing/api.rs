@@ -16,28 +16,23 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
     // as a request extension.
-
     let session_store = RedisStore::new(state.cache.clone());
     let caching_session_store = CachingSessionStore::new(DashStore::default(), session_store);
-
     let session_layer = SessionManagerLayer::new(caching_session_store)
-        .with_secure(false)
-        .with_same_site(SameSite::Lax) // Ensure we send the cookie from the OAuth redirect.
+        .with_secure(true)
+        .with_same_site(SameSite::Strict)
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 
     // Auth service.
     //
     // This combines the session layer with our backend to establish the auth
     // service which will provide the auth session as a request extension.
-
     let backend = PostgresBackend::new(state.db.clone(), state.oauth2_clients.clone());
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
     let api_routes = Router::new()
-        //.nest("/search", search::routes())
-        //.layer(middleware::from_fn(some_auth_middleware))
-        .nest("/search", search::routes())
         .nest("/users", users::routes())
+        .nest("/search", search::routes())
         .route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
         .nest("/auth", auth::routes());
 

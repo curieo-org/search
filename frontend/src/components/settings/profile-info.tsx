@@ -1,6 +1,4 @@
-'use client'
-
-import { useFetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
+import { fetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Span } from '../lib/typography'
@@ -8,8 +6,8 @@ import SettingsInfoItem from './settings-info-item'
 
 type ProfileInfoProps = HTMLAttributes<HTMLDivElement>
 
-export default function ProfileInfo(props: ProfileInfoProps) {
-  const { data: userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useFetchUserProfile()
+export default async function ProfileInfo(props: ProfileInfoProps) {
+  const userProfile = await fetchUserProfile()
   return (
     <div className={twMerge('flex flex-col w-full', props.className)}>
       <Span className="mb-4 text-custom-gray-100">Profile</Span>

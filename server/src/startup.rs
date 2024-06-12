@@ -8,6 +8,7 @@ use crate::settings::Settings;
 use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
+use log::info;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -21,6 +22,7 @@ pub struct Application {
 impl Application {
     pub async fn build(settings: Settings) -> Result<Self> {
         let address = format!("{}:{}", settings.host, settings.port);
+        info!("Running on {address}");
 
         let listener = TcpListener::bind(address)
             .await

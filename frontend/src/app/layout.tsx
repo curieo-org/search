@@ -18,11 +18,12 @@ export type LayoutProps = Readonly<{
   children: ReactNode
 }>
 
-export default function RootLayout({ children }: LayoutProps) {
+export default async function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
         <link rel="icon" type="image/x-icon" href="/images/curieo-logo.svg" />
+        <title>Curieo Search</title>
       </head>
       <body className={onest.className} suppressHydrationWarning={true}>
         <Providers>

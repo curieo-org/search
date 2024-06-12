@@ -179,6 +179,7 @@ pub enum Credentials {
 pub struct PasswordCredentials {
     pub username: String,
     pub password: Secret<String>,
+    pub csrf_token: Option<CsrfToken>,
     pub next: Option<String>,
 }
 
