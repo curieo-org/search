@@ -1,5 +1,6 @@
 host = "0.0.0.0"
 port = 3030
+max_search_query_length = 255
 
 [llm]
 top_k_sources = 10

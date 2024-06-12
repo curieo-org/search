@@ -1,25 +1,25 @@
 use crate::cache::CachePool;
 use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::rag::{self, post_process};
+use crate::rag::{self, post_process, pre_process};
 use crate::search::{api_models, services};
 use crate::settings::Settings;
 use crate::startup::AppState;
 use crate::users::User;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
+use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::response::IntoResponse;
 use axum::routing::{get, patch};
 use axum::{Json, Router};
-use sqlx::PgPool;
-use tonic::transport::Channel;
 use color_eyre::eyre::eyre;
-use tokio_stream::wrappers::ReceiverStream;
-use axum::response::sse::{Event, KeepAlive, Sse};
-use futures::Stream;
-use std::convert::Infallible;
-use tokio::sync::mpsc;
 use futures::stream::StreamExt;
+use futures::Stream;
+use sqlx::PgPool;
+use std::convert::Infallible;
 use std::sync::Arc;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::transport::Channel;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
@@ -32,6 +32,12 @@ async fn get_search_query_handler(
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
     let user_id = user.user_id;
+
+    let query_validity =
+        pre_process::check_query_validity(&settings, &search_query_request).await?;
+    if !query_validity {
+        return Err(eyre!("Query is invalid to proceed").into());
+    }
 
     let (search_item, search_response) = tokio::join!(
         services::insert_new_search(&pool, &user_id, &search_query_request),
@@ -52,14 +58,23 @@ async fn get_search_query_handler(
     tx.send(rag::SearchResponse {
         result: String::from(""),
         sources: search_response.sources,
-    }).await.map_err(|e| eyre!("Failed to send end result: {}", e))?;
+    })
+    .await
+    .map_err(|e| eyre!("Failed to send end result: {}", e))?;
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();
         let user_id_clone = user_id.clone();
         let search_item_clone = search_item.clone();
         Box::pin(async move {
-            services::append_search_result(&pool_clone, &user_id_clone, &search_item_clone, &result_suffix).await.unwrap();
+            services::append_search_result(
+                &pool_clone,
+                &user_id_clone,
+                &search_item_clone,
+                &result_suffix,
+            )
+            .await
+            .unwrap();
             Ok(())
         })
     }));
@@ -77,9 +92,7 @@ async fn get_search_query_handler(
         Ok(Event::default().data(json_data))
     });
 
-    Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(
-        std::time::Duration::from_secs(30),
-    )))
+    Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(std::time::Duration::from_secs(30))))
 }
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]

@@ -1,10 +1,11 @@
+use crate::llms::toxicity_llm;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{Embeddings, EmbeddingsOutput, SearchInput};
+use crate::search::api_models;
+use crate::settings::Settings;
 use color_eyre::eyre::eyre;
 use std::sync::Arc;
 use tonic::transport::Channel;
-use crate::settings::Settings;
-use crate::llms::toxicity_llm;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn compute_embeddings(
@@ -33,25 +34,21 @@ pub async fn compute_embeddings(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-async fn preprocess_query(
-    agency_service: Arc<AgencyServiceClient<Channel>>,
+pub async fn check_query_validity(
     settings: &Settings,
-    search_query: &str,
-) -> crate::Result<Embeddings> {
-    let (toxicity_prediction, embeddings) = tokio::join!(
-        toxicity_llm::predict_toxicity(
-            &settings.llm,
-            toxicity_llm::ToxicityInput{
-            inputs: search_query.to_string(),
-        }),
-        compute_embeddings(agency_service, search_query)
-    );
-
-    let toxicity_prediction = toxicity_prediction?;
-    let embeddings = embeddings?;
-
-    if toxicity_prediction {
-        return Err(eyre!("Query is too toxic").into());
+    search_query_request: &api_models::SearchQueryRequest,
+) -> crate::Result<bool> {
+    if search_query_request.query.len() > settings.max_search_query_length as usize {
+        return Ok(false);
     }
-    Ok(embeddings)
+
+    let toxicity_prediction = toxicity_llm::predict_toxicity(
+        &settings.llm,
+        toxicity_llm::ToxicityInput {
+            inputs: search_query_request.query.to_string(),
+        },
+    )
+    .await?;
+
+    Ok(!toxicity_prediction)
 }

@@ -6,8 +6,6 @@ use crate::search::api_models;
 use crate::settings::Settings;
 use std::sync::Arc;
 use tonic::transport::Channel;
-use crate::llms::toxicity_llm;
-use color_eyre::eyre::eyre;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn search(
@@ -17,26 +15,12 @@ pub async fn search(
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query_request: &api_models::SearchQueryRequest,
 ) -> crate::Result<rag::SearchResponse> {
-    let toxicity_prediction = toxicity_llm::predict_toxicity(
-        &settings.llm,
-        toxicity_llm::ToxicityInput{
-        inputs: search_query_request.query.to_string(),
-    }).await?;
-
-    if toxicity_prediction {
-        return Err(eyre!("Query is too toxic").into());
-    }
-
     if let Some(response) = cache.get(&search_query_request.query).await {
         return Ok(response);
     }
 
     let (agency_results, fallback_results) = tokio::join!(
-        retrieve_result_from_agency(
-            settings,
-            agency_service,
-            &search_query_request,
-        ),
+        retrieve_result_from_agency(settings, agency_service, search_query_request),
         brave_search::web_search(
             &settings.brave,
             brave_api_config,
@@ -52,12 +36,9 @@ pub async fn search(
         retrieved_results.extend(fallback_results);
     }
 
-    let response = post_process::rerank_search_results(
-        &settings.llm,
-        search_query_request,
-        retrieved_results,
-    )
-    .await?;
+    let response =
+        post_process::rerank_search_results(&settings.llm, search_query_request, retrieved_results)
+            .await?;
 
     cache.set(&search_query_request.query, &response).await;
 
