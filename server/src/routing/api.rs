@@ -3,6 +3,7 @@ use axum_login::tower_sessions::cookie::time::Duration;
 use axum_login::tower_sessions::cookie::SameSite;
 use axum_login::tower_sessions::{CachingSessionStore, Expiry, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
+use sentry_tower::{NewSentryLayer, SentryHttpLayer};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
 
@@ -47,5 +48,7 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
                 .on_failure(trace::DefaultOnFailure::new().level(Level::ERROR))
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
-        ))
+        )
+        .layer(NewSentryLayer::new_from_top())
+        .layer(SentryHttpLayer::with_transaction()))
 }
