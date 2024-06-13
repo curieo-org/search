@@ -2,8 +2,8 @@ use crate::search::Search;
 use crate::search::{Source, Thread};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use std::pin::Pin;
 use std::future::Future;
+use std::pin::Pin;
 use std::sync::Arc;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<()>> + Send>>;
@@ -14,9 +14,7 @@ pub struct UpdateResultProcessor {
 
 impl UpdateResultProcessor {
     pub fn new(processor: Arc<dyn Fn(String) -> BoxedFuture + Send + Sync>) -> Self {
-        UpdateResultProcessor {
-            processor,
-        }
+        UpdateResultProcessor { processor }
     }
 
     pub async fn process(&self, result: String) -> crate::Result<()> {
@@ -71,6 +69,7 @@ pub struct GetThreadRequest {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SearchThreadResponse {
+    pub thread: Thread,
     pub searches: Vec<SearchByIdResponse>,
 }
 
