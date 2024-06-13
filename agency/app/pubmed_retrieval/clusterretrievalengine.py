@@ -4,6 +4,7 @@ import asyncio
 from llama_index.core import StorageContext
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from loguru import logger
+import json
 from qdrant_client import AsyncQdrantClient
 
 from app.grpc_types.agency_pb2 import PubmedSource
@@ -15,6 +16,14 @@ from app.utils.custom_vectorstore import (
     CurieoVectorStoreIndex,
 )
 from app.utils.database_helper import PubmedDatabaseUtils
+from app.grpc_types.agency_pb2 import (
+    Double2D,
+    Embeddings,
+    EmbeddingsOutput,
+    Int2D,
+    PubmedResponse,
+    SearchInput,
+)
 
 logger.add(
     "file.log",
@@ -92,14 +101,20 @@ class ClusterRetrievalEngine:
             self.pubmed_database.get_pubmed_record_titles(pubmed_ids),
             self.pubmed_database.get_children_node_text(all_children_node_ids),
         )
-
+        
         return [
             PubmedSource(
                 pubmed_id=str(pubmed_id),
                 title=str(pubmed_titles.get(pubmed_id, "")),
-                abstract=children_node_texts.get(child_node_id, ""),
+                abstract=child_node_json["text"],
+                embedding=Embeddings(
+                    dense_embedding=child_node_json['dense_embedding'],
+                    sparse_embedding=[Double2D(values=child_node_json['sparse_embedding']['vector'])],
+                    sparse_indices=[Int2D(values=child_node_json['sparse_embedding']['indices'])]
+                )
             )
             for pubmed_id in nodes_dict
             for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
             if child_node_id in children_node_texts
+            for child_node_json in [json.loads(children_node_texts.get(child_node_id))]
         ]
