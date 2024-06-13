@@ -52,7 +52,7 @@ async fn get_search_query_handler(
     let search_item = search_item?;
     let search_response = search_response?;
 
-    services::add_search_sources(&pool, &user_id, &search_item, &search_response.sources).await?;
+    services::add_search_sources(&pool, &search_item, &search_response.sources).await?;
 
     let (tx, rx) = mpsc::channel(1);
     tx.send(rag::SearchResponse {
@@ -64,17 +64,11 @@ async fn get_search_query_handler(
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();
-        let user_id_clone = user_id.clone();
         let search_item_clone = search_item.clone();
         Box::pin(async move {
-            services::append_search_result(
-                &pool_clone,
-                &user_id_clone,
-                &search_item_clone,
-                &result_suffix,
-            )
-            .await
-            .unwrap();
+            services::append_search_result(&pool_clone, &search_item_clone, &result_suffix)
+                .await
+                .unwrap();
             Ok(())
         })
     }));

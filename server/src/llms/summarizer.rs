@@ -16,7 +16,7 @@ pub struct SummarizerSettings {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SummarizerParams {
+struct SummarizerParams {
     pub model: Option<String>,
     pub max_new_tokens: Option<u16>,
     pub temperature: Option<f32>,
@@ -45,11 +45,6 @@ pub struct Token {
 pub struct SummarizerStreamOutput {
     pub token: Token,
     pub generated_text: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SummarizerOutput {
-    pub generated_text: String,
 }
 
 fn prepare_context_string(
