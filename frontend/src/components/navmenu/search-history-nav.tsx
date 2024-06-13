@@ -13,7 +13,7 @@ export default function SearchHistoryNav(props: SearchHistoryNavProps) {
   const { data, isFetching, fetchNextPage } = useFetchSearchHistoryQuery()
   const [showScrollbar, setShowScrollbar] = useState(false)
 
-  if (!data) {
+  if (!data?.pages[0]) {
     return null
   }
 
