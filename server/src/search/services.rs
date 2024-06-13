@@ -1,8 +1,8 @@
 use crate::rag::Source;
 use crate::search::{api_models, data_models};
+use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 use uuid::Uuid;
-use color_eyre::eyre::eyre;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn insert_new_search(
@@ -14,8 +14,9 @@ pub async fn insert_new_search(
         Some(thread_id) => {
             sqlx::query_as!(
                 data_models::Thread,
-                "select * from threads where thread_id = $1",
+                "select * from threads where thread_id = $1 and user_id = $2",
                 thread_id,
+                user_id,
             )
             .fetch_one(pool)
             .await?
@@ -48,15 +49,14 @@ pub async fn insert_new_search(
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn append_search_result(
     pool: &PgPool,
-    user_id: &Uuid,
     search: &data_models::Search,
     result_suffix: &String,
 ) -> crate::Result<()> {
+    // Only used by internal services, so no need to check if user_id is the owner of the search
     sqlx::query!(
-        "update searches set result = result || $1 where search_id = $2 and thread_id in (select thread_id from threads where user_id = $3)",
+        "update searches set result = result || $1 where search_id = $2",
         result_suffix,
         search.search_id,
-        user_id,
     )
     .execute(pool)
     .await?;
@@ -64,11 +64,9 @@ pub async fn append_search_result(
     Ok(())
 }
 
-
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn add_search_sources(
     pool: &PgPool,
-    user_id: &Uuid,
     search: &data_models::Search,
     sources: &Vec<Source>,
 ) -> crate::Result<()> {
@@ -76,6 +74,7 @@ pub async fn add_search_sources(
         return Err(eyre!("No sources to add").into());
     }
 
+    // Only used by internal services, so no need to check if user_id is the owner of the search
     let sources = sqlx::query_as!(
         data_models::Source,
         "insert into sources (title, description, url, source_type, metadata) \
@@ -102,15 +101,6 @@ pub async fn add_search_sources(
     .fetch_all(pool)
     .await?;
 
-    // sqlx::query_as!(
-    //     data_models::Search,
-    //     "update searches set result = $1 where search_id = $2 returning *",
-    //     search_response.result,
-    //     search.search_id,
-    // )
-    // .fetch_one(pool)
-    // .await?;
-
     return Ok(());
 }
 
@@ -122,8 +112,9 @@ pub async fn get_one_search(
 ) -> crate::Result<api_models::SearchByIdResponse> {
     let search = sqlx::query_as!(
         data_models::Search,
-        "select * from searches where search_id = $1 and thread_id in \
-            (select thread_id from threads where user_id = $2)",
+        "select s.* from searches s \
+            inner join threads t on s.thread_id = t.thread_id \
+            where s.search_id = $1 and t.user_id = $2",
         search_by_id_request.search_id,
         user_id,
     )
@@ -132,8 +123,9 @@ pub async fn get_one_search(
 
     let sources = sqlx::query_as!(
         data_models::Source,
-        "select * from sources where source_id in \
-            (select source_id from search_sources where search_id = $1)",
+        "select s.* from sources s \
+            inner join search_sources ss on s.source_id = ss.source_id \
+            where ss.search_id = $1",
         search.search_id,
     )
     .fetch_all(pool)
@@ -167,13 +159,20 @@ pub async fn get_one_thread(
     user_id: &Uuid,
     thread_by_id_request: &api_models::GetThreadRequest,
 ) -> crate::Result<api_models::SearchThreadResponse> {
-    let searches = sqlx::query_as!(
-        data_models::Search,
-        "select * from searches where thread_id in \
-            (select thread_id from threads where thread_id = $1 and user_id = $2) \
-            order by created_at desc limit $3 offset $4",
+    let thread = sqlx::query_as!(
+        data_models::Thread,
+        "select * from threads where thread_id = $1 and user_id = $2",
         thread_by_id_request.thread_id,
         user_id,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let searches = sqlx::query_as!(
+        data_models::Search,
+        "select * from searches where thread_id = $1 \
+            order by created_at desc limit $2 offset $3",
+        thread.thread_id,
         thread_by_id_request.limit.unwrap_or(10) as i64,
         thread_by_id_request.offset.unwrap_or(0) as i64
     )
@@ -182,8 +181,9 @@ pub async fn get_one_thread(
 
     let sources = sqlx::query_as!(
         data_models::Source,
-        "select * from sources where source_id in \
-            (select source_id from search_sources where search_id = any($1::uuid[]))",
+        "select s.* from sources s \
+            inner join search_sources ss on s.source_id = ss.source_id \
+            where ss.search_id = any($1::uuid[])",
         &searches.iter().map(|s| s.search_id).collect::<Vec<Uuid>>(),
     )
     .fetch_all(pool)
@@ -205,7 +205,7 @@ pub async fn get_one_thread(
         })
         .collect::<Vec<api_models::SearchByIdResponse>>();
 
-    return Ok(api_models::SearchThreadResponse { searches });
+    return Ok(api_models::SearchThreadResponse { thread, searches });
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -235,9 +235,12 @@ pub async fn update_search_reaction(
 ) -> crate::Result<data_models::Search> {
     let search = sqlx::query_as!(
         data_models::Search,
-        "update searches set reaction = $1 where search_id = $2 returning *",
+        "update searches s set reaction = $1 from threads t \
+            where s.search_id = $2 and s.thread_id = t.thread_id and t.user_id = $3 \
+            returning s.*",
         search_reaction_request.reaction,
         search_reaction_request.search_id,
+        user_id,
     )
     .fetch_one(pool)
     .await?;

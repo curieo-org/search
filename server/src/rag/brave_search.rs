@@ -137,7 +137,7 @@ fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult 
         Some(snippets) => snippets,
         None => vec![],
     };
-    
+
     RetrievedResult {
         text: result.description.clone() + "\n\n" + extra_snippets.join("\n\n").as_str(),
         source: Source {

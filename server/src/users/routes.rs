@@ -1,4 +1,4 @@
-use crate::auth::{AuthSession, PasswordCredentials};
+use crate::auth::AuthSession;
 use crate::err::AppError;
 use crate::startup::AppState;
 use crate::users::UserRecord;

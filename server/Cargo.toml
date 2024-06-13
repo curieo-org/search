@@ -64,6 +64,8 @@ bb8-redis = "0.15.0"
 time = { version = "0.3.36", features = ["serde"] }
 dashmap = { version = "5.5.3", features = ["inline", "serde"] }
 tokio-stream = { version = "0.1.15", features = ["full"] }
+sentry = { version = "0.34.0", features = ["tracing"] }
+sentry-tower = { version = "0.34.0", features = ["http"] }
 
 [dependencies.openssl-sys]
 version = "0.9.102"
