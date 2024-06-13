@@ -8,12 +8,7 @@ import { z } from 'zod'
 import { Button } from '../lib/button'
 import { Input, PasswordInput } from '../lib/form'
 
-import { useAppContext } from '@/components/wrappers/app-middleware'
-
 export default function AuthFormContents({ csrfToken }: { csrfToken: string }) {
-  const { updateAuthStatus } = useAppContext()
-
-  useEffect(() => updateAuthStatus('loading'), [])
   const {
     state: { email, password },
     setAuthFormState,

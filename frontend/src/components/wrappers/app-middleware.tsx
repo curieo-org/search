@@ -10,7 +10,7 @@ import {
   signinPagePath,
 } from '@/constants/route'
 import { usePathname, useRouter } from 'next/navigation'
-import { createContext, useContext, useEffect } from 'react'
+import { useEffect } from 'react'
 import PageWithNavMenu from '@/components/wrappers/page-with-navmenu'
 import SpinnerLoading from '@/components/util/spinner-loading'
 
@@ -49,19 +49,4 @@ export function RedirectedPage({ path }: { path: string }) {
   }, [])
 
   return <SpinnerLoading />
-}
-
-type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading'
-type AppContextType = {
-  authStatus: AuthStatus
-  updateAuthStatus: (authStatus: AuthStatus) => void
-}
-const inititalContext = {
-  authStatus: 'loading' as AuthStatus,
-  updateAuthStatus: (authStatus: AuthStatus) => {},
-}
-const AppContext = createContext<AppContextType>(inititalContext)
-
-export function useAppContext() {
-  return useContext(AppContext)
 }
