@@ -1,5 +1,5 @@
 use crate::auth::models::{AuthSession, Credentials, RegisterUserRequest};
-use crate::auth::services::register;
+use crate::auth::services;
 use crate::auth::{OAuthCredentials, PasswordCredentials};
 use crate::err::AppError;
 use crate::startup::AppState;
@@ -21,7 +21,10 @@ async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    register(pool, request)
+    if !services::is_email_whitelisted(&pool, &request.email).await? {
+        return Err(eyre!("This email is not whitelisted!").into());
+    }
+    services::register(pool, request)
         .await
         .map(|user| (StatusCode::CREATED, Json(user)))
 }

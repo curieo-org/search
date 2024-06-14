@@ -220,3 +220,8 @@ mod tests {
         assert!(dummy_verify_password(Secret::new("password")).is_ok());
     }
 }
+
+pub struct WhitelistedEmail {
+    pub email: String,
+    pub approved: bool,
+}
