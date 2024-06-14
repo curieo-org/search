@@ -83,7 +83,7 @@ async fn get_search_query_handler(
     ));
 
     let stream = ReceiverStream::new(rx).map(move |msg: api_models::SearchByIdResponse| {
-        let json_data = serde_json::to_string(&msg).unwrap();
+        let json_data = serde_json::to_string(&msg).unwrap_or("".to_string());
         Ok(Event::default().data(json_data))
     });
 
