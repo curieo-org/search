@@ -52,12 +52,13 @@ async fn get_search_query_handler(
     let search_item = search_item?;
     let search_response = search_response?;
 
-    services::add_search_sources(&pool, &search_item, &search_response.sources).await?;
+    let sources =
+        services::add_search_sources(&pool, &search_item, &search_response.sources).await?;
 
     let (tx, rx) = mpsc::channel(1);
-    tx.send(rag::SearchResponse {
-        result: String::from(""),
-        sources: search_response.sources,
+    tx.send(api_models::SearchByIdResponse {
+        search: search_item.clone(),
+        sources,
     })
     .await
     .map_err(|e| eyre!("Failed to send end result: {}", e))?;
@@ -66,10 +67,10 @@ async fn get_search_query_handler(
         let pool_clone = pool.clone();
         let search_item_clone = search_item.clone();
         Box::pin(async move {
-            services::append_search_result(&pool_clone, &search_item_clone, &result_suffix)
-                .await
-                .unwrap();
-            Ok(())
+            let search =
+                services::append_search_result(&pool_clone, &search_item_clone, &result_suffix)
+                    .await?;
+            Ok(search)
         })
     }));
 
@@ -81,7 +82,7 @@ async fn get_search_query_handler(
         tx,
     ));
 
-    let stream = ReceiverStream::new(rx).map(move |msg: rag::SearchResponse| {
+    let stream = ReceiverStream::new(rx).map(move |msg: api_models::SearchByIdResponse| {
         let json_data = serde_json::to_string(&msg).unwrap();
         Ok(Event::default().data(json_data))
     });

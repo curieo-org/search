@@ -1,4 +1,3 @@
-use crate::rag::SearchResponse;
 use crate::search::api_models;
 use color_eyre::eyre::eyre;
 use futures::StreamExt;
@@ -75,7 +74,7 @@ pub async fn generate_text_stream(
     settings: SummarizerSettings,
     summarizer_input: SummarizerInput,
     update_processor: api_models::UpdateResultProcessor,
-    tx: Sender<SearchResponse>,
+    tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
     let summarizer_input = prepare_context_string(&settings, summarizer_input);
     let client = Client::new();
@@ -102,13 +101,14 @@ pub async fn generate_text_stream(
             .map_err(|e| eyre!("Failed to parse summarizer response: {e}"))?;
 
         if !summarizer_api_response.token.special {
-            update_processor
+            let mut search = update_processor
                 .process(summarizer_api_response.token.text.clone())
                 .await
                 .map_err(|e| eyre!("Failed to update result: {e}"))?;
+            search.result = summarizer_api_response.token.text;
 
-            tx.send(SearchResponse {
-                result: summarizer_api_response.token.text,
+            tx.send(api_models::SearchByIdResponse {
+                search,
                 sources: vec![],
             })
             .await

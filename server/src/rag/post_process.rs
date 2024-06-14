@@ -2,7 +2,6 @@ use crate::llms::summarizer;
 use crate::llms::SummarizerSettings;
 use crate::proto::Embeddings;
 use crate::rag::utils;
-use crate::rag::SearchResponse;
 use crate::search::api_models;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
@@ -41,7 +40,7 @@ pub async fn summarize_search_results(
     search_query_request: api_models::SearchQueryRequest,
     search_response: String,
     update_processor: api_models::UpdateResultProcessor,
-    tx: Sender<SearchResponse>,
+    tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
     summarizer::generate_text_stream(
         settings,
