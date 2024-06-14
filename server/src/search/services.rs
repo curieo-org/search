@@ -51,17 +51,18 @@ pub async fn append_search_result(
     pool: &PgPool,
     search: &data_models::Search,
     result_suffix: &String,
-) -> crate::Result<()> {
+) -> crate::Result<data_models::Search> {
     // Only used by internal services, so no need to check if user_id is the owner of the search
-    sqlx::query!(
-        "update searches set result = result || $1 where search_id = $2",
+    let search = sqlx::query_as!(
+        data_models::Search,
+        "update searches set result = result || $1 where search_id = $2 returning *",
         result_suffix,
         search.search_id,
     )
-    .execute(pool)
+    .fetch_one(pool)
     .await?;
 
-    Ok(())
+    Ok(search)
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -69,7 +70,7 @@ pub async fn add_search_sources(
     pool: &PgPool,
     search: &data_models::Search,
     sources: &Vec<Source>,
-) -> crate::Result<()> {
+) -> crate::Result<Vec<data_models::Source>> {
     if sources.len() == 0 {
         return Err(eyre!("No sources to add").into());
     }
@@ -101,7 +102,7 @@ pub async fn add_search_sources(
     .fetch_all(pool)
     .await?;
 
-    return Ok(());
+    return Ok(sources);
 }
 
 #[tracing::instrument(level = "debug", ret, err)]

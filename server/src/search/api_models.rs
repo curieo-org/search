@@ -6,7 +6,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<()>> + Send>>;
+pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;
 
 pub struct UpdateResultProcessor {
     pub processor: Arc<dyn Fn(String) -> BoxedFuture + Send + Sync>,
@@ -17,9 +17,9 @@ impl UpdateResultProcessor {
         UpdateResultProcessor { processor }
     }
 
-    pub async fn process(&self, result: String) -> crate::Result<()> {
-        (self.processor)(result).await?;
-        Ok(())
+    pub async fn process(&self, result: String) -> crate::Result<Search> {
+        let search = (self.processor)(result).await?;
+        Ok(search)
     }
 }
 

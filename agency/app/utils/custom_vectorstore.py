@@ -12,12 +12,16 @@ from llama_index.core.vector_stores.types import (
     VectorStoreQueryMode,
     VectorStoreQueryResult,
 )
+from llama_index.core.vector_stores.utils import (
+    legacy_metadata_dict_to_node,
+)
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.vector_stores.qdrant.utils import (
     HybridFusionCallable,
     relative_score_fusion,
 )
 from qdrant_client.http import models as rest
+from qdrant_client.http.models import Payload
 
 from app.utils.custom_basenode import CurieoBaseNode
 
@@ -92,6 +96,28 @@ class CurieoVectorStore(QdrantVectorStore):
 
         return points, ids
 
+    def parse_to_query_result(self, response: list[Any]) -> VectorStoreQueryResult:
+        nodes = []
+        similarities = []
+        ids = []
+
+        for point in response:
+            payload = cast(Payload, point.payload)
+            metadata, node_info, relationships = legacy_metadata_dict_to_node(payload)
+
+            node = CurieoBaseNode(
+                id_=str(point.id),
+                text=payload.get("text"),
+                metadata=metadata,
+                embedding=point.vector.get("text-dense", []),
+                sparse_embedding=point.vector.get("text-sparse", []),
+            )
+            nodes.append(node)
+            similarities.append(point.score)
+            ids.append(str(point.id))
+
+        return VectorStoreQueryResult(nodes=nodes, similarities=similarities, ids=ids)
+
     async def aquery(self, query_bundle: CurieoQueryBundle) -> VectorStoreQueryResult:
         """Asynchronously query vector store.
 
@@ -112,6 +138,7 @@ class CurieoVectorStore(QdrantVectorStore):
                     limit=query_bundle.similarity_top_k,
                     filter=query_bundle.filters,
                     with_payload=True,
+                    with_vector=True,
                 ),
                 rest.SearchRequest(
                     vector=rest.NamedSparseVector(
@@ -124,6 +151,7 @@ class CurieoVectorStore(QdrantVectorStore):
                     limit=query_bundle.sparse_top_k,
                     filter=query_bundle.filters,
                     with_payload=True,
+                    with_vector=True,
                 ),
             ],
         )

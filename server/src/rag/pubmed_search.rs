@@ -13,7 +13,7 @@ pub struct PubmedSettings {
     pub url_prefix: String,
 }
 
-fn convert_to_retrieved_result(
+pub fn convert_to_retrieved_result(
     pubmed_settings: &PubmedSettings,
     source: PubmedSource,
 ) -> RetrievedResult {
@@ -32,9 +32,8 @@ fn convert_to_retrieved_result(
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn pubmed_parent_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
-    pubmed_settings: &PubmedSettings,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<RetrievedResult>> {
+) -> crate::Result<Vec<PubmedSource>> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
@@ -48,21 +47,14 @@ pub async fn pubmed_parent_search(
         return Err(eyre!("Failed to get pubmed parent search results").into());
     }
 
-    let retrieved_results: Vec<RetrievedResult> = response
-        .sources
-        .into_iter()
-        .map(|source| convert_to_retrieved_result(pubmed_settings, source))
-        .collect();
-
-    Ok(retrieved_results)
+    Ok(response.sources)
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn pubmed_cluster_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
-    pubmed_settings: &PubmedSettings,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<RetrievedResult>> {
+) -> crate::Result<Vec<PubmedSource>> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
@@ -76,11 +68,5 @@ pub async fn pubmed_cluster_search(
         return Err(eyre!("Failed to get pubmed cluster search results").into());
     }
 
-    let retrieved_results: Vec<RetrievedResult> = response
-        .sources
-        .into_iter()
-        .map(|source| convert_to_retrieved_result(pubmed_settings, source))
-        .collect();
-
-    Ok(retrieved_results)
+    Ok(response.sources)
 }

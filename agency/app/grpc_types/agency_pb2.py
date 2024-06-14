@@ -8,14 +8,13 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1a\n\x08\x44ouble2D\x12\x0e\n\x06values\x18\x01 \x03(\x01"\x17\n\x05Int2D\x12\x0e\n\x06values\x18\x01 \x03(\x05"x\n\nEmbeddings\x12\x17\n\x0f\x64\x65nse_embedding\x18\x02 \x03(\x01\x12*\n\x10sparse_embedding\x18\x03 \x03(\x0b\x32\x10.agency.Double2D\x12%\n\x0esparse_indices\x18\x04 \x03(\x0b\x32\r.agency.Int2D"\x1c\n\x0bSearchInput\x12\r\n\x05query\x18\x01 \x01(\t"J\n\x10\x45mbeddingsOutput\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12&\n\nembeddings\x18\x02 \x01(\x0b\x32\x12.agency.Embeddings"B\n\x0cPubmedSource\x12\x11\n\tpubmed_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08\x61\x62stract\x18\x03 \x01(\t"G\n\x0ePubmedResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12%\n\x07sources\x18\x03 \x03(\x0b\x32\x14.agency.PubmedSource2\xdd\x01\n\rAgencyService\x12\x42\n\x14pubmed_parent_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x15pubmed_cluster_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x12\x65mbeddings_compute\x12\x13.agency.SearchInput\x1a\x18.agency.EmbeddingsOutputb\x06proto3'
+    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1a\n\x08\x44ouble2D\x12\x0e\n\x06values\x18\x01 \x03(\x01"\x17\n\x05Int2D\x12\x0e\n\x06values\x18\x01 \x03(\x05"x\n\nEmbeddings\x12\x17\n\x0f\x64\x65nse_embedding\x18\x02 \x03(\x01\x12*\n\x10sparse_embedding\x18\x03 \x03(\x0b\x32\x10.agency.Double2D\x12%\n\x0esparse_indices\x18\x04 \x03(\x0b\x32\r.agency.Int2D"\x1c\n\x0bSearchInput\x12\r\n\x05query\x18\x01 \x01(\t"J\n\x10\x45mbeddingsOutput\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12&\n\nembeddings\x18\x02 \x01(\x0b\x32\x12.agency.Embeddings"j\n\x0cPubmedSource\x12\x11\n\tpubmed_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08\x61\x62stract\x18\x03 \x01(\t\x12&\n\nembeddings\x18\x04 \x01(\x0b\x32\x12.agency.Embeddings"G\n\x0ePubmedResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12%\n\x07sources\x18\x03 \x03(\x0b\x32\x14.agency.PubmedSource2\xdd\x01\n\rAgencyService\x12\x42\n\x14pubmed_parent_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x15pubmed_cluster_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x12\x65mbeddings_compute\x12\x13.agency.SearchInput\x1a\x18.agency.EmbeddingsOutputb\x06proto3'
 )
 
 _globals = globals()
@@ -34,9 +33,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _globals["_EMBEDDINGSOUTPUT"]._serialized_start = 229
     _globals["_EMBEDDINGSOUTPUT"]._serialized_end = 303
     _globals["_PUBMEDSOURCE"]._serialized_start = 305
-    _globals["_PUBMEDSOURCE"]._serialized_end = 371
-    _globals["_PUBMEDRESPONSE"]._serialized_start = 373
-    _globals["_PUBMEDRESPONSE"]._serialized_end = 444
-    _globals["_AGENCYSERVICE"]._serialized_start = 447
-    _globals["_AGENCYSERVICE"]._serialized_end = 668
+    _globals["_PUBMEDSOURCE"]._serialized_end = 411
+    _globals["_PUBMEDRESPONSE"]._serialized_start = 413
+    _globals["_PUBMEDRESPONSE"]._serialized_end = 484
+    _globals["_AGENCYSERVICE"]._serialized_start = 487
+    _globals["_AGENCYSERVICE"]._serialized_end = 708
 # @@protoc_insertion_point(module_scope)

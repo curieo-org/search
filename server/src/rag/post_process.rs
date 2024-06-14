@@ -1,36 +1,37 @@
-use crate::llms::{llm_lingua, summarizer};
-use crate::llms::{LLMSettings, SummarizerSettings};
-use crate::rag::RetrievedResult;
-use crate::rag::SearchResponse;
+use crate::llms::summarizer;
+use crate::llms::SummarizerSettings;
+use crate::proto::Embeddings;
+use crate::rag::utils;
 use crate::search::api_models;
+use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn rerank_search_results(
-    llm_settings: &LLMSettings,
-    search_query_request: &api_models::SearchQueryRequest,
-    retrieved_results: Vec<RetrievedResult>,
-) -> crate::Result<SearchResponse> {
-    let compressed_results = llm_lingua::compress_and_rerank(
-        llm_settings,
-        llm_lingua::LlmLinguaInput {
-            query: search_query_request.query.clone(),
-            target_token: 300,
-            context_texts_list: retrieved_results.iter().map(|r| r.text.clone()).collect(),
-        },
-    )
-    .await?;
+    query_embeddings: &Embeddings,
+    results_embeddings: &Vec<Embeddings>,
+) -> crate::Result<Vec<usize>> {
+    let query_dense_embedding = &query_embeddings.dense_embedding;
 
-    let mut reranked_sources = Vec::new();
-    for index in compressed_results.sources {
-        reranked_sources.push(retrieved_results[index as usize].source.clone());
-    }
-    reranked_sources.truncate(llm_settings.top_k_sources as usize);
+    let mut cosine_similarities: Vec<(usize, f64)> = results_embeddings
+        .iter()
+        .enumerate()
+        .map(|(index, result_embeddings)| {
+            let result_dense_embedding = &result_embeddings.dense_embedding;
+            let cosine_similarity =
+                utils::cosine_similarity(query_dense_embedding, result_dense_embedding);
+            (index, cosine_similarity)
+        })
+        .collect();
 
-    Ok(SearchResponse {
-        result: compressed_results.compressed_prompt,
-        sources: reranked_sources,
-    })
+    cosine_similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
+
+    let result: Vec<usize> = cosine_similarities
+        .iter()
+        .map(|(index, _)| *index)
+        .collect();
+
+    return Ok(result);
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -39,7 +40,7 @@ pub async fn summarize_search_results(
     search_query_request: api_models::SearchQueryRequest,
     search_response: String,
     update_processor: api_models::UpdateResultProcessor,
-    tx: Sender<SearchResponse>,
+    tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
     summarizer::generate_text_stream(
         settings,

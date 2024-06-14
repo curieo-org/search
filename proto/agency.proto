@@ -29,6 +29,7 @@ message PubmedSource {
     string pubmed_id = 1;
     string title = 2;
     string abstract = 3;
+    Embeddings embeddings = 4;
 }
 
 message PubmedResponse {

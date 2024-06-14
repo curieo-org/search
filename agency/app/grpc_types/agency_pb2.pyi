@@ -57,18 +57,21 @@ class EmbeddingsOutput(_message.Message):
     ) -> None: ...
 
 class PubmedSource(_message.Message):
-    __slots__ = ("pubmed_id", "title", "abstract")
+    __slots__ = ("pubmed_id", "title", "abstract", "embeddings")
     PUBMED_ID_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
     ABSTRACT_FIELD_NUMBER: _ClassVar[int]
+    EMBEDDINGS_FIELD_NUMBER: _ClassVar[int]
     pubmed_id: str
     title: str
     abstract: str
+    embeddings: Embeddings
     def __init__(
         self,
         pubmed_id: _Optional[str] = ...,
         title: _Optional[str] = ...,
         abstract: _Optional[str] = ...,
+        embeddings: _Optional[_Union[Embeddings, _Mapping]] = ...,
     ) -> None: ...
 
 class PubmedResponse(_message.Message):
