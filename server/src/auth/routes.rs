@@ -11,7 +11,6 @@ use axum::routing::{get, post};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
 use color_eyre::eyre::eyre;
-use log::{debug, error, log};
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;

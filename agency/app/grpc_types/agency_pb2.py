@@ -8,14 +8,13 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t"\xc3\x01\n\x06Source\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\'\n\x0bsource_type\x18\x04 \x01(\x0e\x32\x12.agency.SourceType\x12.\n\x08metadata\x18\x05 \x03(\x0b\x32\x1c.agency.Source.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"Q\n\x0eSearchResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12\x0e\n\x06result\x18\x02 \x01(\t\x12\x1f\n\x07sources\x18\x03 \x03(\x0b\x32\x0e.agency.Source*)\n\nSourceType\x12\x07\n\x03Pdf\x10\x00\x12\t\n\x05Image\x10\x01\x12\x07\n\x03Url\x10\x02\x32[\n\rAgencyService\x12J\n\x19pubmed_bioxriv_web_search\x12\x15.agency.SearchRequest\x1a\x16.agency.SearchResponseb\x06proto3'
+    b'\n\x0c\x61gency.proto\x12\x06\x61gency"\x1a\n\x08\x44ouble2D\x12\x0e\n\x06values\x18\x01 \x03(\x01"\x17\n\x05Int2D\x12\x0e\n\x06values\x18\x01 \x03(\x05"x\n\nEmbeddings\x12\x17\n\x0f\x64\x65nse_embedding\x18\x02 \x03(\x01\x12*\n\x10sparse_embedding\x18\x03 \x03(\x0b\x32\x10.agency.Double2D\x12%\n\x0esparse_indices\x18\x04 \x03(\x0b\x32\r.agency.Int2D"\x1c\n\x0bSearchInput\x12\r\n\x05query\x18\x01 \x01(\t"J\n\x10\x45mbeddingsOutput\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12&\n\nembeddings\x18\x02 \x01(\x0b\x32\x12.agency.Embeddings"j\n\x0cPubmedSource\x12\x11\n\tpubmed_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08\x61\x62stract\x18\x03 \x01(\t\x12&\n\nembeddings\x18\x04 \x01(\x0b\x32\x12.agency.Embeddings"G\n\x0ePubmedResponse\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12%\n\x07sources\x18\x03 \x03(\x0b\x32\x14.agency.PubmedSource2\xdd\x01\n\rAgencyService\x12\x42\n\x14pubmed_parent_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x15pubmed_cluster_search\x12\x12.agency.Embeddings\x1a\x16.agency.PubmedResponse\x12\x43\n\x12\x65mbeddings_compute\x12\x13.agency.SearchInput\x1a\x18.agency.EmbeddingsOutputb\x06proto3'
 )
 
 _globals = globals()
@@ -23,18 +22,20 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "agency_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
     DESCRIPTOR._options = None
-    _globals["_SOURCE_METADATAENTRY"]._options = None
-    _globals["_SOURCE_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_SOURCETYPE"]._serialized_start = 337
-    _globals["_SOURCETYPE"]._serialized_end = 378
-    _globals["_SEARCHREQUEST"]._serialized_start = 24
-    _globals["_SEARCHREQUEST"]._serialized_end = 54
-    _globals["_SOURCE"]._serialized_start = 57
-    _globals["_SOURCE"]._serialized_end = 252
-    _globals["_SOURCE_METADATAENTRY"]._serialized_start = 205
-    _globals["_SOURCE_METADATAENTRY"]._serialized_end = 252
-    _globals["_SEARCHRESPONSE"]._serialized_start = 254
-    _globals["_SEARCHRESPONSE"]._serialized_end = 335
-    _globals["_AGENCYSERVICE"]._serialized_start = 380
-    _globals["_AGENCYSERVICE"]._serialized_end = 471
+    _globals["_DOUBLE2D"]._serialized_start = 24
+    _globals["_DOUBLE2D"]._serialized_end = 50
+    _globals["_INT2D"]._serialized_start = 52
+    _globals["_INT2D"]._serialized_end = 75
+    _globals["_EMBEDDINGS"]._serialized_start = 77
+    _globals["_EMBEDDINGS"]._serialized_end = 197
+    _globals["_SEARCHINPUT"]._serialized_start = 199
+    _globals["_SEARCHINPUT"]._serialized_end = 227
+    _globals["_EMBEDDINGSOUTPUT"]._serialized_start = 229
+    _globals["_EMBEDDINGSOUTPUT"]._serialized_end = 303
+    _globals["_PUBMEDSOURCE"]._serialized_start = 305
+    _globals["_PUBMEDSOURCE"]._serialized_end = 411
+    _globals["_PUBMEDRESPONSE"]._serialized_start = 413
+    _globals["_PUBMEDRESPONSE"]._serialized_end = 484
+    _globals["_AGENCYSERVICE"]._serialized_start = 487
+    _globals["_AGENCYSERVICE"]._serialized_end = 708
 # @@protoc_insertion_point(module_scope)

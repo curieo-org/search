@@ -1,5 +1,27 @@
 host = "0.0.0.0"
 port = 3030
+max_search_query_length = 255
+
+[summarizer]
+model = ""
+max_new_tokens = 1024
+temperature = 1.0
+top_p = 0.7
+
+[llm]
+top_k_sources = 10
+toxicity_threshold = 0.75
+
+[pubmed]
+url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
+
+[brave]
+url = "https://api.search.brave.com/res/v1/web/search"
+count = 10
+result_filter = "query,web"
+search_lang = "en"
+extra_snippets = true
+safesearch = "strict"
 
 [log]
 level = "debug"
