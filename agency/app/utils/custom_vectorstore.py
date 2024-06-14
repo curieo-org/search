@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List, cast
+from typing import Any, cast
 
 import llama_index.core.instrumentation as instrument
 from llama_index.core import StorageContext, VectorStoreIndex
@@ -12,19 +12,16 @@ from llama_index.core.vector_stores.types import (
     VectorStoreQueryMode,
     VectorStoreQueryResult,
 )
+from llama_index.core.vector_stores.utils import (
+    legacy_metadata_dict_to_node,
+)
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.vector_stores.qdrant.utils import (
     HybridFusionCallable,
     relative_score_fusion,
 )
-from llama_index.core.vector_stores.utils import (
-    legacy_metadata_dict_to_node,
-    metadata_dict_to_node,
-)
 from qdrant_client.http import models as rest
-from qdrant_client.http.models import (
-    Payload
-)
+from qdrant_client.http.models import Payload
 
 from app.utils.custom_basenode import CurieoBaseNode
 
@@ -98,9 +95,8 @@ class CurieoVectorStore(QdrantVectorStore):
             ids.extend(node_ids)
 
         return points, ids
-    
-    def parse_to_query_result(self, response: List[Any]) -> VectorStoreQueryResult:
 
+    def parse_to_query_result(self, response: list[Any]) -> VectorStoreQueryResult:
         nodes = []
         similarities = []
         ids = []
@@ -113,9 +109,9 @@ class CurieoVectorStore(QdrantVectorStore):
                 id_=str(point.id),
                 text=payload.get("text"),
                 metadata=metadata,
-                embedding=point.vector.get('text-dense', []),
-                sparse_embedding=point.vector.get('text-sparse', []),
-                )
+                embedding=point.vector.get("text-dense", []),
+                sparse_embedding=point.vector.get("text-sparse", []),
+            )
             nodes.append(node)
             similarities.append(point.score)
             ids.append(str(point.id))

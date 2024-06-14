@@ -4,7 +4,12 @@ from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInfer
 from loguru import logger
 from qdrant_client import AsyncQdrantClient
 
-from app.grpc_types.agency_pb2 import PubmedSource
+from app.grpc_types.agency_pb2 import (
+    Double2D,
+    Embeddings,
+    Int2D,
+    PubmedSource,
+)
 from app.settings import Settings
 from app.utils.custom_vectorstore import (
     CurieoQueryBundle,
@@ -13,14 +18,6 @@ from app.utils.custom_vectorstore import (
     CurieoVectorStoreIndex,
 )
 from app.utils.database_helper import PubmedDatabaseUtils
-from app.grpc_types.agency_pb2 import (
-    Double2D,
-    Embeddings,
-    EmbeddingsOutput,
-    Int2D,
-    PubmedResponse,
-    SearchInput,
-)
 
 logger.add(
     "file.log",
@@ -89,11 +86,15 @@ class ParentRetrievalEngine:
                 pubmed_id=str(each_node.metadata.get("pubmedid", 0)),
                 title=str(pubmed_titles.get(each_node.metadata.get("pubmedid", 0), "")),
                 abstract=each_node.get_text(),
-                embedding=Embeddings(
+                embeddings=Embeddings(
                     dense_embedding=each_node.node.embedding,
-                    sparse_embedding=[Double2D(values=each_node.node.sparse_embedding.values)],
-                    sparse_indices=[Int2D(values=each_node.node.sparse_embedding.indices)]
-                )
+                    sparse_embedding=[
+                        Double2D(values=each_node.node.sparse_embedding.values)
+                    ],
+                    sparse_indices=[
+                        Int2D(values=each_node.node.sparse_embedding.indices)
+                    ],
+                ),
             )
             for each_node in filtered_nodes
         ]

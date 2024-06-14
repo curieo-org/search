@@ -13,11 +13,6 @@ pub struct LlmLinguaInput {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LlmLinguaOutput {
     pub compressed_prompt: String,
-    pub compressed_prompt_list: Vec<String>,
-    pub origin_tokens: u16,
-    pub compressed_tokens: u16,
-    pub ratio: String,
-    pub sources: Vec<u16>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,7 +20,7 @@ struct LlmLinguaAPIResponse {
     pub response: LlmLinguaOutput,
 }
 
-pub async fn compress_and_rerank(
+pub async fn compress(
     llm_settings: &LLMSettings,
     llm_lingua_input: LlmLinguaInput,
 ) -> crate::Result<LlmLinguaOutput> {

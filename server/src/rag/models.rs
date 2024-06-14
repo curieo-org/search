@@ -11,7 +11,7 @@ pub struct Source {
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RetrievedResult {
     pub text: String,
     pub source: Source,
