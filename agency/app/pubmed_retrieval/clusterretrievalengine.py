@@ -1,6 +1,5 @@
 # ruff: noqa: ERA001, ARG002, D205
 import asyncio
-import json
 
 from llama_index.core import StorageContext
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
@@ -117,5 +116,5 @@ class ClusterRetrievalEngine:
             for pubmed_id in nodes_dict
             for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
             if child_node_id in children_node_texts
-            for child_node_json in [json.loads(children_node_texts.get(child_node_id))]
+            for child_node_json in [children_node_texts.get(child_node_id)]
         ]

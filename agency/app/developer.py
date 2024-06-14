@@ -1,4 +1,6 @@
 import asyncio
+import sys,os
+sys.path.append(os.getcwd())
 
 from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
 from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
@@ -38,6 +40,8 @@ async def get_search_results(query: str = "") -> None:
 
     logger.info(f"Parent Nodes: {parent_nodes}")
     logger.info(f"Cluster Nodes: {cluster_nodes}")
+    logger.info(f"Length Parent Nodes: {len(parent_nodes)}")
+    logger.info(f"Length Cluster Nodes: {len(cluster_nodes)}")
 
 
 if __name__ == "__main__":
