@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from llama_index.core.schema import BaseNode
 from llama_index.core.utils import iter_batch
@@ -11,10 +11,10 @@ from app.utils.custom_basenode import CurieoBaseNode
 class CurieoVectorStore(QdrantVectorStore):
     def node_process_to_metadata_dict(
         self, node: CurieoBaseNode, text_required: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Common logic for saving Node data into metadata dict."""
         node_dict = node.dict()
-        metadata: Dict[str, Any] = node_dict.get("metadata", {})
+        metadata: dict[str, Any] = node_dict.get("metadata", {})
 
         node_dict["embedding"] = None
         node_dict["sparse_embedding"] = None
@@ -26,16 +26,16 @@ class CurieoVectorStore(QdrantVectorStore):
 
         return metadata
 
-    def _build_points(self, nodes: List[BaseNode]) -> Tuple[List[Any], List[str]]:
+    def _build_points(self, nodes: list[BaseNode]) -> tuple[list[Any], list[str]]:
         ids = []
         points = []
         for node_batch in iter_batch(nodes, self.batch_size):
             node_ids = []
-            vectors: List[Any] = []
+            vectors: list[Any] = []
             payloads = []
 
-            for i, node in enumerate(node_batch):
-                assert isinstance(node, CurieoBaseNode)
+            for _, node in enumerate(node_batch):
+                assert isinstance(node, CurieoBaseNode)  # noqa
                 node_ids.append(node.node_id)
 
                 vectors.append(

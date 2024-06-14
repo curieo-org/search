@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class SearchResult(BaseModel):
-    """Represents a pubmed search result, relevant to the query"""
+    """Represents a pubmed search result, relevant to the query."""
 
     type: str = "pubmed_search_result"
 
