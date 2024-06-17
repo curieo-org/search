@@ -4,11 +4,11 @@ from pathlib import Path
 
 sys.path.append(Path.cwd())
 
+from app.embedding.embedding_engine import EmbeddingEngine
+from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.pubmed_retrieval.cluster_engine import ClusterRetrievalEngine
 from app.pubmed_retrieval.parent_engine import ParentRetrievalEngine
-from app.embedding.embedding_engine import EmbeddingEngine
 from app.settings import Settings
-from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
 
 settings = Settings()
