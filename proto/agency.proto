@@ -2,30 +2,43 @@ syntax = "proto3";
 
 package agency;
 
-enum SourceType {
-    Pdf = 0;
-    Image = 1;
-    Url = 2;
+message Double2D {
+    repeated double values = 1;
 }
 
-message SearchRequest {
+message Int2D {
+    repeated int32 values = 1;
+}
+
+message Embeddings {
+    repeated double dense_embedding = 2;
+    repeated Double2D sparse_embedding = 3;
+    repeated Int2D sparse_indices = 4;
+}
+
+message SearchInput {
     string query = 1;
 }
 
-message Source {
-    string url = 1;
-    string title = 2;
-    string description = 3;
-    SourceType source_type = 4;
-    map<string, string> metadata = 5;
+message EmbeddingsOutput {
+    int32 status = 1;
+    Embeddings embeddings = 2;
 }
 
-message SearchResponse {
+message PubmedSource {
+    string pubmed_id = 1;
+    string title = 2;
+    string abstract = 3;
+    Embeddings embeddings = 4;
+}
+
+message PubmedResponse {
     int32 status = 1;
-    string result = 2;
-    repeated Source sources = 3;
+    repeated PubmedSource sources = 3;
 }
 
 service AgencyService {
-    rpc pubmed_bioxriv_web_search(SearchRequest) returns (SearchResponse);
+    rpc pubmed_parent_search(Embeddings) returns (PubmedResponse);
+    rpc pubmed_cluster_search(Embeddings) returns (PubmedResponse);
+    rpc embeddings_compute(SearchInput) returns (EmbeddingsOutput);
 }

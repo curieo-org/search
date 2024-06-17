@@ -8,7 +8,7 @@ from llama_index.llms.together import TogetherLLM
 
 from app.rag.post_process.prompt_compressor import PromptCompressorEngine
 from app.rag.retrieval.pubmed.pubmedqueryengine import PubmedSearchQueryEngine
-from app.rag.retrieval.web.brave_engine import BraveSearchQueryEngine
+from app.rag.retrieval.web.webretrievalengine import BraveSearchQueryEngine
 from app.rag.utils.models import RetrievedResult, SearchResultRecord
 
 # from app.rag.generation.response_synthesis import ResponseSynthesisEngine

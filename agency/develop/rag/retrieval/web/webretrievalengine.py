@@ -2,18 +2,22 @@ import logging
 from typing import Any
 
 import httpx
+from loguru import logger
 from pydantic import ValidationError
 
 from app.rag.retrieval.web.types import WebSearchApiResponse
 from app.rag.utils.models import RetrievedResult
 from app.settings import BraveSettings
 from app.utils.httpx import httpx_get
-from app.utils.logging import setup_logger
 
-logger = setup_logger("BraveSearchQueryEngine")
+logger.add(
+    "file.log",
+    rotation="500 MB",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+)
 
 
-class BraveSearchQueryEngine:
+class WebRetrievalEngine:
     """Utility class for interacting with the Brave Search API.
 
     Searches are performed in an async manner using httpx.

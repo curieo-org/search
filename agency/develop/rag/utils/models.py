@@ -3,7 +3,7 @@ from abc import abstractmethod
 from pydantic import BaseModel, ConfigDict
 
 from app.grpc_types.agency_pb2 import Source, SourceType
-from app.rag.retrieval.pubmed.types import SearchResult as PubmedSearchResult
+from app.pubmed_retrieval.types import SearchResult as PubmedSearchResult
 from app.rag.retrieval.web.types import SearchResult as BraveSearchResult
 
 
@@ -42,6 +42,12 @@ class RetrievedResult(BaseModel):
 
     text: str
     source: SourceRecord
+
+
+class PubmedSourceResult(BaseModel):
+    pubmed_id: str
+    title: str
+    abstract: str
 
 
 class PromptCompressorResult(BaseModel):
