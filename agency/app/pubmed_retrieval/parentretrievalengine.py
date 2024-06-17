@@ -1,4 +1,3 @@
-# ruff: noqa: ERA001, ARG002, D205
 from llama_index.core import StorageContext
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from loguru import logger
@@ -63,7 +62,7 @@ class ParentRetrievalEngine:
         self, query: CurieoQueryBundle
     ) -> list[PubmedSource]:
         logger.info(f"query_process. search_text: {query.query_str}")
-        if not len(query.embedding) and not len(query.sparse_embedding):
+        if not query.embedding and not query.sparse_embedding:
             return []
 
         extracted_nodes = await self.parent_retriever.aretrieve(query)

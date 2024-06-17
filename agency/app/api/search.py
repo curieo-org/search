@@ -66,7 +66,9 @@ class Search(AgencyService):
             if pubmed_sources := await pubmed_parent_engine.retrieve_parent_nodes(
                 query,
             ):
-                logger.info(f"pubmed_parent_search. result: {pubmed_sources}")
+                logger.info(
+                    f"pubmed_parent_search. result length: {len(pubmed_sources)}"
+                )
 
                 return PubmedResponse(
                     status=200,
@@ -104,7 +106,9 @@ class Search(AgencyService):
             if pubmed_sources := await pubmed_cluster_engine.retrieve_cluster_nodes(
                 query,
             ):
-                logger.info(f"pubmed_cluster_search. result: {pubmed_sources}")
+                logger.info(
+                    f"pubmed_cluster_search. result length: {len(pubmed_sources)}"
+                )
 
                 return PubmedResponse(
                     status=200,
@@ -144,9 +148,9 @@ class Search(AgencyService):
             ):
                 logger.info(f"embeddings_compute. result: {embedding_result}")
 
-                dense_embedding = embedding_result.get("embedding")
-                sparse_embedding = embedding_result.get("sparse_embedding")[1]
-                sparse_indices = embedding_result.get("sparse_embedding")[0]
+                dense_embedding = embedding_result.embedding or []
+                sparse_embedding = embedding_result.sparse_embedding[1] or []
+                sparse_indices = embedding_result.sparse_embedding[0] or []
 
                 return EmbeddingsOutput(
                     status=200,

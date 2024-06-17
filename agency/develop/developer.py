@@ -1,6 +1,8 @@
 import asyncio
-import sys,os
-sys.path.append(os.getcwd())
+import sys
+from pathlib import Path
+
+sys.path.append(Path.cwd())
 
 from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
 from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
@@ -24,17 +26,17 @@ async def get_search_results(query: str = "") -> None:
     nodes = await queryprocessengine.query_process(query)
     parent_nodes = await parent.retrieve_parent_nodes(
         CurieoQueryBundle(
-            query_str=nodes["query_str"],
-            embedding=nodes["embedding"],
-            sparse_embedding=nodes["sparse_embedding"],
+            query_str=nodes.query_str,
+            embedding=nodes.embedding,
+            sparse_embedding=nodes.sparse_embedding,
         )
     )
 
     cluster_nodes = await cluster.retrieve_cluster_nodes(
         CurieoQueryBundle(
-            query_str=nodes["query_str"],
-            embedding=nodes["embedding"],
-            sparse_embedding=nodes["sparse_embedding"],
+            query_str=nodes.query_str,
+            embedding=nodes.embedding,
+            sparse_embedding=nodes.sparse_embedding,
         )
     )
 
