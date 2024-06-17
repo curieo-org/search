@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
+use validator::Validate;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;
 
@@ -37,8 +38,9 @@ pub enum RouteCategory {
     NotSpecified = 3,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct SearchQueryRequest {
+    #[validate(length(min = 1, max = 255))]
     pub query: String,
     pub thread_id: Option<uuid::Uuid>,
 }
@@ -49,8 +51,9 @@ pub struct SearchByIdResponse {
     pub sources: Vec<Source>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct ThreadHistoryRequest {
+    #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
     pub offset: Option<u8>,
 }
@@ -60,9 +63,10 @@ pub struct ThreadHistoryResponse {
     pub threads: Vec<Thread>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct GetThreadRequest {
     pub thread_id: uuid::Uuid,
+    #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
     pub offset: Option<u8>,
 }
@@ -84,8 +88,9 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct UpdateThreadRequest {
     pub thread_id: uuid::Uuid,
+    #[validate(length(min = 1, max = 255))]
     pub title: String,
 }

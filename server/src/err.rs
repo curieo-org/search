@@ -9,26 +9,22 @@ use sqlx::error::DatabaseError;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::Display;
-use tracing::error;
 
 #[derive(Debug)]
 pub enum AppError {
-    Unauthorized,
-    UnprocessableEntity(ErrorMap),
     Sqlx(sqlx::Error),
     GenericError(color_eyre::eyre::Error),
     Cache(CacheError),
+    BadRequest(String),
+    Unauthorized,
+    Forbidden(String),
+    NotFound(String),
+    Conflict(String),
+    UnprocessableEntity(ErrorMap),
+    InternalServerError(String),
 }
 
 impl AppError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Sqlx(_) | Self::GenericError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Cache(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
     /// Convenient constructor for `Error::UnprocessableEntity`.
     ///
     /// Multiple for the same key are collected into a list for that key.
@@ -73,9 +69,14 @@ impl Display for AppError {
         match self {
             AppError::GenericError(e) => write!(f, "{}", e),
             AppError::Sqlx(e) => write!(f, "{}", e),
-            AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
-            AppError::Unauthorized => write!(f, "Unauthorized"),
             AppError::Cache(e) => write!(f, "{}", e),
+            AppError::BadRequest(e) => write!(f, "{}", e),
+            AppError::Unauthorized => write!(f, "Unauthorized"),
+            AppError::Forbidden(e) => write!(f, "{}", e),
+            AppError::NotFound(e) => write!(f, "{}", e),
+            AppError::Conflict(e) => write!(f, "{}", e),
+            AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
+            AppError::InternalServerError(e) => write!(f, "{}", e),
         }
     }
 }
@@ -107,10 +108,64 @@ where
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        match self {
-            AppError::Unauthorized => {
-                return (
-                    self.status_code(),
+        let (status_code, error_message) = match self {
+            AppError::Unauthorized => (
+                StatusCode::UNAUTHORIZED,
+                "The request requires user authentication".to_string(),
+            ),
+            AppError::UnprocessableEntity(e) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                format!("Unprocessable entity: {:?}", e),
+            ),
+            AppError::GenericError(ref e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Generic error: {}", e),
+            ),
+            AppError::Cache(ref e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Cache error: {}", e),
+            ),
+            AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
+            AppError::Forbidden(message) => (StatusCode::FORBIDDEN, message),
+            AppError::NotFound(message) => (StatusCode::NOT_FOUND, message),
+            AppError::Conflict(message) => (StatusCode::CONFLICT, message),
+            AppError::InternalServerError(message) => (StatusCode::INTERNAL_SERVER_ERROR, message),
+            AppError::Sqlx(sqlx::Error::RowNotFound) => (
+                StatusCode::NOT_FOUND,
+                "The requested resource was not found".to_string(),
+            ),
+            AppError::Sqlx(sqlx::Error::Protocol(msg)) => (
+                StatusCode::BAD_REQUEST,
+                format!("The provided data is invalid: {}", msg),
+            ),
+            AppError::Sqlx(sqlx::Error::ColumnDecode { index, ref source }) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("SQLx column decode error: {} at index {}", source, index),
+            ),
+            AppError::Sqlx(sqlx::Error::Database(db_err)) => match db_err.code().as_deref() {
+                Some("23505") => (
+                    StatusCode::CONFLICT,
+                    format!("Unique constraint violation: {}", db_err.to_string()),
+                ),
+                Some("23503") => (
+                    StatusCode::BAD_REQUEST,
+                    format!("Foreign key constraint violation: {}", db_err.to_string()),
+                ),
+                _ => (StatusCode::BAD_REQUEST, db_err.to_string()),
+            },
+            AppError::Sqlx(sqlx::Error::Io(io_err)) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, io_err.to_string())
+            }
+            AppError::Sqlx(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+        };
+
+        let error_body = Json(ErrorMap::from([("message", error_message)]));
+
+        // Return a http status code and json body with error message.
+        match status_code {
+            StatusCode::UNAUTHORIZED => {
+                (
+                    status_code,
                     // Include the `WWW-Authenticate` challenge required in the specification
                     // for the `401 Unauthorized` response code:
                     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
@@ -118,24 +173,12 @@ impl IntoResponse for AppError {
                         (WWW_AUTHENTICATE, HeaderValue::from_static("Basic")),
                         (WWW_AUTHENTICATE, HeaderValue::from_static("Bearer")),
                     ]),
-                    Json(ErrorMap::from([("message", "Unauthorized")])),
+                    error_body,
                 )
-                    .into_response();
+                    .into_response()
             }
-            AppError::UnprocessableEntity(e) => {
-                return (StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into_response();
-            }
-            AppError::Sqlx(ref e) => error!("SQLx error: {:?}", e),
-            AppError::GenericError(ref e) => error!("Generic error: {:?}", e),
-            AppError::Cache(ref e) => error!("Redis error: {:?}", e),
-        };
-
-        // Return a http status code and json body with error message.
-        (
-            self.status_code(),
-            Json(ErrorMap::from([("message", "Something went wrong")])),
-        )
-            .into_response()
+            _ => (status_code, error_body).into_response(),
+        }
     }
 }
 

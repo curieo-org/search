@@ -66,6 +66,7 @@ dashmap = { version = "5.5.3", features = ["inline", "serde"] }
 tokio-stream = { version = "0.1.15", features = ["full"] }
 sentry = { version = "0.34.0", features = ["tracing"] }
 sentry-tower = { version = "0.34.0", features = ["http"] }
+validator = { version = "0.18.1", features = ["derive"] }
 
 [dependencies.openssl-sys]
 version = "0.9.102"
