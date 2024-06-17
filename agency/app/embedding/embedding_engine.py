@@ -1,17 +1,16 @@
-# ruff: noqa: ERA001, ARG002, D205
 import asyncio
 
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 
+from app.embedding.splade_embedding import SpladeEmbeddingsInference
+from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.settings import Settings
-from app.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
-from app.utils.splade_embedding import SpladeEmbeddingsInference
 
-logger = setup_logger("QueryProcessorEngine")
+logger = setup_logger("EmbeddingEngine")
 
 
-class QueryProcessorEngine:
+class EmbeddingEngine:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.embed_model = TextEmbeddingsInference(

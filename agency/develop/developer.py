@@ -4,15 +4,15 @@ from pathlib import Path
 
 sys.path.append(Path.cwd())
 
-from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
-from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
-from app.query_node_process.nodeprocessengine import QueryProcessorEngine
+from app.pubmed_retrieval.cluster_engine import ClusterRetrievalEngine
+from app.pubmed_retrieval.parent_engine import ParentRetrievalEngine
+from app.embedding.embedding_engine import EmbeddingEngine
 from app.settings import Settings
-from app.utils.custom_vectorstore import CurieoQueryBundle
+from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
 
 settings = Settings()
-queryprocessengine = QueryProcessorEngine(settings)
+queryprocessengine = EmbeddingEngine(settings)
 parent = ParentRetrievalEngine(settings)
 cluster = ClusterRetrievalEngine(settings)
 logger = setup_logger("Developer")

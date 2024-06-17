@@ -1,5 +1,7 @@
 import sentry_sdk
 
+from app.embedding.embedding_engine import EmbeddingEngine
+from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.grpc_types.agency_pb2 import (
     Double2D,
     Embeddings,
@@ -9,16 +11,14 @@ from app.grpc_types.agency_pb2 import (
     SearchInput,
 )
 from app.grpc_types.agency_pb2_grpc import AgencyService
-from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
-from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
-from app.query_node_process.nodeprocessengine import QueryProcessorEngine
+from app.pubmed_retrieval.cluster_engine import ClusterRetrievalEngine
+from app.pubmed_retrieval.parent_engine import ParentRetrievalEngine
 from app.settings import app_settings
-from app.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
 
 pubmed_parent_engine = ParentRetrievalEngine(settings=app_settings)
 pubmed_cluster_engine = ClusterRetrievalEngine(settings=app_settings)
-embedding_query_engine = QueryProcessorEngine(settings=app_settings)
+embedding_query_engine = EmbeddingEngine(settings=app_settings)
 
 logger = setup_logger("Search_API")
 

@@ -6,6 +6,13 @@ from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInfer
 from loguru import logger
 from qdrant_client import AsyncQdrantClient
 
+from app.database.pubmed_postgres import PubmedDatabaseUtils
+from app.embedding.utils.custom_vectorstore import (
+    CurieoQueryBundle,
+    CurieoVectorIndexRetriever,
+    CurieoVectorStore,
+    CurieoVectorStoreIndex,
+)
 from app.grpc_types.agency_pb2 import (
     Double2D,
     Embeddings,
@@ -13,13 +20,6 @@ from app.grpc_types.agency_pb2 import (
     PubmedSource,
 )
 from app.settings import Settings
-from app.utils.custom_vectorstore import (
-    CurieoQueryBundle,
-    CurieoVectorIndexRetriever,
-    CurieoVectorStore,
-    CurieoVectorStoreIndex,
-)
-from app.utils.database_helper import PubmedDatabaseUtils
 
 logger.add(
     "file.log",
