@@ -1,9 +1,15 @@
-# ruff: noqa: ERA001, ARG002, D205
 from llama_index.core import StorageContext
 from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInference
 from loguru import logger
 from qdrant_client import AsyncQdrantClient
 
+from app.database.pubmed_postgres import PubmedDatabaseUtils
+from app.embedding.utils.custom_vectorstore import (
+    CurieoQueryBundle,
+    CurieoVectorIndexRetriever,
+    CurieoVectorStore,
+    CurieoVectorStoreIndex,
+)
 from app.grpc_types.agency_pb2 import (
     Double2D,
     Embeddings,
@@ -11,13 +17,6 @@ from app.grpc_types.agency_pb2 import (
     PubmedSource,
 )
 from app.settings import Settings
-from app.utils.custom_vectorstore import (
-    CurieoQueryBundle,
-    CurieoVectorIndexRetriever,
-    CurieoVectorStore,
-    CurieoVectorStoreIndex,
-)
-from app.utils.database_helper import PubmedDatabaseUtils
 
 logger.add(
     "file.log",
@@ -63,11 +62,11 @@ class ParentRetrievalEngine:
         self, query: CurieoQueryBundle
     ) -> list[PubmedSource]:
         logger.info(f"query_process. search_text: {query.query_str}")
-        if not len(query.embedding) and not len(query.sparse_embedding):
+        if not query.embedding and not query.sparse_embedding:
             return []
 
         extracted_nodes = await self.parent_retriever.aretrieve(query)
-        if not len(extracted_nodes):
+        if extracted_nodes:
             return []
 
         filtered_nodes = [
