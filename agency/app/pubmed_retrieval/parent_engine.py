@@ -66,7 +66,7 @@ class ParentRetrievalEngine:
             return []
 
         extracted_nodes = await self.parent_retriever.aretrieve(query)
-        if not len(extracted_nodes):
+        if extracted_nodes:
             return []
 
         filtered_nodes = [
