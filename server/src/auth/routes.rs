@@ -83,6 +83,7 @@ async fn oauth_handler(
 
     Redirect::to(auth_url.as_str()).into_response()
 }
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuthzResp {
     code: String,

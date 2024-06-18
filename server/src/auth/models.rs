@@ -1,19 +1,17 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::auth::utils;
+use crate::err::AppError;
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
 use crate::users::User;
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
 use axum_login::{AuthnBackend, UserId};
-use oauth2::basic::BasicRequestTokenError;
-use oauth2::reqwest::AsyncHttpClientError;
 use oauth2::url::Url;
 use oauth2::{AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 use sqlx::PgPool;
-use tokio::task;
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(remote = "Self")]
@@ -63,15 +61,14 @@ impl PostgresBackend {
 async fn password_authenticate(
     db: &PgPool,
     password_credentials: PasswordCredentials,
-) -> Result<Option<User>, BackendError> {
+) -> crate::Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
         "select * from users where username = $1 and password_hash is not null",
         password_credentials.username
     )
     .fetch_optional(db)
-    .await
-    .map_err(BackendError::Sqlx)?;
+    .await?;
 
     // Verifying the password is blocking and potentially slow, so we do it via
     // `spawn_blocking`.
@@ -86,7 +83,7 @@ async fn oauth_authenticate(
     db: &PgPool,
     oauth2_clients: &[OAuth2Client],
     oauth_creds: OAuthCredentials,
-) -> Result<Option<User>, BackendError> {
+) -> crate::Result<Option<User>> {
     // Ensure the CSRF state has not been tampered with.
     if oauth_creds.old_state.secret() != oauth_creds.new_state.secret() {
         return Ok(None);
@@ -97,7 +94,7 @@ async fn oauth_authenticate(
     let token_res = client
         .exchange_code(AuthorizationCode::new(oauth_creds.code))
         .await
-        .map_err(BackendError::OAuth2)?;
+        .map_err(AppError::OAuth2)?;
 
     // Use access token to request user info.
     let user_info = reqwest::Client::new()
@@ -109,10 +106,10 @@ async fn oauth_authenticate(
         )
         .send()
         .await
-        .map_err(BackendError::Reqwest)?
+        .map_err(AppError::Reqwest)?
         .json::<UserInfo>()
         .await
-        .map_err(BackendError::Reqwest)?;
+        .map_err(AppError::Reqwest)?;
 
     // Persist user in our database, so we can use `get_user`.
     let user = sqlx::query_as(
@@ -127,8 +124,7 @@ async fn oauth_authenticate(
     .bind(user_info.login)
     .bind(token_res.access_token().secret())
     .fetch_one(db)
-    .await
-    .map_err(BackendError::Sqlx)?;
+    .await?;
 
     Ok(Some(user))
 }
@@ -138,13 +134,10 @@ async fn oauth_authenticate(
 impl AuthnBackend for PostgresBackend {
     type User = User;
     type Credentials = Credentials;
-    type Error = BackendError;
+    type Error = AppError;
 
     #[tracing::instrument(level = "debug", skip(self), ret, err)]
-    async fn authenticate(
-        &self,
-        creds: Self::Credentials,
-    ) -> Result<Option<Self::User>, Self::Error> {
+    async fn authenticate(&self, creds: Self::Credentials) -> crate::Result<Option<Self::User>> {
         match creds {
             Credentials::Password(password_cred) => {
                 password_authenticate(&self.db, password_cred).await
@@ -156,7 +149,7 @@ impl AuthnBackend for PostgresBackend {
     }
 
     #[tracing::instrument(level = "debug", skip(self), ret, err)]
-    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
+    async fn get_user(&self, user_id: &UserId<Self>) -> crate::Result<Option<Self::User>> {
         sqlx::query_as!(
             Self::User,
             "select * from users where user_id = $1",
@@ -188,21 +181,6 @@ pub struct OAuthCredentials {
     pub code: String,
     pub old_state: CsrfToken,
     pub new_state: CsrfToken,
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum BackendError {
-    #[error(transparent)]
-    Sqlx(sqlx::Error),
-
-    #[error(transparent)]
-    Reqwest(reqwest::Error),
-
-    #[error(transparent)]
-    OAuth2(BasicRequestTokenError<AsyncHttpClientError>),
-
-    #[error(transparent)]
-    TaskJoin(#[from] task::JoinError),
 }
 
 // We use a type alias for convenience.

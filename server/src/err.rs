@@ -1,20 +1,25 @@
-use crate::auth::BackendError;
 use crate::cache::CacheError;
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use color_eyre::eyre::eyre;
+use oauth2::basic::BasicRequestTokenError;
+use oauth2::reqwest::AsyncHttpClientError;
 use sqlx::error::DatabaseError;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::Display;
+use tokio::task;
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum AppError {
     Sqlx(sqlx::Error),
     GenericError(color_eyre::eyre::Error),
     Cache(CacheError),
+    Reqwest(reqwest::Error),
+    OAuth2(BasicRequestTokenError<AsyncHttpClientError>),
+    TaskJoin(#[from] task::JoinError),
+
     BadRequest(String),
     Unauthorized,
     Forbidden(String),
@@ -53,23 +58,15 @@ impl From<sqlx::migrate::MigrateError> for AppError {
     }
 }
 
-impl From<BackendError> for AppError {
-    fn from(e: BackendError) -> Self {
-        match e {
-            BackendError::Sqlx(e) => AppError::Sqlx(e),
-            BackendError::Reqwest(e) => AppError::GenericError(eyre!(e)),
-            BackendError::OAuth2(e) => AppError::GenericError(eyre!(e)),
-            BackendError::TaskJoin(e) => AppError::GenericError(eyre!(e)),
-        }
-    }
-}
-
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AppError::GenericError(e) => write!(f, "{}", e),
             AppError::Sqlx(e) => write!(f, "{}", e),
             AppError::Cache(e) => write!(f, "{}", e),
+            AppError::Reqwest(e) => write!(f, "{}", e),
+            AppError::OAuth2(e) => write!(f, "{}", e),
+            AppError::TaskJoin(e) => write!(f, "{}", e),
             AppError::BadRequest(e) => write!(f, "{}", e),
             AppError::Unauthorized => write!(f, "Unauthorized"),
             AppError::Forbidden(e) => write!(f, "{}", e),
@@ -125,6 +122,17 @@ impl IntoResponse for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Cache error: {}", e),
             ),
+
+            AppError::Reqwest(ref e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Reqwest error: {}", e),
+            ),
+            AppError::OAuth2(ref e) => (StatusCode::UNAUTHORIZED, format!("OAuth2 error: {}", e)),
+            AppError::TaskJoin(ref e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Task join error: {}", e),
+            ),
+
             AppError::BadRequest(message) => (StatusCode::BAD_REQUEST, message),
             AppError::Forbidden(message) => (StatusCode::FORBIDDEN, message),
             AppError::NotFound(message) => (StatusCode::NOT_FOUND, message),
