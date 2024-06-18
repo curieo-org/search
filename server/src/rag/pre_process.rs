@@ -91,10 +91,7 @@ pub async fn rephrase_query(
                 .collect(),
         },
     )
-    .await
-    .unwrap_or_else(|_| query_rephraser::QueryRephraserOutput {
-        rephrased_query: search_query_request.query.clone(),
-    });
+    .await?;
 
     Ok(rephraser_response.rephrased_query)
 }

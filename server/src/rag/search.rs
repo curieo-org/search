@@ -21,7 +21,7 @@ pub async fn search(
 
     let (agency_results, fallback_results) = tokio::join!(
         retrieve_result_from_agency(settings, agency_service, search_query),
-        brave_search::web_search(&settings.brave, brave_api_config, &search_query,),
+        brave_search::web_search(&settings.brave, brave_api_config, &search_query),
     );
 
     let mut retrieved_results = Vec::new();
