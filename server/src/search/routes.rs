@@ -1,4 +1,5 @@
 use crate::cache::CachePool;
+use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::search::{api_models, services};
@@ -11,7 +12,6 @@ use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::response::IntoResponse;
 use axum::routing::{get, patch};
 use axum::{Json, Router};
-use color_eyre::eyre::eyre;
 use futures::stream::StreamExt;
 use futures::Stream;
 use sqlx::PgPool;
@@ -39,7 +39,9 @@ async fn get_search_query_handler(
     );
 
     if let Ok(false) = query_validity {
-        return Err(eyre!("Query is invalid to proceed").into());
+        return Err(AppError::UnprocessableEntity(
+            "Query is invalid to proceed".to_string(),
+        ));
     }
     let rephrased_query = match rephrased_query {
         Ok(rephrased_query) => rephrased_query,
@@ -68,7 +70,7 @@ async fn get_search_query_handler(
         sources,
     })
     .await
-    .map_err(|e| eyre!("Failed to send end result: {}", e))?;
+    .map_err(|e| AppError::InternalServerError(format!("Failed to send search result: {}", e)))?;
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();

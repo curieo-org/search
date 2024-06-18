@@ -101,14 +101,11 @@ pub fn sentry_connect() -> ClientInitGuard {
 }
 
 pub async fn db_connect(database_url: &str) -> Result<PgPool> {
-    match PgPoolOptions::new()
+    PgPoolOptions::new()
         .max_connections(10)
         .connect(database_url)
         .await
-    {
-        Ok(pool) => Ok(pool),
-        Err(e) => Err(eyre!("Failed to connect to Postgres: {}", e).into()),
-    }
+        .map_err(|e| AppError::Sqlx(e).into())
 }
 
 pub async fn agency_service_connect(
@@ -116,7 +113,9 @@ pub async fn agency_service_connect(
 ) -> Result<AgencyServiceClient<Channel>> {
     let agency_service = AgencyServiceClient::connect(agency_service_url.to_owned())
         .await
-        .map_err(|e| eyre!("Failed to connect to agency service: {}", e))?;
+        .map_err(|e| {
+            AppError::ServiceUnavailable(format!("Failed to connect to agency service: {}", e))
+        })?;
 
     Ok(agency_service)
 }
@@ -126,10 +125,7 @@ async fn run(
     settings: Settings,
 ) -> Result<Serve<IntoMakeService<Router>, Router>> {
     let state = AppState::initialize(settings).await?;
-    sqlx::migrate!()
-        .run(&state.db)
-        .await
-        .map_err(AppError::from)?;
+    sqlx::migrate!().run(&state.db).await?;
 
     let app = router(state)?;
 

@@ -25,7 +25,7 @@ pub enum AppError {
     Forbidden(String),
     NotFound(String),
     Conflict(String),
-    UnprocessableEntity(ErrorMap),
+    UnprocessableEntity(String),
     InternalServerError(String),
 
     ServiceUnavailable(String),
@@ -41,7 +41,7 @@ impl AppError {
     where
         ErrorMap: From<E>,
     {
-        Self::UnprocessableEntity(ErrorMap::from(errors))
+        Self::UnprocessableEntity(format!("{:?}", ErrorMap::from(errors)))
     }
 }
 
@@ -173,6 +173,14 @@ impl IntoResponse for AppError {
             AppError::Sqlx(sqlx::Error::Io(io_err)) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, io_err.to_string())
             }
+            AppError::Sqlx(sqlx::Error::PoolTimedOut | sqlx::Error::PoolClosed) => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Database connection pool is full or closed".to_string(),
+            ),
+            AppError::Sqlx(sqlx::Error::Tls(ref e) | sqlx::Error::Configuration(ref e)) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to connect to Postgres: {}", e),
+            ),
             AppError::Sqlx(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
 
             AppError::ServiceUnavailable(e) => (

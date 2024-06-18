@@ -1,6 +1,6 @@
+use crate::err::AppError;
 use crate::rag::Source;
 use crate::search::{api_models, data_models};
-use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -75,7 +75,7 @@ pub async fn add_search_sources(
     sources: &Vec<Source>,
 ) -> crate::Result<Vec<data_models::Source>> {
     if sources.len() == 0 {
-        return Err(eyre!("No sources to add").into());
+        return Err(AppError::BadRequest("No sources to add".to_string()));
     }
 
     // remove duplicates with same url

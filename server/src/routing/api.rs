@@ -12,7 +12,7 @@ use crate::auth::sessions::{DashStore, RedisStore};
 use crate::startup::AppState;
 use crate::{auth, health_check, search, users};
 
-pub fn router(state: AppState) -> color_eyre::Result<Router> {
+pub fn router(state: AppState) -> crate::Result<Router> {
     // Session layer.
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
