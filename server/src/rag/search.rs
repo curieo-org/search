@@ -3,7 +3,6 @@ use crate::llms::llm_lingua;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::rag::{brave_search, pubmed_search};
-use crate::search::api_models;
 use crate::settings::Settings;
 use std::sync::Arc;
 use tonic::transport::Channel;
@@ -14,19 +13,15 @@ pub async fn search(
     brave_api_config: &brave_search::BraveAPIConfig,
     cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
-    search_query_request: &api_models::SearchQueryRequest,
+    search_query: &String,
 ) -> crate::Result<rag::SearchResponse> {
-    if let Some(response) = cache.get(&search_query_request.query).await {
+    if let Some(response) = cache.get(&search_query).await {
         return Ok(response);
     }
 
     let (agency_results, fallback_results) = tokio::join!(
-        retrieve_result_from_agency(settings, agency_service, search_query_request),
-        brave_search::web_search(
-            &settings.brave,
-            brave_api_config,
-            &search_query_request.query,
-        ),
+        retrieve_result_from_agency(settings, agency_service, search_query),
+        brave_search::web_search(&settings.brave, brave_api_config, &search_query,),
     );
 
     let mut retrieved_results = Vec::new();
@@ -34,11 +29,12 @@ pub async fn search(
         retrieved_results.extend(agency_results);
     }
 
-    if retrieved_results.len() < settings.llm.top_k_sources as usize {
+    let max_sources = settings.search.max_sources as usize;
+    if retrieved_results.len() < max_sources {
         if let Ok(fallback_results) = fallback_results {
             let required_results_count = fallback_results
                 .len()
-                .min(settings.llm.top_k_sources as usize - retrieved_results.len());
+                .min(max_sources - retrieved_results.len());
             retrieved_results.extend(fallback_results.into_iter().take(required_results_count));
         }
     }
@@ -46,7 +42,7 @@ pub async fn search(
     let compressed_results = llm_lingua::compress(
         &settings.llm,
         llm_lingua::LlmLinguaInput {
-            query: search_query_request.query.clone(),
+            query: search_query.clone(),
             target_token: 300,
             context_texts_list: retrieved_results.iter().map(|r| r.text.clone()).collect(),
         },
@@ -57,7 +53,7 @@ pub async fn search(
         result: compressed_results.compressed_prompt,
         sources: retrieved_results.into_iter().map(|r| r.source).collect(),
     };
-    cache.set(&search_query_request.query, &response).await;
+    cache.set(search_query, &response).await;
 
     return Ok(response);
 }
@@ -66,12 +62,11 @@ pub async fn search(
 async fn retrieve_result_from_agency(
     settings: &Settings,
     agency_service: &mut AgencyServiceClient<Channel>,
-    search_query_request: &api_models::SearchQueryRequest,
+    search_query: &String,
 ) -> crate::Result<Vec<rag::RetrievedResult>> {
     let agency_service = Arc::new(agency_service.clone());
     let query_embeddings =
-        pre_process::compute_embeddings(Arc::clone(&agency_service), &search_query_request.query)
-            .await?;
+        pre_process::compute_embeddings(Arc::clone(&agency_service), search_query).await?;
 
     let (pubmed_parent_response, pubmed_cluster_response) = tokio::join!(
         pubmed_search::pubmed_parent_search(Arc::clone(&agency_service), &query_embeddings),
@@ -112,7 +107,7 @@ async fn retrieve_result_from_agency(
 
     let top_k = reranked_indices
         .len()
-        .min(settings.llm.top_k_sources as usize);
+        .min(settings.search.max_sources as usize);
     let reranked_retrieved_results = reranked_indices
         .into_iter()
         .take(top_k)
