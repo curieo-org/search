@@ -1,4 +1,3 @@
-# ruff: noqa: ERA001, ARG002, D205
 import asyncio
 import json
 
@@ -7,6 +6,13 @@ from llama_index.embeddings.text_embeddings_inference import TextEmbeddingsInfer
 from loguru import logger
 from qdrant_client import AsyncQdrantClient
 
+from app.database.pubmed_postgres import PubmedDatabaseUtils
+from app.embedding.utils.custom_vectorstore import (
+    CurieoQueryBundle,
+    CurieoVectorIndexRetriever,
+    CurieoVectorStore,
+    CurieoVectorStoreIndex,
+)
 from app.grpc_types.agency_pb2 import (
     Double2D,
     Embeddings,
@@ -14,13 +20,6 @@ from app.grpc_types.agency_pb2 import (
     PubmedSource,
 )
 from app.settings import Settings
-from app.utils.custom_vectorstore import (
-    CurieoQueryBundle,
-    CurieoVectorIndexRetriever,
-    CurieoVectorStore,
-    CurieoVectorStoreIndex,
-)
-from app.utils.database_helper import PubmedDatabaseUtils
 
 logger.add(
     "file.log",
@@ -114,8 +113,8 @@ class ClusterRetrievalEngine:
                     ],
                 ),
             )
-            for pubmed_id in nodes_dict
-            for child_node_id in nodes_dict[pubmed_id].get("children_node_ids", [])
+            for pubmed_id, pubmed_value in nodes_dict.items()
+            for child_node_id in pubmed_value.get("children_node_ids", [])
             if child_node_id in children_node_texts
-            for child_node_json in [json.loads(children_node_texts.get(child_node_id))]
+            for child_node_json in [json.loads(children_node_texts[child_node_id])]
         ]

@@ -45,8 +45,6 @@ class RetrievedResult(BaseModel):
 
 
 class PubmedSourceResult(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     pubmed_id: str
     title: str
     abstract: str

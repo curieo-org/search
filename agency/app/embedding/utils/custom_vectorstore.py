@@ -23,7 +23,7 @@ from llama_index.vector_stores.qdrant.utils import (
 from qdrant_client.http import models as rest
 from qdrant_client.http.models import Payload
 
-from app.utils.custom_basenode import CurieoBaseNode
+from app.embedding.utils.custom_basenode import CurieoBaseNode
 
 dispatcher = instrument.get_dispatcher(__name__)
 

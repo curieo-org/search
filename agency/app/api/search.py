@@ -1,5 +1,7 @@
 import sentry_sdk
 
+from app.embedding.embedding_engine import EmbeddingEngine
+from app.embedding.utils.custom_vectorstore import CurieoQueryBundle
 from app.grpc_types.agency_pb2 import (
     Double2D,
     Embeddings,
@@ -9,16 +11,14 @@ from app.grpc_types.agency_pb2 import (
     SearchInput,
 )
 from app.grpc_types.agency_pb2_grpc import AgencyService
-from app.pubmed_retrieval.clusterretrievalengine import ClusterRetrievalEngine
-from app.pubmed_retrieval.parentretrievalengine import ParentRetrievalEngine
-from app.query_node_process.nodeprocessengine import QueryProcessorEngine
+from app.pubmed_retrieval.cluster_engine import ClusterRetrievalEngine
+from app.pubmed_retrieval.parent_engine import ParentRetrievalEngine
 from app.settings import app_settings
-from app.utils.custom_vectorstore import CurieoQueryBundle
 from app.utils.logging import setup_logger
 
 pubmed_parent_engine = ParentRetrievalEngine(settings=app_settings)
 pubmed_cluster_engine = ClusterRetrievalEngine(settings=app_settings)
-embedding_query_engine = QueryProcessorEngine(settings=app_settings)
+embedding_query_engine = EmbeddingEngine(settings=app_settings)
 
 logger = setup_logger("Search_API")
 
@@ -66,7 +66,9 @@ class Search(AgencyService):
             if pubmed_sources := await pubmed_parent_engine.retrieve_parent_nodes(
                 query,
             ):
-                logger.info(f"pubmed_parent_search. result: {pubmed_sources}")
+                logger.info(
+                    f"pubmed_parent_search. result length: {len(pubmed_sources)}"
+                )
 
                 return PubmedResponse(
                     status=200,
@@ -104,7 +106,9 @@ class Search(AgencyService):
             if pubmed_sources := await pubmed_cluster_engine.retrieve_cluster_nodes(
                 query,
             ):
-                logger.info(f"pubmed_cluster_search. result: {pubmed_sources}")
+                logger.info(
+                    f"pubmed_cluster_search. result length: {len(pubmed_sources)}"
+                )
 
                 return PubmedResponse(
                     status=200,
@@ -144,9 +148,9 @@ class Search(AgencyService):
             ):
                 logger.info(f"embeddings_compute. result: {embedding_result}")
 
-                dense_embedding = embedding_result.get("embedding")
-                sparse_embedding = embedding_result.get("sparse_embedding")[1]
-                sparse_indices = embedding_result.get("sparse_embedding")[0]
+                dense_embedding = embedding_result.embedding or []
+                sparse_embedding = embedding_result.sparse_embedding[1] or []
+                sparse_indices = embedding_result.sparse_embedding[0] or []
 
                 return EmbeddingsOutput(
                     status=200,

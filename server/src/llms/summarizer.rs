@@ -55,11 +55,7 @@ fn prepare_context_string(
         The solution draft follows the format \"Thought, Action, Action Input, Observation\", where the 'Thought' statements describe a reasoning sequence. The rest of the text is information obtained to complement the reasoning sequence, and it is 100% accurate OR you can use a single \"Final Answer\" format.
         Your task is to write an answer to the question based on the solution draft, and the following guidelines:
         The text should have an educative and assistant-like tone, be accurate, follow the same reasoning sequence than the solution draft and explain how any conclusion is reached.
-        Question: {}
-
-        Solution draft: {}
-
-        Answer:", summarizer_input.retrieved_result, summarizer_input.query),
+        Question: {}\n\nSolution draft: {}\n\nAnswer:", summarizer_input.retrieved_result, summarizer_input.query),
         parameters: SummarizerParams {
             model: Some(settings.model.clone()),
             max_new_tokens: Some(settings.max_new_tokens.clone()),
