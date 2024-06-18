@@ -1,5 +1,5 @@
 use crate::cache::CachePool;
-use crate::llms::llm_lingua;
+use crate::llms::prompt_compression;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::rag::{brave_search, pubmed_search};
@@ -39,9 +39,9 @@ pub async fn search(
         }
     }
 
-    let compressed_results = llm_lingua::compress(
+    let compressed_results = prompt_compression::compress(
         &settings.llm,
-        llm_lingua::LlmLinguaInput {
+        prompt_compression::PromptCompressionInput {
             query: search_query.clone(),
             target_token: 300,
             context_texts_list: retrieved_results.iter().map(|r| r.text.clone()).collect(),
