@@ -1,5 +1,5 @@
+use crate::err::AppError;
 use crate::search::api_models;
-use color_eyre::eyre::eyre;
 use futures::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -80,27 +80,34 @@ pub async fn generate_text_stream(
         .json(&summarizer_input)
         .send()
         .await
-        .map_err(|e| eyre!("Request to summarizer failed: {e}"))?;
+        .map_err(|e| {
+            AppError::ServiceUnavailable(format!("Request to summarizer failed: {}", e))
+        })?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(eyre!("Request failed with status: {:?}", response.status()).into());
+        return Err(AppError::NotFound(format!(
+            "Request failed with status: {:?}",
+            response.status()
+        )));
     }
     let mut stream = response.bytes_stream();
 
     while let Some(chunk) = stream.next().await {
         // remove `data` from the start of the chunk and `\n\n` from the end
-        let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
+        let chunk =
+            chunk.map_err(|e| AppError::InvalidResponse(format!("Failed to read chunk: {e}")))?;
         let chunk = &chunk[5..chunk.len() - 2];
 
         let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(&chunk)
-            .map_err(|e| eyre!("Failed to parse summarizer response: {e}"))?;
+            .map_err(|e| {
+                AppError::InvalidResponse(format!("Failed to parse summarizer response: {e}"))
+            })?;
 
         if !summarizer_api_response.token.special {
             let mut search = update_processor
                 .process(summarizer_api_response.token.text.clone())
-                .await
-                .map_err(|e| eyre!("Failed to update result: {e}"))?;
+                .await?;
             search.result = summarizer_api_response.token.text;
 
             tx.send(api_models::SearchByIdResponse {
@@ -108,7 +115,7 @@ pub async fn generate_text_stream(
                 sources: vec![],
             })
             .await
-            .map_err(|e| eyre!("Failed to send response: {e}"))?;
+            .map_err(|e| AppError::InternalServerError(format!("Failed to send response: {e}")))?;
         }
     }
 

@@ -103,7 +103,7 @@ async fn retrieve_result_from_agency(
     }
 
     let reranked_indices =
-        post_process::rerank_search_results(&query_embeddings, &source_embeddings).await?;
+        post_process::rerank_search_results(&query_embeddings, &source_embeddings);
 
     let top_k = reranked_indices
         .len()

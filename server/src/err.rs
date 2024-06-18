@@ -27,6 +27,10 @@ pub enum AppError {
     Conflict(String),
     UnprocessableEntity(ErrorMap),
     InternalServerError(String),
+
+    ServiceUnavailable(String),
+    InvalidResponse(String),
+    Timeout(String),
 }
 
 impl AppError {
@@ -67,6 +71,7 @@ impl Display for AppError {
             AppError::Reqwest(e) => write!(f, "{}", e),
             AppError::OAuth2(e) => write!(f, "{}", e),
             AppError::TaskJoin(e) => write!(f, "{}", e),
+
             AppError::BadRequest(e) => write!(f, "{}", e),
             AppError::Unauthorized => write!(f, "Unauthorized"),
             AppError::Forbidden(e) => write!(f, "{}", e),
@@ -74,6 +79,10 @@ impl Display for AppError {
             AppError::Conflict(e) => write!(f, "{}", e),
             AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
             AppError::InternalServerError(e) => write!(f, "{}", e),
+
+            AppError::ServiceUnavailable(e) => write!(f, "{}", e),
+            AppError::InvalidResponse(e) => write!(f, "{}", e),
+            AppError::Timeout(e) => write!(f, "{}", e),
         }
     }
 }
@@ -165,6 +174,16 @@ impl IntoResponse for AppError {
                 (StatusCode::INTERNAL_SERVER_ERROR, io_err.to_string())
             }
             AppError::Sqlx(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+
+            AppError::ServiceUnavailable(e) => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                format!("Service unavailable: {}", e),
+            ),
+            AppError::InvalidResponse(e) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Invalid response: {}", e),
+            ),
+            AppError::Timeout(e) => (StatusCode::GATEWAY_TIMEOUT, format!("Timeout: {}", e)),
         };
 
         let error_body = Json(ErrorMap::from([("message", error_message)]));

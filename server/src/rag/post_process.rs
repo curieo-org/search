@@ -6,11 +6,11 @@ use crate::search::api_models;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
-#[tracing::instrument(level = "debug", ret, err)]
-pub async fn rerank_search_results(
+#[tracing::instrument(level = "debug", ret)]
+pub fn rerank_search_results(
     query_embeddings: &Embeddings,
     results_embeddings: &Vec<Embeddings>,
-) -> crate::Result<Vec<usize>> {
+) -> Vec<usize> {
     let query_dense_embedding = &query_embeddings.dense_embedding;
 
     let mut cosine_similarities: Vec<(usize, f64)> = results_embeddings
@@ -26,12 +26,10 @@ pub async fn rerank_search_results(
 
     cosine_similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
 
-    let result: Vec<usize> = cosine_similarities
+    cosine_similarities
         .iter()
         .map(|(index, _)| *index)
-        .collect();
-
-    return Ok(result);
+        .collect()
 }
 
 #[tracing::instrument(level = "debug", ret, err)]

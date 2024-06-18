@@ -1,3 +1,4 @@
+use crate::err::AppError;
 use crate::llms::query_rephraser;
 use crate::llms::toxicity;
 use crate::proto::agency_service_client::AgencyServiceClient;
@@ -5,7 +6,6 @@ use crate::proto::{Embeddings, EmbeddingsOutput, SearchInput};
 use crate::search::api_models;
 use crate::search::services as search_services;
 use crate::settings::Settings;
-use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 use std::sync::Arc;
 use tonic::transport::Channel;
@@ -23,15 +23,17 @@ pub async fn compute_embeddings(
     let response: EmbeddingsOutput = agency_service
         .embeddings_compute(request)
         .await
-        .map_err(|e| eyre!("Request to agency failed: {e}"))?
+        .map_err(|e| AppError::ServiceUnavailable(format!("Request to agency failed: {e}")))?
         .into_inner();
 
     if response.status != 200 {
-        return Err(eyre!("Failed to get search results").into());
+        return Err(AppError::BadRequest(
+            "Failed to get search results".to_string(),
+        ));
     }
 
     match response.embeddings {
-        None => Err(eyre!("No embeddings found").into()),
+        None => Err(AppError::InvalidResponse("No embeddings found".to_string())),
         Some(embeddings) => Ok(embeddings),
     }
 }

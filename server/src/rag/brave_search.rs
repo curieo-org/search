@@ -1,7 +1,7 @@
+use crate::err::AppError;
 use crate::rag::{RetrievedResult, Source};
 use crate::search::SourceType;
 use crate::secrets::Secret;
-use color_eyre::eyre::eyre;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -107,20 +107,20 @@ pub async fn web_search(
         .headers(brave_api_config.headers.clone())
         .send()
         .await
-        .map_err(|e| eyre!("Request to brave failed: {e}"))?;
+        .map_err(|e| AppError::ServiceUnavailable(format!("Request to brave failed: {e}")))?;
 
     if !response.status().is_success() {
-        response
-            .error_for_status_ref()
-            .map_err(|e| eyre!("Request failed: {e}"))?;
+        response.error_for_status_ref().map_err(|e| {
+            AppError::ServiceUnavailable(format!("Request status is not success: {e}"))
+        })?;
     }
 
     let brave_response: serde_json::Value = response
         .json()
         .await
-        .map_err(|e| eyre!("Failed to parse response: {e}"))?;
+        .map_err(|e| AppError::InvalidResponse(format!("Failed to parse response: {e}")))?;
     let brave_response: BraveAPIResponse = serde_json::from_value(brave_response)
-        .map_err(|e| eyre!("Failed to parse response: {e}"))?;
+        .map_err(|e| AppError::InvalidResponse(format!("Failed to serialize response: {e}")))?;
 
     let retrieved_results: Vec<RetrievedResult> = brave_response
         .web
