@@ -3,7 +3,7 @@ agency_api = "http://127.0.0.1:50051"
 oauth2_clients = []
 
 [llm]
-llm_lingua_url = "http://localhost:8000/compress"
+prompt_compression_url = "http://localhost:8000/compress"
 toxicity_url = "http://localhost:8082/predict"
 
 [summarizer]

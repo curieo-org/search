@@ -87,7 +87,7 @@ pub struct Settings {
     pub brave: rag::BraveSettings,
     pub llm: llms::LLMSettings,
     pub summarizer: llms::SummarizerSettings,
-    pub max_search_query_length: u16,
+    pub search: rag::SearchSettings,
 }
 
 impl Settings {

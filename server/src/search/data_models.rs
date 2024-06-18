@@ -37,6 +37,7 @@ pub struct Search {
     pub search_id: uuid::Uuid,
     pub thread_id: uuid::Uuid,
     pub query: String,
+    pub rephrased_query: String,
     pub result: String,
     pub media_urls: Option<Vec<String>>,
     pub reaction: Option<bool>,

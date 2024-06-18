@@ -1,6 +1,10 @@
 host = "0.0.0.0"
 port = 3030
-max_search_query_length = 255
+
+[search]
+max_query_length = 400
+max_sources = 10
+max_search_context = 5
 
 [summarizer]
 model = ""
@@ -9,7 +13,6 @@ temperature = 1.0
 top_p = 0.7
 
 [llm]
-top_k_sources = 10
 toxicity_threshold = 0.75
 
 [pubmed]
