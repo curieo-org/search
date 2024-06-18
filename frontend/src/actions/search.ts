@@ -1,6 +1,6 @@
 'use server'
 
-import { SearchReactionBody, SearchResult } from '@/types/search'
+import { SearchReactionBody, SearchResult, ThreadByIdResponse } from '@/types/search'
 import { curieoFetch } from '@/actions/fetch'
 
 export async function search(query: string): Promise<SearchResult> {
@@ -36,4 +36,12 @@ export async function searchReaction(reaction: SearchReactionBody): Promise<Sear
     return (await response.json()) as SearchResult
   }
   throw new Error('Could not submit reaction')
+}
+
+export async function threadById(id: string): Promise<ThreadByIdResponse> {
+  const response = await curieoFetch(`/search/threads?thread_id=${id}`)
+  if (response.ok) {
+    return (await response.json()) as ThreadByIdResponse
+  }
+  throw new Error('Retrieving search failed')
 }

@@ -14,7 +14,7 @@ export const useSearchQuery = () => {
     queryKey: ['search', searchQuery],
     queryFn: async () => {
       const result = await search(searchQuery.trim())
-      queryClient.setQueryData(['search-by-id', result.search_history_id], result)
+      queryClient.setQueryData(['search-by-id', result.search_id], result)
       await queryClient.invalidateQueries({ queryKey: ['search-history'] })
       return result
     },

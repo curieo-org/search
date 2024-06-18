@@ -4,25 +4,33 @@ import { P } from '@/components/lib/typography'
 import SearchInput from '@/components/search/search-input'
 import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
 import { useSearchQuery } from '@/queries/search/search-query'
+import { useFetchThreadByIdQuery } from '@/queries/search/fetch-thread-by-id-query'
 import { useSearchStore } from '@/stores/search/search-store'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 
 export default function Search() {
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { reset } = useSearchStore()
   const { data, isLoading, isSuccess, isError, refetch: fetchSearchResult } = useSearchQuery()
   const handleSearch = () => {
     fetchSearchResult().then(r => r)
   }
+  const threadId = searchParams.get('thread_id')
+  const { data: thread } = useFetchThreadByIdQuery({ threadId: threadId as string })
 
   useEffect(() => {
     if (isSuccess) {
       reset()
-      router.push(`/search/${data.search_history_id}`)
+      router.push(`/search/${data.search_id}`)
     }
   }, [isSuccess])
+
+  useEffect(() => {
+    console.log(thread)
+  }, [thread])
 
   useEffect(() => {
     if (isError) {
