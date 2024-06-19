@@ -1,10 +1,10 @@
 'use client'
 
-import { P } from '@/components/lib/typography'
-import SearchInput from '@/components/search/search-input'
+import NewSearch from '@/components/search/new-search'
+import Thread from '@/components/search/thread'
 import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
-import { useSearchQuery } from '@/queries/search/search-query'
 import { useFetchThreadByIdQuery } from '@/queries/search/fetch-thread-by-id-query'
+import { useSearchQuery } from '@/queries/search/search-query'
 import { useSearchStore } from '@/stores/search/search-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
@@ -19,7 +19,12 @@ export default function Search() {
     fetchSearchResult().then(r => r)
   }
   const threadId = searchParams.get('thread_id')
-  const { data: thread } = useFetchThreadByIdQuery({ threadId: threadId as string })
+
+  // const { data: thread } = useFetchThreadByIdQuery({ threadId: threadId as string })
+
+  // useEffect(() => {
+  //   console.log(thread)
+  // }, [thread])
 
   useEffect(() => {
     if (isSuccess) {
@@ -29,10 +34,6 @@ export default function Search() {
   }, [isSuccess])
 
   useEffect(() => {
-    console.log(thread)
-  }, [thread])
-
-  useEffect(() => {
     if (isError) {
       toast.error('Failed to fetch search result. Please try again later...')
     }
@@ -40,15 +41,12 @@ export default function Search() {
 
   return (
     <>
-      {isLoading ? (
+      {!!threadId ? (
+        <Thread threadId={threadId} />
+      ) : isLoading ? (
         <SearchResultPageSkeleton />
       ) : (
-        <div className="w-full h-[90vh] flex justify-center items-center">
-          <div className="w-full max-w-[720px] flex flex-col items-center px-4">
-            <P className="mb-10 text-2xl xl:text-3xl transition-all duration-300">How can I help you today?</P>
-            <SearchInput handleSearch={handleSearch} />
-          </div>
-        </div>
+        <NewSearch handleSearch={handleSearch} />
       )}
     </>
   )

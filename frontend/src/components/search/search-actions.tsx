@@ -20,10 +20,11 @@ type SearchActionsProps = HTMLAttributes<HTMLDivElement> & {
 export default function SearchActions(props: SearchActionsProps) {
   const queryClient = useQueryClient()
   const [isCopied, setIsCopied] = useState(false)
-  const { isPending: isReacting, mutate: saveReaction } = useSearchReactionMutation()
+  const [reaction, setReaction] = useState<boolean | null>(props.reaction)
+  const { isPending: isReacting, mutate: saveReaction } = useSearchReactionMutation(setReaction)
 
   const handleReaction = async (reaction: boolean) => {
-    saveReaction({ search_history_id: props.searchHistoryId, reaction })
+    saveReaction({ search_id: props.searchHistoryId, reaction })
   }
 
   const handleCopyResponse = () => {
@@ -48,18 +49,13 @@ export default function SearchActions(props: SearchActionsProps) {
     <div className={twMerge('w-full flex gap-x-2.5', props.className)}>
       <IconButton
         className={buttonClassname}
-        icon={
-          <ThumbsUpIcon size={14} className={props.reaction === true ? iconClassName.pressed : iconClassName.deafult} />
-        }
+        icon={<ThumbsUpIcon size={14} className={reaction === true ? iconClassName.pressed : iconClassName.deafult} />}
         onClick={e => handleReaction(true)}
       />
       <IconButton
         className={buttonClassname}
         icon={
-          <ThumbsDownIcon
-            size={14}
-            className={props.reaction === false ? iconClassName.pressed : iconClassName.deafult}
-          />
+          <ThumbsDownIcon size={14} className={reaction === false ? iconClassName.pressed : iconClassName.deafult} />
         }
         onClick={e => handleReaction(false)}
       />

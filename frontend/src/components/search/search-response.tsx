@@ -23,7 +23,11 @@ export default function SearchResponse(props: SearchResponseProps) {
       onMouseLeave={() => setShowScrollbar(false)}
     >
       {props.response.split('\n').map((paragraph, index) => (
-        <P className="pr-4" style={{ animation: `fade-in ${1 + index}s` }} key={`response-paragraph-${index}`}>
+        <P
+          className="pr-4 text-sm text-white/80"
+          style={{ animation: `fade-in ${1 + index}s` }}
+          key={`response-paragraph-${index}`}
+        >
           {paragraph}
         </P>
       ))}

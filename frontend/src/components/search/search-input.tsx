@@ -46,7 +46,7 @@ export default function SearchInput(props: SearchInputProps) {
   return (
     <Textarea
       ref={textAreaRef}
-      containerClass="max-w-[880px] grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4"
+      containerClass="max-w-[840px] grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4"
       innerContainerClass={classNames(
         'rounded-2xl bg-background-light/80 dark:bg-background-dark/80 border border-background-dark/40 dark:border-background-light/40 pr-2 focus-within:border-0 focus-within:outline-none focus-within:ring-1 focus-within:ring-primary focus-within:ring-offset-0',
         {

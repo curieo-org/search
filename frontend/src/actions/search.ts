@@ -27,13 +27,13 @@ export async function searchHistory({ limit, offset }: { limit: number; offset: 
   throw new Error('Retrieving search history failed')
 }
 
-export async function searchReaction(reaction: SearchReactionBody): Promise<SearchResult> {
+export async function searchReaction(reaction: SearchReactionBody): Promise<void> {
   const response = await curieoFetch('/search/reaction', {
     method: 'PATCH',
     body: JSON.stringify(reaction),
   })
   if (response.ok) {
-    return (await response.json()) as SearchResult
+    return
   }
   throw new Error('Could not submit reaction')
 }
