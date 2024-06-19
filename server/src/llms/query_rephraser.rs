@@ -45,12 +45,11 @@ pub struct QueryRephraserOutput {
 }
 
 fn prepare_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
-    "
-    [INST]Answer questions in such a way that history is not needed.\n\n---\n\nFollow the following format.\n\nContext: contains the chat history\n\nQuestion: ${question}\n\nReasoning: Let's think step by step in order to ${produce the answer}. We ...\n\nAnswer: Given a chat history and the latest user question, which might reference the context from the chat history, formulate a standalone question that can be understood from the history without needing the chat history. DO NOT ANSWER THE QUESTION - just reformulate it\n\n---\n\nContext: ".to_string()
+    "Rephrase the input text based on the context and the final sentence. So that it can be understood without the context.\n\n---\n\nFollow the following format.\n\nContext: contains the chat history\n\nQuestion: ${question}\n\nReasoning: Let's think step by step in order to ${produce the answer}. We ...\n\nAnswer: Given a chat history and the latest user question, which might reference the context from the chat history, formulate a standalone question that can be understood from the history without needing the chat history. DO NOT ANSWER THE QUESTION - just reformulate it\n\n---\n\nContext: ".to_string()
         + query_rephraser_input.previous_context.iter().map(|x| format!("{}: {}", x.query, x.result)).collect::<Vec<String>>().join("\n").as_str()
         + "\n\nQuestion: "
         + query_rephraser_input.query.as_str()
-        + "\n\nReasoning: Let's think step by step in order to...\n\nAnswer: [/INST]"
+        + "\n\nReasoning: Let's think step by step in order to...\n\nAnswer: "
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
