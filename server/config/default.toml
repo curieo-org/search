@@ -12,6 +12,10 @@ max_new_tokens = 1024
 temperature = 1.0
 top_p = 0.7
 
+[query_rephraser]
+model = "mistralai/Mistral-7B-Instruct-v0.2"
+max_tokens = 100
+
 [llm]
 toxicity_threshold = 0.75
 
