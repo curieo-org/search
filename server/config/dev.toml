@@ -11,7 +11,6 @@ api_url = "http://localhost:8001/generate_stream"
 
 [query_rephraser]
 api_url = "https://api.together.xyz/inference"
-api_key = "Bearer 92b2f1a8c6f71fdaa546324a453fcd356c112a27dac140ecb1ef090be7a326ae"
 
 [cache]
 url = "redis://127.0.0.1/"
