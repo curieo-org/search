@@ -13,13 +13,12 @@ type OldSearchResponseProps = HTMLAttributes<HTMLDivElement> & {
 export default function OldSearchResponse(props: OldSearchResponseProps) {
   const { search: searchResult, sources } = props.search
   const answerContainerRef = useRef<HTMLDivElement>(null)
-  // const sourcesConatinerRef = useRef<HTMLDivElement>(null)
-  const [answerContainerHeight, setanswerContainerHeight] = useState<number>(0)
+  const [answerContainerHeight, setAnswerContainerHeight] = useState<number>(0)
 
   useEffect(() => {
     const updateHeight = () => {
       if (answerContainerRef.current) {
-        setanswerContainerHeight(Math.min(answerContainerRef.current.offsetHeight, 200))
+        setAnswerContainerHeight(answerContainerRef.current?.offsetHeight)
       }
     }
 
@@ -30,9 +29,9 @@ export default function OldSearchResponse(props: OldSearchResponseProps) {
   }, [])
 
   return (
-    <div className="w-full flex max-h-80">
-      <div className="w-full flex flex-col justify-between" ref={answerContainerRef}>
-        <div className="w-full px-10 transition-all duration-300">
+    <div className="w-full flex">
+      <div className="w-full flex flex-col justify-between">
+        <div className="w-full px-10 transition-all duration-300" ref={answerContainerRef}>
           <SearchTitle className="mb-6" title={searchResult.query} />
           <div className="flex items-center gap-x-3 mb-6">
             <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
@@ -47,9 +46,9 @@ export default function OldSearchResponse(props: OldSearchResponseProps) {
         </div>
       </div>
       <SourcesMenu
-        className="w-60 xl:w-96 p-3 transition-all duration-300 bg-white/2 rounded-l-2xl"
+        className="w-60 xl:w-96 p-3 transition-all duration-300 bg-white/2 rounded-l-xl"
         sources={sources}
-        style={{ maxHeight: `calc(100vh - ${answerContainerHeight}px)` }}
+        style={{ maxHeight: answerContainerHeight }}
       />
     </div>
   )
