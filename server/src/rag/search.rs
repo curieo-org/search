@@ -4,6 +4,7 @@ use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::rag::{brave_search, pubmed_search};
 use crate::settings::Settings;
+use color_eyre::eyre::eyre;
 use std::sync::Arc;
 use tonic::transport::Channel;
 
@@ -37,6 +38,10 @@ pub async fn search(
                 .min(max_sources - retrieved_results.len());
             retrieved_results.extend(fallback_results.into_iter().take(required_results_count));
         }
+    }
+
+    if retrieved_results.is_empty() {
+        return Err(eyre!("No results found").into());
     }
 
     let compressed_results = prompt_compression::compress(

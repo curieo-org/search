@@ -2,7 +2,7 @@ host = "0.0.0.0"
 port = 3030
 
 [search]
-max_query_length = 400
+max_query_length = 300
 max_sources = 10
 max_search_context = 5
 
