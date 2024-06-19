@@ -2,7 +2,7 @@ host = "0.0.0.0"
 port = 3030
 
 [search]
-max_query_length = 400
+max_query_length = 300
 max_sources = 10
 max_search_context = 5
 
@@ -11,6 +11,10 @@ model = ""
 max_new_tokens = 1024
 temperature = 1.0
 top_p = 0.7
+
+[query_rephraser]
+model = "mistralai/Mistral-7B-Instruct-v0.2"
+max_tokens = 100
 
 [llm]
 toxicity_threshold = 0.75

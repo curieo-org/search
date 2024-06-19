@@ -88,6 +88,7 @@ pub struct Settings {
     pub llm: llms::LLMSettings,
     pub summarizer: llms::SummarizerSettings,
     pub search: rag::SearchSettings,
+    pub query_rephraser: llms::QueryRephraserSettings,
 }
 
 impl Settings {

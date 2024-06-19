@@ -81,7 +81,7 @@ pub async fn rephrase_query(
     }
 
     let rephraser_response = query_rephraser::rephrase_query(
-        &settings.llm,
+        &settings.query_rephraser,
         &query_rephraser::QueryRephraserInput {
             query: search_query_request.query.clone(),
             previous_context: last_n_searches
@@ -95,5 +95,9 @@ pub async fn rephrase_query(
     )
     .await?;
 
-    Ok(rephraser_response.rephrased_query)
+    Ok(rephraser_response
+        .rephrased_query
+        .chars()
+        .take(settings.search.max_query_length as usize)
+        .collect())
 }
