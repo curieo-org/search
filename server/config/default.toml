@@ -12,6 +12,10 @@ max_new_tokens = 1024
 temperature = 1.0
 top_p = 0.7
 
+[openai]
+api_url = "https://api.openai.com/v1/chat/completions"
+model = "gpt-4o"
+
 [query_rephraser]
 model = "mistralai/Mistral-7B-Instruct-v0.2"
 max_tokens = 100

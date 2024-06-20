@@ -1,8 +1,9 @@
 use crate::llms::summarizer;
-use crate::llms::SummarizerSettings;
 use crate::proto::Embeddings;
 use crate::rag::utils;
 use crate::search::api_models;
+use crate::settings::Settings;
+use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
@@ -36,19 +37,21 @@ pub async fn rerank_search_results(
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn summarize_search_results(
-    settings: SummarizerSettings,
+    settings: Settings,
     search_query_request: api_models::SearchQueryRequest,
     search_response: String,
     update_processor: api_models::UpdateResultProcessor,
+    stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
-    summarizer::generate_text_stream(
-        settings,
+    summarizer::generate_text_with_openai(
+        settings.openai,
         summarizer::SummarizerInput {
             query: search_query_request.query,
             retrieved_result: search_response,
         },
         update_processor,
+        stream_regex,
         tx,
     )
     .await?;
