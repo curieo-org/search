@@ -41,7 +41,7 @@ export default function SourcesMenu(props: SourcesMenuProps) {
         {sources.map((source, index) => (
           <LinkPreview
             style={{ animation: `fade-in ${Math.min(500 + index * 500, 3000)}ms` }}
-            className="h-32 w-auto flex flex-col items-stretch justify-center p-2 xl:p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-background-dark/20 dark:hover:bg-white/15"
+            className="h-32 w-auto flex gap-x-2 items-stretch justify-center p-2 xl:p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-background-dark/20 dark:hover:bg-white/15"
             key={`source-preview-${index}`}
             source={source}
           />

@@ -12,7 +12,7 @@ type NewSearchProps = HTMLAttributes<HTMLDivElement> & {
 export default function NewSearch(props: NewSearchProps) {
   return (
     <div className={twMerge('w-full h-[90vh] flex justify-center items-center', props.className)}>
-      <div className="w-full max-w-[720px] flex flex-col items-center px-4">
+      <div className="w-full max-w-[720px] flex flex-col items-center justify-between px-4">
         <P className="mb-10 text-2xl xl:text-3xl transition-all duration-300">How can I help you today?</P>
         <SearchInput
           handleSearch={props.handleSearch}
