@@ -18,7 +18,7 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
     state: { isNavmenuCollapsed },
   } = useNavmenuStore()
 
-  const threadPagePath = `/search/${props.thread.thread_id}`
+  const threadPagePath = `/search?thread_id=${props.thread.thread_id}`
 
   const handleNavigateToThreadPage = () => {
     router.push(threadPagePath)
