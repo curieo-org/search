@@ -89,6 +89,7 @@ pub struct Settings {
     pub summarizer: llms::SummarizerSettings,
     pub search: rag::SearchSettings,
     pub query_rephraser: llms::QueryRephraserSettings,
+    pub openai: llms::OpenAISettings,
 }
 
 impl Settings {
