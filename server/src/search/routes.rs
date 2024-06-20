@@ -14,6 +14,7 @@ use axum::{Json, Router};
 use color_eyre::eyre::eyre;
 use futures::stream::StreamExt;
 use futures::Stream;
+use regex::Regex;
 use sqlx::PgPool;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -28,25 +29,33 @@ async fn get_search_query_handler(
     State(pool): State<PgPool>,
     State(cache): State<CachePool>,
     State(mut agency_service): State<AgencyServiceClient<Channel>>,
+    State(openai_stream_regex): State<Regex>,
     user: User,
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
     let user_id = user.user_id;
 
-    let query_validity =
-        pre_process::check_query_validity(&settings, &search_query_request).await?;
-    if !query_validity {
+    let (query_validity, rephrased_query) = tokio::join!(
+        pre_process::check_query_validity(&settings, &search_query_request),
+        pre_process::rephrase_query(&pool, &settings, &search_query_request)
+    );
+
+    if let Ok(false) = query_validity {
         return Err(eyre!("Query is invalid to proceed").into());
     }
+    let rephrased_query = match rephrased_query {
+        Ok(rephrased_query) => rephrased_query,
+        _ => search_query_request.query.clone(),
+    };
 
     let (search_item, search_response) = tokio::join!(
-        services::insert_new_search(&pool, &user_id, &search_query_request),
+        services::insert_new_search(&pool, &user_id, &search_query_request, &rephrased_query),
         rag::search(
             &settings,
             &brave_api_config,
             &cache,
             &mut agency_service,
-            &search_query_request
+            &rephrased_query
         )
     );
     let search_item = search_item?;
@@ -75,10 +84,11 @@ async fn get_search_query_handler(
     }));
 
     tokio::spawn(post_process::summarize_search_results(
-        settings.summarizer.clone(),
+        settings.clone(),
         search_query_request,
         search_response.result,
         update_processor,
+        openai_stream_regex,
         tx,
     ));
 

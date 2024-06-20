@@ -2,6 +2,7 @@ use crate::rag::Source;
 use crate::search::{api_models, data_models};
 use color_eyre::eyre::eyre;
 use sqlx::PgPool;
+use std::collections::HashSet;
 use uuid::Uuid;
 
 #[tracing::instrument(level = "debug", ret, err)]
@@ -9,6 +10,7 @@ pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
     search_query_request: &api_models::SearchQueryRequest,
+    rephrased_query: &String,
 ) -> crate::Result<data_models::Search> {
     let thread = match search_query_request.thread_id {
         Some(thread_id) => {
@@ -35,9 +37,10 @@ pub async fn insert_new_search(
 
     let search = sqlx::query_as!(
         data_models::Search,
-        "insert into searches (thread_id, query, result) values ($1, $2, $3) returning *",
+        "insert into searches (thread_id, query, rephrased_query, result) values ($1, $2, $3, $4) returning *",
         &thread.thread_id,
         search_query_request.query,
+        rephrased_query,
         &String::from(""),
     )
     .fetch_one(pool)
@@ -74,6 +77,19 @@ pub async fn add_search_sources(
     if sources.len() == 0 {
         return Err(eyre!("No sources to add").into());
     }
+
+    // remove duplicates with same url
+    let mut hash_set: HashSet<&String> = sources.iter().map(|s| &s.url).collect();
+    let sources = sources
+        .into_iter()
+        .filter(|s| match hash_set.contains(&s.url) {
+            true => {
+                hash_set.remove(&s.url);
+                true
+            }
+            false => false,
+        })
+        .collect::<Vec<_>>();
 
     // Only used by internal services, so no need to check if user_id is the owner of the search
     let sources = sqlx::query_as!(
@@ -133,6 +149,27 @@ pub async fn get_one_search(
     .await?;
 
     return Ok(api_models::SearchByIdResponse { search, sources });
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn get_last_n_searches(
+    pool: &PgPool,
+    last_n: u8,
+    thread_id: &Uuid,
+) -> crate::Result<Vec<data_models::Search>> {
+    // Only used by internal services, so no need to check if user_id is the owner of the search
+    let searches = sqlx::query_as!(
+        data_models::Search,
+        "select s.* from searches s \
+            where s.thread_id = $1 \
+            order by s.created_at desc limit $2",
+        thread_id,
+        last_n as i64,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    return Ok(searches);
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
