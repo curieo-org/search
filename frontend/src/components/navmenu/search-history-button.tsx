@@ -1,5 +1,5 @@
 import { useNavmenuStore } from '@/stores/navmenu/nav-menu-store'
-import { SearchResult } from '@/types/search'
+import { Thread } from '@/types/search'
 import classNames from 'classnames'
 import { usePathname, useRouter } from 'next/navigation'
 import { HTMLAttributes } from 'react'
@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { Button } from '../lib/button'
 
 type SearchHistoryButtonProps = HTMLAttributes<HTMLButtonElement> & {
-  searchResult: SearchResult
+  thread: Thread
 }
 
 export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
@@ -18,15 +18,15 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
     state: { isNavmenuCollapsed },
   } = useNavmenuStore()
 
-  const searchResultPagePath = `/search/${props.searchResult.search_history_id}`
+  const threadPagePath = `/search/${props.thread.thread_id}`
 
-  const handleNavigateToSearchResultPage = () => {
-    router.push(searchResultPagePath)
+  const handleNavigateToThreadPage = () => {
+    router.push(threadPagePath)
   }
 
-  const isActive = pathname === searchResultPagePath
+  const isActive = pathname === threadPagePath
 
-  const { className, searchResult, ...rest } = props
+  const { className, thread, ...rest } = props
 
   return (
     <Button
@@ -40,8 +40,8 @@ export default function SearchHistoryButton(props: SearchHistoryButtonProps) {
         ),
         className
       )}
-      label={searchResult.query}
-      onClick={handleNavigateToSearchResultPage}
+      label={thread.title}
+      onClick={handleNavigateToThreadPage}
       {...rest}
     />
   )

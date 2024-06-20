@@ -51,3 +51,7 @@ export type ThreadByIdResponse = {
   thread: Thread
   searches: SearchByIdResponse[]
 }
+
+export type SearchHistoryResponse = {
+  threads: Thread[]
+}
