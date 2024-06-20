@@ -1,6 +1,7 @@
 use crate::err::AppError;
 use crate::llms::OpenAISettings;
 use crate::search::api_models;
+use color_eyre::eyre::eyre;
 use futures::StreamExt;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -187,11 +188,14 @@ pub async fn generate_text_with_openai(
         .headers(headers)
         .send()
         .await
-        .map_err(|e| eyre!("Request to summarizer failed: {e}"))?;
+        .map_err(|e| AppError::ServiceUnavailable(format!("Request to openai failed: {}", e)))?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(eyre!("Request failed with status: {:?}", response.status()).into());
+        return Err(AppError::NotFound(format!(
+            "Request failed with status: {:?}",
+            response.status()
+        )));
     }
 
     let mut stream = response.bytes_stream();
@@ -199,7 +203,8 @@ pub async fn generate_text_with_openai(
     let mut buffer = String::new();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
+        let chunk =
+            chunk.map_err(|e| AppError::InvalidResponse(format!("Failed to read chunk: {e}")))?;
         stream_data.push_str(&String::from_utf8_lossy(&chunk));
 
         let parsed_chunk = stream_regex
@@ -223,10 +228,7 @@ pub async fn generate_text_with_openai(
             stream_data = stream_data.split_off(last_index);
         }
 
-        let mut search = update_processor
-            .process(parsed_chunk.clone())
-            .await
-            .map_err(|e| eyre!("Failed to update result: {e}"))?;
+        let mut search = update_processor.process(parsed_chunk.clone()).await?;
 
         buffer.push_str(&parsed_chunk);
         search.result = buffer.clone();
