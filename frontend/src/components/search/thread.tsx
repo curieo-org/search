@@ -58,10 +58,6 @@ export default function Thread(props: ThreadProps) {
     }
   }, [isTimedOut])
 
-  useEffect(() => {
-    console.log('isloading', isLoading)
-  }, [isLoading])
-
   return (
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="flex flex-col">
@@ -78,7 +74,7 @@ export default function Thread(props: ThreadProps) {
         </div>
       </div>
 
-      <div className="w-full sticky bottom-0 pb-4 px-8 -mb-4 flex justify-start backdrop-blur-sm">
+      <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">
         <SearchInput handleSearch={handleSearch} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </div>
     </div>

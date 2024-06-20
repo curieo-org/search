@@ -15,19 +15,15 @@ export const useSearchQuery = (
   const [isTimedOut, setIsTimedOut] = useState(false)
 
   useEffect(() => {
-    console.log('querytrigger', queryTrigger)
     if (queryTrigger) {
       setIsCompleted(false)
       setIsError(false)
-      console.log('event source before')
       const eventSource = new EventSource(
         `/backend-api/search?query=${searchQuery}${threadId ? `&thread_id=${threadId}` : ``}`,
         {
           withCredentials: true,
         }
       )
-
-      console.log('event source after')
 
       let timeoutId: NodeJS.Timeout
 
@@ -36,7 +32,6 @@ export const useSearchQuery = (
         timeoutId = setTimeout(() => {
           eventSource.close()
           setIsTimedOut(true)
-          console.log('EventSource connection closed due to heartbeat timeout')
         }, 5000)
       }
 
@@ -50,7 +45,6 @@ export const useSearchQuery = (
       }
 
       eventSource.onerror = err => {
-        console.log('event source eror', err)
         clearTimeout(timeoutId)
         setIsCompleted(true)
         eventSource.close()
