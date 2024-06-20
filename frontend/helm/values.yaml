@@ -6,7 +6,7 @@ service:
   image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-frontend:4.0
   replica_count: 1
   port: 3000
-  dns_zone: dev.curieo.org
+  dns_zone: dev.curieo.ai
 
 resources:
   limits:
