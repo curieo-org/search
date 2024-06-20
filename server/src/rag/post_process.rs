@@ -3,6 +3,7 @@ use crate::proto::Embeddings;
 use crate::rag::utils;
 use crate::search::api_models;
 use crate::settings::Settings;
+use rand::Rng;
 use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
@@ -44,17 +45,32 @@ pub async fn summarize_search_results(
     stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
-    summarizer::generate_text_with_openai(
-        settings.openai,
-        summarizer::SummarizerInput {
-            query: search_query_request.query,
-            retrieved_result: search_response,
-        },
-        update_processor,
-        stream_regex,
-        tx,
-    )
-    .await?;
+    let random_number = rand::thread_rng().gen_range(0.0..1.0);
+
+    if random_number < settings.search.beta_usage_ratio {
+        summarizer::generate_text_with_llm(
+            settings.summarizer,
+            summarizer::SummarizerInput {
+                query: search_query_request.query,
+                retrieved_result: search_response,
+            },
+            update_processor,
+            tx,
+        )
+        .await?;
+    } else {
+        summarizer::generate_text_with_openai(
+            settings.openai,
+            summarizer::SummarizerInput {
+                query: search_query_request.query,
+                retrieved_result: search_response,
+            },
+            update_processor,
+            stream_regex,
+            tx,
+        )
+        .await?;
+    }
 
     Ok(())
 }

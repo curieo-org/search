@@ -5,6 +5,7 @@ port = 3030
 max_query_length = 300
 max_sources = 10
 max_search_context = 5
+beta_usage_ratio = 0.0
 
 [summarizer]
 model = ""

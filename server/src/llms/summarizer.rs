@@ -49,7 +49,7 @@ pub struct SummarizerStreamOutput {
     pub generated_text: Option<String>,
 }
 
-fn prepare_context_string(
+fn prepare_llm_context_string(
     settings: &SummarizerSettings,
     summarizer_input: SummarizerInput,
 ) -> SummarizerAPIInput {
@@ -69,13 +69,13 @@ fn prepare_context_string(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn generate_text_stream(
+pub async fn generate_text_with_llm(
     settings: SummarizerSettings,
     summarizer_input: SummarizerInput,
     update_processor: api_models::UpdateResultProcessor,
     tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
-    let summarizer_input = prepare_context_string(&settings, summarizer_input);
+    let summarizer_input = prepare_llm_context_string(&settings, summarizer_input);
     let client = Client::new();
 
     let response = client
