@@ -14,6 +14,7 @@ use axum::routing::{get, patch};
 use axum::{Json, Router};
 use futures::stream::StreamExt;
 use futures::Stream;
+use regex::Regex;
 use sqlx::PgPool;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -28,6 +29,7 @@ async fn get_search_query_handler(
     State(pool): State<PgPool>,
     State(cache): State<CachePool>,
     State(mut agency_service): State<AgencyServiceClient<Channel>>,
+    State(openai_stream_regex): State<Regex>,
     user: User,
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
@@ -84,10 +86,11 @@ async fn get_search_query_handler(
     }));
 
     tokio::spawn(post_process::summarize_search_results(
-        settings.summarizer.clone(),
+        settings.clone(),
         search_query_request,
         search_response.result,
         update_processor,
+        openai_stream_regex,
         tx,
     ));
 

@@ -28,4 +28,5 @@ pub struct SearchSettings {
     pub max_query_length: u16,
     pub max_sources: u8,
     pub max_search_context: u8,
+    pub beta_usage_ratio: f32,
 }

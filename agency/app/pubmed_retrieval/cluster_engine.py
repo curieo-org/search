@@ -65,11 +65,11 @@ class ClusterRetrievalEngine:
         self, query: CurieoQueryBundle
     ) -> list[PubmedSource]:
         logger.info(f"search_text: {query.query_str}")
-        if not len(query.embedding) and not len(query.sparse_embedding):
+        if not query.embedding and not query.sparse_embedding:
             return []
 
         extracted_nodes = await self.cluster_retriever.aretrieve(query)
-        if not len(extracted_nodes):
+        if not extracted_nodes:
             return []
 
         filtered_nodes = [
@@ -77,7 +77,7 @@ class ClusterRetrievalEngine:
             for n in extracted_nodes
             if n.score >= float(self.cluster_relevance_criteria)
         ]
-        if not len(filtered_nodes):
+        if not filtered_nodes:
             return []
 
         pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]

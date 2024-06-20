@@ -9,6 +9,7 @@ use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use log::info;
+use regex::Regex;
 use sentry::{self, ClientInitGuard, ClientOptions};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
@@ -59,6 +60,7 @@ pub struct AppState {
     pub oauth2_clients: Vec<OAuth2Client>,
     pub settings: Settings,
     pub brave_config: brave_search::BraveAPIConfig,
+    pub openai_stream_regex: regex::Regex,
 }
 
 impl AppState {
@@ -69,6 +71,7 @@ impl AppState {
         oauth2_clients: Vec<OAuth2Client>,
         settings: Settings,
         brave_config: brave_search::BraveAPIConfig,
+        openai_stream_regex: regex::Regex,
     ) -> Result<Self> {
         Ok(Self {
             db,
@@ -77,6 +80,7 @@ impl AppState {
             oauth2_clients,
             settings,
             brave_config,
+            openai_stream_regex,
         })
     }
 
@@ -88,6 +92,8 @@ impl AppState {
             oauth2_clients: settings.oauth2_clients.clone(),
             brave_config: brave_search::prepare_brave_api_config(&settings.brave),
             settings,
+            openai_stream_regex: Regex::new(r#"\"content\":\"(.*?)\"}"#)
+                .map_err(|e| eyre!("Failed to compile OpenAI stream regex: {}", e))?,
         })
     }
 }
