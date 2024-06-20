@@ -1,7 +1,6 @@
 'use client'
 
 import { maxSearchInputHeight } from '@/constants/style'
-import { useSearchStore } from '@/stores/search/search-store'
 import classNames from 'classnames'
 import { ChangeEvent, HTMLAttributes, KeyboardEvent, useRef } from 'react'
 import PaperPlaneIcon from '../icons/paper-plane'
@@ -10,18 +9,15 @@ import { Textarea } from '../lib/form'
 
 type SearchInputProps = HTMLAttributes<HTMLDivElement> & {
   handleSearch: () => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
 }
 
 export default function SearchInput(props: SearchInputProps) {
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
-  const {
-    state: { searchQuery },
-    setSearchState,
-  } = useSearchStore()
-
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setSearchState('searchQuery', event.target.value)
+    props.setSearchQuery(event.target.value)
 
     const target = event.target as HTMLTextAreaElement
     if (textAreaRef?.current?.style) {
@@ -31,7 +27,7 @@ export default function SearchInput(props: SearchInputProps) {
   }
 
   const handleSubmit = () => {
-    if (searchQuery.length > 0) {
+    if (props.searchQuery.length > 0) {
       props.handleSearch()
     }
   }
@@ -56,12 +52,12 @@ export default function SearchInput(props: SearchInputProps) {
       className={classNames(
         'h-16 pl-6 pr-16 rounded-2xl border-none focus-visible:ring-0 bg-background-light/80 dark:bg-background-dark/80 text-typography-light dark:text-typography-dark placeholder:text-typography-light/40 dark:placeholder:text-typography-dark/40 text-sm xl:text-base',
         {
-          'py-5': textAreaRef?.current?.style.height !== `${maxSearchInputHeight}px` || searchQuery.length === 0,
+          'py-5': textAreaRef?.current?.style.height !== `${maxSearchInputHeight}px` || props.searchQuery.length === 0,
           'py-3': textAreaRef?.current?.style.height === `${maxSearchInputHeight}px`,
         }
       )}
       placeholder="What can I do for you today?"
-      value={searchQuery}
+      value={props.searchQuery}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       button={
@@ -69,9 +65,9 @@ export default function SearchInput(props: SearchInputProps) {
           className={classNames(
             'absolute right-6 h-10 w-12 border border-background-dark/30 dark:border-background-light/30 transition-all duration-700 rounded-[10px]',
             {
-              'cursor-auto': searchQuery.length === 0,
-              'bg-primary/75': searchQuery.length !== 0,
-              'top-6': textAreaRef?.current?.style.height === '64px' || searchQuery.length === 0,
+              'cursor-auto': props.searchQuery.length === 0,
+              'bg-primary/75': props.searchQuery.length !== 0,
+              'top-6': textAreaRef?.current?.style.height === '64px' || props.searchQuery.length === 0,
               'bottom-5': textAreaRef?.current?.style.height !== '64px',
               'right-8': textAreaRef?.current?.style.height === `${maxSearchInputHeight}px`,
             }

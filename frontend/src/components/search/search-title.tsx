@@ -8,7 +8,7 @@ type SearchTitleProps = HTMLAttributes<HTMLDivElement> & {
 
 export default function SearchTitle(props: SearchTitleProps) {
   return (
-    <P className={twMerge('text-lg xl:text-2xl font-medium px-6 py-1 border-l-6 border-primary', props.className)}>
+    <P className={twMerge('text-lg xl:text-2xl font-medium px-3 py-1 border-l-6 border-primary', props.className)}>
       {props.title}
     </P>
   )

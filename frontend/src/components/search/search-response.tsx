@@ -8,20 +8,8 @@ type SearchResponseProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export default function SearchResponse(props: SearchResponseProps) {
-  const [showScrollbar, setShowScrollbar] = useState(false)
-
   return (
-    <div
-      className={twMerge(
-        classNames('flex flex-col gap-y-6 max-h-[520px] overflow-y-scroll', {
-          'scrollbar-hidden pr-1.5': !showScrollbar,
-          'scrollbar-visible': showScrollbar,
-        }),
-        props.className
-      )}
-      onMouseEnter={() => setShowScrollbar(true)}
-      onMouseLeave={() => setShowScrollbar(false)}
-    >
+    <div className={twMerge('flex flex-col gap-y-6', props.className)}>
       {props.response.split('\n').map((paragraph, index) => (
         <P
           className="pr-4 text-sm text-white/80"

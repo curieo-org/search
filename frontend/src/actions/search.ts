@@ -3,14 +3,6 @@
 import { SearchReactionBody, SearchResult, ThreadByIdResponse } from '@/types/search'
 import { curieoFetch } from '@/actions/fetch'
 
-export async function search(query: string): Promise<SearchResult> {
-  const response = await curieoFetch(`/search?${new URLSearchParams({ query })}`)
-  if (response.ok) {
-    return (await response.json()) as SearchResult
-  }
-  throw new Error('Search failed')
-}
-
 export async function searchById(id: string): Promise<SearchResult> {
   const response = await curieoFetch(`/search/one?search_history_id=${id}`)
   if (response.ok) {

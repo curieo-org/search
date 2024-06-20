@@ -8,6 +8,7 @@ import { Span } from '../lib/typography'
 
 type OldSearchResponseProps = HTMLAttributes<HTMLDivElement> & {
   search: SearchByIdResponse
+  shortenSourcesLength: boolean
 }
 
 export default function OldSearchResponse(props: OldSearchResponseProps) {
@@ -48,7 +49,7 @@ export default function OldSearchResponse(props: OldSearchResponseProps) {
       <SourcesMenu
         className="w-60 xl:w-96 p-3 transition-all duration-300 bg-white/2 rounded-l-xl"
         sources={sources}
-        style={{ maxHeight: answerContainerHeight }}
+        style={{ maxHeight: props.shortenSourcesLength ? answerContainerHeight : '90vh' }}
       />
     </div>
   )
