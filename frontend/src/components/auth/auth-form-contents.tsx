@@ -3,7 +3,6 @@
 import { emailErrorMessage, passwordErrorMessage } from '@/constants/messages'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useAuthFormStore } from '@/stores/auth/auth-form-store'
-import { useEffect } from 'react'
 import { z } from 'zod'
 import { Button } from '../lib/button'
 import { Input, PasswordInput } from '../lib/form'

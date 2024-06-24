@@ -7,6 +7,7 @@ type EditableProfileInfoProps = HTMLAttributes<HTMLDivElement> & {
   label: string
   value: string
   setValue: (event: ChangeEvent<HTMLInputElement>) => void
+  errorMessage?: string
 }
 
 export default function EditableProfileInfo(props: EditableProfileInfoProps) {
@@ -18,6 +19,7 @@ export default function EditableProfileInfo(props: EditableProfileInfoProps) {
         className="bg-transparent text-custom-gray-150 border border-white/20"
         value={props.value}
         onChange={props.setValue}
+        errorMessage={props.errorMessage}
       />
     </div>
   )
