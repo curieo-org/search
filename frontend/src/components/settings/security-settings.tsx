@@ -1,8 +1,6 @@
-import { emailErrorMessage, passwordErrorMessage } from '@/constants/messages'
+import { passwordErrorMessage } from '@/constants/messages'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
-import { useFetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
-import { useUpdateUserProfileMutation } from '@/queries/settings/update-user-profile-mutation'
-import { UpdateProfileBody } from '@/types/settings'
+import { useUpdatePasswordMutation } from '@/queries/settings/update-password-mutation'
 import { HTMLAttributes, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
@@ -31,17 +29,19 @@ export default function SecuritySettings(props: SecuritySettingsProps) {
     z.string().min(6, { message: passwordErrorMessage })
   )
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     toast.error('Failed to update email. Please try again later.')
-  //   }
-  // }, [isError])
+  const { mutate: updatePassword, isError, isSuccess } = useUpdatePasswordMutation()
 
-  // useEffect(() => {
-  //   if (isSuccess) {
-  //     toast.success('User email updated successfully.')
-  //   }
-  // }, [isSuccess])
+  useEffect(() => {
+    if (isError) {
+      toast.error('Failed to update password. Please try again later.')
+    }
+  }, [isError])
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('Password updated successfully.')
+    }
+  }, [isSuccess])
 
   return (
     <div className={twMerge('flex flex-col gap-y-4', props.className)}>
@@ -83,7 +83,7 @@ export default function SecuritySettings(props: SecuritySettingsProps) {
           className="bg-transparent text-custom-gray-150 border border-white/20"
           placeholder="Confirm New password"
           name="confirmNewPassword"
-          onChange={e => setNewPassword(e.target.value)}
+          onChange={e => setConfirmNewPassword(e.target.value)}
           errorMessage={confirmNewPassword.length > 0 ? confirmNewPasswordError : undefined}
         />
       </div>
@@ -93,7 +93,7 @@ export default function SecuritySettings(props: SecuritySettingsProps) {
         disabled={
           isOldPasswordError || isNewPasswordError || isConfirmNewPasswordError || newPassword !== confirmNewPassword
         }
-        //onClick={() => updateUserProfile({ email } as UpdateProfileBody)}
+        onClick={() => updatePassword({ old_password: oldPassword, new_password: newPassword })}
       />
     </div>
   )

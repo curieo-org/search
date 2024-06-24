@@ -24,3 +24,8 @@ export type UpdateProfileBody = {
   title: string | undefined
   company: string | undefined
 }
+
+export type UpdatePasswordBody = {
+  old_password: string
+  new_password: string
+}
