@@ -23,7 +23,7 @@ export default function SettingsContent(props: SettingsContentProps) {
   }, [currentUser])
 
   return (
-    <div className={twMerge('max-w-[564px]', props.className)}>
+    <div className={twMerge('max-w-[564px] bg-white/2 rounded-2.5xl p-5', props.className)}>
       {activeTab === 'profile' ? <ProfileSettings /> : activeTab === 'security' ? <SecuritySettings /> : null}
     </div>
   )

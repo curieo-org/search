@@ -1,14 +1,17 @@
+import { emailErrorMessage } from '@/constants/messages'
+import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useUpdateUserProfileMutation } from '@/queries/settings/update-user-profile-mutation'
 import { useSettingsStore } from '@/stores/settings/settings-store'
 import { UpdateProfileBody } from '@/types/settings'
 import _ from 'lodash'
 import { useSession } from 'next-auth/react'
 import { HTMLAttributes, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
+import { z } from 'zod'
 import { Button } from '../lib/button'
 import { P, Span } from '../lib/typography'
 import EditableProfileInfo from './editable-profile-info'
-import { toast } from 'react-toastify'
 
 type ProfileSettingsProps = HTMLAttributes<HTMLDivElement> & {}
 
@@ -20,6 +23,10 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
     setCurrentUser,
     setEditedUserInfo,
   } = useSettingsStore()
+  const { errorMessage: emailError, isError: isEmailError } = useInputValidation(
+    editedUser.email,
+    z.string().email({ message: emailErrorMessage })
+  )
 
   useEffect(() => {
     if (isError) {
@@ -50,7 +57,13 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
           alt="user image"
         />
       </div>
-      <div className="flex flex-col gap-y-4">
+      <div className="flex flex-col gap-y-3">
+        <EditableProfileInfo
+          label="Email"
+          value={editedUser.email ?? ''}
+          setValue={event => setEditedUserInfo('email', event.target.value)}
+          errorMessage={editedUser.email.length > 0 ? emailError : undefined}
+        />
         <EditableProfileInfo
           label="User name"
           value={editedUser.username ?? ''}
@@ -72,9 +85,9 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
           setValue={event => setEditedUserInfo('company', event.target.value)}
         />
         <Button
-          className="w-full h-10 rounded-md bg-transparent hover:bg-white/5 border border-white/10"
+          className="w-full h-8 text-xs xl:text-sm rounded-md bg-transparent hover:bg-white/5 border border-white/10 mt-2"
           label="Save"
-          disabled={!isEdited}
+          disabled={!isEdited || isEmailError}
           onClick={() => updateUserProfile(_.omitBy(editedUser, _.isNil) as UpdateProfileBody)}
         />
       </div>

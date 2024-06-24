@@ -1,4 +1,4 @@
-import { emailErrorMessage } from '@/constants/messages'
+import { emailErrorMessage, passwordErrorMessage } from '@/constants/messages'
 import { useInputValidation } from '@/hooks/form/use-input-validation'
 import { useFetchUserProfile } from '@/queries/settings/fetch-user-profile-query'
 import { useUpdateUserProfileMutation } from '@/queries/settings/update-user-profile-mutation'
@@ -8,37 +8,40 @@ import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
 import { z } from 'zod'
 import { Button } from '../lib/button'
+import { PasswordInput } from '../lib/form'
 import { P, Span } from '../lib/typography'
-import EditableProfileInfo from './editable-profile-info'
 
 type SecuritySettingsProps = HTMLAttributes<HTMLDivElement> & {}
 
 export default function SecuritySettings(props: SecuritySettingsProps) {
-  const { mutate: updateUserProfile, isError, isSuccess } = useUpdateUserProfileMutation()
-  const { data: currentUser } = useFetchUserProfile()
-  const [email, setEmail] = useState('')
-  const { errorMessage: emailError, isError: isEmailError } = useInputValidation(
-    email,
-    z.string().email({ message: emailErrorMessage })
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+
+  const { errorMessage: oldPasswordError, isError: isOldPasswordError } = useInputValidation(
+    oldPassword,
+    z.string().min(6, { message: passwordErrorMessage })
+  )
+  const { errorMessage: newPasswordError, isError: isNewPasswordError } = useInputValidation(
+    newPassword,
+    z.string().min(6, { message: passwordErrorMessage })
+  )
+  const { errorMessage: confirmNewPasswordError, isError: isConfirmNewPasswordError } = useInputValidation(
+    confirmNewPassword,
+    z.string().min(6, { message: passwordErrorMessage })
   )
 
-  useEffect(() => {
-    if (currentUser) {
-      setEmail(currentUser.email)
-    }
-  }, [currentUser])
+  // useEffect(() => {
+  //   if (isError) {
+  //     toast.error('Failed to update email. Please try again later.')
+  //   }
+  // }, [isError])
 
-  useEffect(() => {
-    if (isError) {
-      toast.error('Failed to update email. Please try again later.')
-    }
-  }, [isError])
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success('User email updated successfully.')
-    }
-  }, [isSuccess])
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     toast.success('User email updated successfully.')
+  //   }
+  // }, [isSuccess])
 
   return (
     <div className={twMerge('flex flex-col gap-y-4', props.className)}>
@@ -51,17 +54,46 @@ export default function SecuritySettings(props: SecuritySettingsProps) {
           </P>
         </div>
       </div>
-      <EditableProfileInfo
-        label="Email"
-        value={email}
-        setValue={event => setEmail(event.target.value)}
-        errorMessage={email.length > 0 ? emailError : undefined}
-      />
+      <div>
+        <Span className="text-sm text-custom-gray-50">Old Password</Span>
+        <PasswordInput
+          containerClass="mt-2"
+          className="bg-transparent text-custom-gray-150 border border-white/20"
+          placeholder="Old password"
+          name="oldPassword"
+          onChange={e => setOldPassword(e.target.value)}
+          errorMessage={oldPassword.length > 0 ? oldPasswordError : undefined}
+        />
+      </div>
+      <div>
+        <Span className="text-sm text-custom-gray-50">New Password</Span>
+        <PasswordInput
+          containerClass="mt-2"
+          className="bg-transparent text-custom-gray-150 border border-white/20"
+          placeholder="New password"
+          name="newPassword"
+          onChange={e => setNewPassword(e.target.value)}
+          errorMessage={newPassword.length > 0 ? newPasswordError : undefined}
+        />
+      </div>
+      <div>
+        <Span className="text-sm text-custom-gray-50">Confirm New Password</Span>
+        <PasswordInput
+          containerClass="mt-2"
+          className="bg-transparent text-custom-gray-150 border border-white/20"
+          placeholder="Confirm New password"
+          name="confirmNewPassword"
+          onChange={e => setNewPassword(e.target.value)}
+          errorMessage={confirmNewPassword.length > 0 ? confirmNewPasswordError : undefined}
+        />
+      </div>
       <Button
         className="w-full h-10 rounded-md bg-transparent hover:bg-white/5 border border-white/10"
         label="Save"
-        disabled={currentUser?.email === email || isEmailError}
-        onClick={() => updateUserProfile({ email } as UpdateProfileBody)}
+        disabled={
+          isOldPasswordError || isNewPasswordError || isConfirmNewPasswordError || newPassword !== confirmNewPassword
+        }
+        //onClick={() => updateUserProfile({ email } as UpdateProfileBody)}
       />
     </div>
   )

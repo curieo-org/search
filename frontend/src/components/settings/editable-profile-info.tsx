@@ -15,8 +15,8 @@ export default function EditableProfileInfo(props: EditableProfileInfoProps) {
     <div className={twMerge('', props.className)}>
       <Span className="text-sm text-custom-gray-50">{props.label}</Span>
       <Input
-        containerClass="mt-4"
-        className="bg-transparent text-custom-gray-150 border border-white/20"
+        containerClass="mt-2"
+        className="bg-transparent text-custom-gray-150 border border-white/20 h-10"
         value={props.value}
         onChange={props.setValue}
         errorMessage={props.errorMessage}

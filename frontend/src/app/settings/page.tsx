@@ -6,11 +6,11 @@ export default function Settings() {
   return (
     <div className="w-full mt-10 flex justify-center items-center">
       <div className="flex gap-x-12">
-        <SettingsNavmenu className="h-36" />
-        <div className="flex flex-col bg-white/2 rounded-2.5xl p-5">
-          <SettingsContent />
+        <div className="bg-white/2 rounded-2.5xl p-5 h-56">
+          <SettingsNavmenu />
           <LogoutSection className="mt-8" />
         </div>
+        <SettingsContent />
       </div>
     </div>
   )

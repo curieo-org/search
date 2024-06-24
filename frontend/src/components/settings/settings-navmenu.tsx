@@ -15,7 +15,7 @@ export default function SettingsNavmenu(props: SettingsNavmenuProps) {
   } = useSettingsStore()
 
   return (
-    <div className={twMerge('bg-white/2 rounded-2.5xl flex flex-col gap-y-5 p-5', props.className)}>
+    <div className={twMerge('flex flex-col gap-y-5', props.className)}>
       <Button
         className={classNames('w-52 h-10 rounded-2.5xl bg-transparent hover:bg-white/5 border', {
           'border-white/10': activeTab === 'security',
