@@ -10,6 +10,6 @@ spec:
     - hosts:
         - search.{{ .Values.service.dns_zone }}
       port:
-        name: http
-        number: 80
+        name: https
+        number: 443
         protocol: HTTP
