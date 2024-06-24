@@ -1,20 +1,38 @@
+import { useUpdateUserProfileMutation } from '@/queries/settings/update-user-profile-mutation'
 import { useSettingsStore } from '@/stores/settings/settings-store'
+import { UpdateProfileBody } from '@/types/settings'
+import _ from 'lodash'
 import { useSession } from 'next-auth/react'
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { Button } from '../lib/button'
 import { P, Span } from '../lib/typography'
 import EditableProfileInfo from './editable-profile-info'
-import { Button } from '../lib/button'
-import classNames from 'classnames'
+import { toast } from 'react-toastify'
 
 type ProfileSettingsProps = HTMLAttributes<HTMLDivElement> & {}
 
 export default function ProfileSettings(props: ProfileSettingsProps) {
   const { data: session } = useSession()
+  const { mutate: updateUserProfile, isError, isSuccess } = useUpdateUserProfileMutation()
   const {
-    state: { editedUser, isEdited },
+    state: { editedUser, currentUser, isEdited },
+    setCurrentUser,
     setEditedUserInfo,
   } = useSettingsStore()
+
+  useEffect(() => {
+    if (isError) {
+      setCurrentUser(currentUser)
+      toast.error('Failed to update profile. Please try again later.')
+    }
+  }, [isError])
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('User profile updated successfully.')
+    }
+  }, [isSuccess])
 
   return (
     <div className={twMerge('', props.className)}>
@@ -34,6 +52,11 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
       </div>
       <div className="flex flex-col gap-y-4">
         <EditableProfileInfo
+          label="User name"
+          value={editedUser.username ?? ''}
+          setValue={event => setEditedUserInfo('username', event.target.value)}
+        />
+        <EditableProfileInfo
           label="Full name"
           value={editedUser.fullname ?? ''}
           setValue={event => setEditedUserInfo('fullname', event.target.value)}
@@ -52,6 +75,7 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
           className="w-full h-10 rounded-md bg-transparent hover:bg-white/5 border border-white/10"
           label="Save"
           disabled={!isEdited}
+          onClick={() => updateUserProfile(_.omitBy(editedUser, _.isNil) as UpdateProfileBody)}
         />
       </div>
     </div>

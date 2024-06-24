@@ -15,3 +15,12 @@ export const emptyUser = {
   title: null,
   company: null,
 }
+
+export type UpdateProfileBody = {
+  user_id: string | undefined
+  email: string | undefined
+  username: string | undefined
+  fullname: string | undefined
+  title: string | undefined
+  company: string | undefined
+}
