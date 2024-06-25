@@ -12,6 +12,7 @@ create table users (
     fullname        varchar(50),
     title           varchar(50),
     company         varchar(50),
+    user_group      integer                                not null default 0,
     password_hash   text,
     access_token    text,
     created_at      timestamptz                            not null default now(),

@@ -9,6 +9,21 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::time;
 use std::fmt::Debug;
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum UserGroup {
+  Alpha,
+  Beta,
+}
+
+impl From<i32> for UserGroup {
+  fn from(value: i32) -> Self {
+      match value {
+          0 => UserGroup::Alpha,
+          _ => UserGroup::Beta,
+      }
+  }
+}
+
 #[derive(sqlx::FromRow, Serialize, Clone, Debug)]
 pub struct UserRecord {
     pub user_id: uuid::Uuid,
@@ -17,6 +32,7 @@ pub struct UserRecord {
     pub fullname: Option<String>,
     pub title: Option<String>,
     pub company: Option<String>,
+    pub user_group: UserGroup,
 }
 
 impl From<User> for UserRecord {
@@ -28,6 +44,7 @@ impl From<User> for UserRecord {
             fullname: user.fullname,
             title: user.title,
             company: user.company,
+            user_group: user.user_group,
         }
     }
 }
@@ -40,6 +57,7 @@ pub struct User {
     pub fullname: Option<String>,
     pub title: Option<String>,
     pub company: Option<String>,
+    pub user_group: UserGroup,
     pub password_hash: Secret<Option<String>>,
     pub access_token: Secret<Option<String>>,
 
