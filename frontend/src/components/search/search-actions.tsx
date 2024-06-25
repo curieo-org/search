@@ -72,10 +72,10 @@ export default function SearchActions(props: SearchActionsProps) {
         }
         onClick={handleCopyResponse}
       />
-      <IconButton
+      {/* <IconButton
         className={buttonClassname}
         icon={<RefreshIcon size={14} className={iconClassName.deafult} onClick={handleReload} />}
-      />
+      /> */}
     </div>
   )
 }
