@@ -13,7 +13,7 @@ export default function SearchResponse(props: SearchResponseProps) {
       {props.response.split('\\n').map((paragraph, index) => (
         <P
           className="pr-4 text-sm text-white/80"
-          style={{ animation: `fade-in ${1 + index}s` }}
+          style={{ animation: `fade-in ${Math.min(1 + index * 0.5, 5)}s` }}
           key={`response-paragraph-${index}`}
         >
           {paragraph}
