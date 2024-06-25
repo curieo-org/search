@@ -8,8 +8,8 @@ spec:
     istio: ingressgateway
   servers:
     - hosts:
-        - {{ .Release.Name }}.{{ .Values.service.dns_zone }}
+        - search.{{ .Values.service.dns_zone }}
       port:
-        name: http
-        number: 80
+        name: https
+        number: 443
         protocol: HTTP
