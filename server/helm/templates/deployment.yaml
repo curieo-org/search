@@ -20,6 +20,15 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      serviceAccount: {{ .Release.Name }}
+      serviceAccountName: {{ .Release.Name }}
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ .Release.Name }}
       containers:
       - env:
         - name: DB_USERNAME
@@ -118,6 +127,10 @@ spec:
             containerPort: {{ .Values.service.port }}
             protocol: TCP
         name: {{ .Release.Name }}
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
         resources:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
