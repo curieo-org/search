@@ -46,9 +46,11 @@ export const useSearchQuery = (
           break
         }
 
+        const SPLIT_PREFIX_LEN = 6 // length of data : is 6
+
         // TODO: split by data : and maintain a string buffer. To handle the case when data : is in value
         const text = decoder.decode(value, { stream: true })
-        const newData: SearchByIdResponse = JSON.parse(text.slice(6))
+        const newData: SearchByIdResponse = JSON.parse(text.slice(SPLIT_PREFIX_LEN))
         setData(prevData => [...prevData, newData])
       }
     } catch (error) {
