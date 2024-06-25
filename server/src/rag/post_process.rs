@@ -1,8 +1,10 @@
 use crate::llms::summarizer;
-use crate::llms::SummarizerSettings;
 use crate::proto::Embeddings;
 use crate::rag::utils;
 use crate::search::api_models;
+use crate::settings::Settings;
+use rand::Rng;
+use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
@@ -36,22 +38,39 @@ pub async fn rerank_search_results(
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn summarize_search_results(
-    settings: SummarizerSettings,
+    settings: Settings,
     search_query_request: api_models::SearchQueryRequest,
     search_response: String,
     update_processor: api_models::UpdateResultProcessor,
+    stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
-    summarizer::generate_text_stream(
-        settings,
-        summarizer::SummarizerInput {
-            query: search_query_request.query,
-            retrieved_result: search_response,
-        },
-        update_processor,
-        tx,
-    )
-    .await?;
+    let random_number = rand::thread_rng().gen_range(0.0..1.0);
+
+    if random_number < settings.search.beta_usage_ratio {
+        summarizer::generate_text_with_llm(
+            settings.summarizer,
+            summarizer::SummarizerInput {
+                query: search_query_request.query,
+                retrieved_result: search_response,
+            },
+            update_processor,
+            tx,
+        )
+        .await?;
+    } else {
+        summarizer::generate_text_with_openai(
+            settings.openai,
+            summarizer::SummarizerInput {
+                query: search_query_request.query,
+                retrieved_result: search_response,
+            },
+            update_processor,
+            stream_regex,
+            tx,
+        )
+        .await?;
+    }
 
     Ok(())
 }

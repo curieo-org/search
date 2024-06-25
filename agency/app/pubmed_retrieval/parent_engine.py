@@ -66,7 +66,7 @@ class ParentRetrievalEngine:
             return []
 
         extracted_nodes = await self.parent_retriever.aretrieve(query)
-        if extracted_nodes:
+        if not extracted_nodes:
             return []
 
         filtered_nodes = [
@@ -75,7 +75,7 @@ class ParentRetrievalEngine:
             if n.score >= float(self.parent_relevance_criteria)
         ]
 
-        if not len(filtered_nodes):
+        if not filtered_nodes:
             return []
         pubmed_ids = [node.metadata.get("pubmedid", 0) for node in filtered_nodes]
         pubmed_titles = await self.pubmed_database.get_pubmed_record_titles(pubmed_ids)

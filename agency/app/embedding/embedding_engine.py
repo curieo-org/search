@@ -56,7 +56,7 @@ class EmbeddingEngine:
 
     async def query_process(self, search_text: str) -> CurieoQueryBundle:
         logger.info(f"query_process. search_text: {search_text}")
-        if not len(search_text):
+        if not search_text:
             return None
 
         try:

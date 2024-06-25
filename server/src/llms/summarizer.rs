@@ -1,6 +1,9 @@
+use crate::llms::OpenAISettings;
 use crate::search::api_models;
 use color_eyre::eyre::eyre;
 use futures::StreamExt;
+use regex::Regex;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
@@ -46,7 +49,7 @@ pub struct SummarizerStreamOutput {
     pub generated_text: Option<String>,
 }
 
-fn prepare_context_string(
+fn prepare_llm_context_string(
     settings: &SummarizerSettings,
     summarizer_input: SummarizerInput,
 ) -> SummarizerAPIInput {
@@ -55,7 +58,7 @@ fn prepare_context_string(
         The solution draft follows the format \"Thought, Action, Action Input, Observation\", where the 'Thought' statements describe a reasoning sequence. The rest of the text is information obtained to complement the reasoning sequence, and it is 100% accurate OR you can use a single \"Final Answer\" format.
         Your task is to write an answer to the question based on the solution draft, and the following guidelines:
         The text should have an educative and assistant-like tone, be accurate, follow the same reasoning sequence than the solution draft and explain how any conclusion is reached.
-        Question: {}\n\nSolution draft: {}\n\nAnswer:", summarizer_input.retrieved_result, summarizer_input.query),
+        Question: {}\n\nSolution draft: {}\n\nAnswer:", summarizer_input.query, summarizer_input.retrieved_result),
         parameters: SummarizerParams {
             model: Some(settings.model.clone()),
             max_new_tokens: Some(settings.max_new_tokens.clone()),
@@ -66,13 +69,13 @@ fn prepare_context_string(
 }
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn generate_text_stream(
+pub async fn generate_text_with_llm(
     settings: SummarizerSettings,
     summarizer_input: SummarizerInput,
     update_processor: api_models::UpdateResultProcessor,
     tx: Sender<api_models::SearchByIdResponse>,
 ) -> crate::Result<()> {
-    let summarizer_input = prepare_context_string(&settings, summarizer_input);
+    let summarizer_input = prepare_llm_context_string(&settings, summarizer_input);
     let client = Client::new();
 
     let response = client
@@ -87,6 +90,7 @@ pub async fn generate_text_stream(
         return Err(eyre!("Request failed with status: {:?}", response.status()).into());
     }
     let mut stream = response.bytes_stream();
+    let mut buffer = String::new();
 
     while let Some(chunk) = stream.next().await {
         // remove `data` from the start of the chunk and `\n\n` from the end
@@ -101,14 +105,133 @@ pub async fn generate_text_stream(
                 .process(summarizer_api_response.token.text.clone())
                 .await
                 .map_err(|e| eyre!("Failed to update result: {e}"))?;
-            search.result = summarizer_api_response.token.text;
 
-            tx.send(api_models::SearchByIdResponse {
+            buffer.push_str(&summarizer_api_response.token.text);
+            search.result = buffer.clone();
+            let tx_response = tx
+                .send(api_models::SearchByIdResponse {
+                    search,
+                    sources: vec![],
+                })
+                .await;
+
+            if let Ok(_) = tx_response {
+                buffer.clear();
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn prepare_openai_input(
+    settings: &OpenAISettings,
+    summarizer_input: SummarizerInput,
+) -> serde_json::Value {
+    let system_role = "You are a summarizer AI. In this exercise you will assume the role of a scientific medical assistant. Your task is to answer the provided question as best as you can, based on the provided solution draft.
+    The solution draft follows the format \"Thought, Action, Action Input, Observation\", where the 'Thought' statements describe a reasoning sequence. The rest of the text is information obtained to complement the reasoning sequence, and it is 100% accurate OR you can use a single \"Final Answer\" format.
+    Your task is to write an answer to the question based on the solution draft, and the following guidelines:
+    The text should have an educative and assistant-like tone, be accurate, follow the same reasoning sequence than the solution draft and explain how any conclusion is reached.
+    Question: {}\n\nSolution draft: {}\n\nAnswer: ";
+
+    let user_input = format!(
+        "Question: {}\n\nSolution draft: {}",
+        summarizer_input.query, summarizer_input.retrieved_result
+    );
+
+    serde_json::json!({
+        "model": settings.model,
+        "stream": true,
+        "messages": [
+            {
+                "role": "system",
+                "content": system_role
+            },
+            {
+                "role": "user",
+                "content": user_input
+            }
+        ]
+    })
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn generate_text_with_openai(
+    settings: OpenAISettings,
+    summarizer_input: SummarizerInput,
+    update_processor: api_models::UpdateResultProcessor,
+    stream_regex: Regex,
+    tx: Sender<api_models::SearchByIdResponse>,
+) -> crate::Result<()> {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        HeaderName::from_bytes(b"Authorization")
+            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+        HeaderValue::from_str(settings.api_key.expose())
+            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+    );
+
+    let client = Client::new();
+    let summarizer_input = prepare_openai_input(&settings, summarizer_input);
+
+    let response = client
+        .post(settings.api_url.as_str())
+        .json(&summarizer_input)
+        .headers(headers)
+        .send()
+        .await
+        .map_err(|e| eyre!("Request to summarizer failed: {e}"))?;
+
+    // stream the response
+    if !response.status().is_success() {
+        return Err(eyre!("Request failed with status: {:?}", response.status()).into());
+    }
+
+    let mut stream = response.bytes_stream();
+    let mut stream_data = String::new();
+    let mut buffer = String::new();
+
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
+        stream_data.push_str(&String::from_utf8_lossy(&chunk));
+
+        let parsed_chunk = stream_regex
+            .captures_iter(&stream_data)
+            .map(|c| c[1].to_string())
+            .collect::<Vec<String>>()
+            .join("");
+
+        let last_index = stream_regex
+            .captures_iter(&stream_data)
+            .last()
+            .map(|c| {
+                if let Some(m) = c.get(0) {
+                    return Some(m.end());
+                }
+                None
+            })
+            .unwrap_or(None);
+
+        if let Some(last_index) = last_index {
+            stream_data = stream_data.split_off(last_index);
+        }
+
+        let mut search = update_processor
+            .process(parsed_chunk.clone())
+            .await
+            .map_err(|e| eyre!("Failed to update result: {e}"))?;
+
+        buffer.push_str(&parsed_chunk);
+        search.result = buffer.clone();
+        let tx_response = tx
+            .send(api_models::SearchByIdResponse {
                 search,
                 sources: vec![],
             })
-            .await
-            .map_err(|e| eyre!("Failed to send response: {e}"))?;
+            .await;
+
+        if let Ok(_) = tx_response {
+            buffer.clear();
         }
     }
 
