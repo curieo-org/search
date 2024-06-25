@@ -115,17 +115,17 @@ async fn oauth_authenticate(
         .map_err(BackendError::Reqwest)?;
 
     // Persist user in our database, so we can use `get_user`.
-    let user = sqlx::query_as(
-        r#"
+    let user = sqlx::query_as!(User,
+        "
         insert into users (username, access_token)
-        values (?, ?)
+        values ($1, $2)
         on conflict(username) do update
         set access_token = excluded.access_token
         returning *
-        "#,
+        ",
+        user_info.login,
+        token_res.access_token().secret()
     )
-    .bind(user_info.login)
-    .bind(token_res.access_token().secret())
     .fetch_one(db)
     .await
     .map_err(BackendError::Sqlx)?;
