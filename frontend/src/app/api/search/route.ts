@@ -2,8 +2,6 @@ import { curieoFetch } from '@/actions/fetch'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (req: NextRequest) => {
-  console.log('here')
-  console.log('req', req)
   const { searchParams } = new URL(req.url)
   const searchQuery = searchParams.get('searchQuery')
   const threadId = searchParams.get('threadId')
@@ -41,11 +39,10 @@ export const GET = async (req: NextRequest) => {
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
 
-    pump(reader!, writer).catch(err => console.error('Streaming error:', err))
+    pump(reader!, writer).catch(err => err)
 
     return new NextResponse(readable, { headers })
   } catch (error) {
-    console.error('Error fetching data from external API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

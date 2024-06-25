@@ -44,14 +44,11 @@ export const useSearchQuery = (
         lines.forEach(line => {
           if (line.startsWith('data: ')) {
             const newData: SearchByIdResponse = JSON.parse(line.slice(6))
-            console.log(new Date().getTime() - timeNow.getTime())
-            //console.log(newData)
             setData(prevData => [...prevData, newData])
           }
         })
       }
     } catch (error) {
-      console.error('Fetch stream error:', error)
       setIsError(true)
       setIsStreaming(false)
     }

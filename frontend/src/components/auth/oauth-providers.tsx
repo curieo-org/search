@@ -5,7 +5,7 @@ import GoogleIcon from '@/components/icons/google'
 
 export default function OAuthProviders() {
   const handleContinueWithGoogle = () => {
-    console.log('CLICKED!')
+    //console.log('CLICKED!')
   }
   return (
     <Button
