@@ -6,9 +6,11 @@ POSTHOG_KEY = <POSTHOG_API_KEY>
 POSTHOG_API_HOST = <FRONTEND_URL>/ingest
 POSTHOG_UI_HOST = https://app.posthog.com
 API_URL = <BACKEND_URL>
+AUTH_URL = <FRONTEND_URL>
+AUTH_SECRET = <base64 32 bit secret string>
 
 ecr_deploy: login
-	docker buildx build --platform linux/amd64 --build-arg POSTHOG_KEY=$(POSTHOG_KEY) --build-arg POSTHOG_API_HOST=$(POSTHOG_API_HOST) --build-arg POSTHOG_UI_HOST=$(POSTHOG_UI_HOST) --build-arg API_URL=$(API_URL) -t $(Image) .
+	docker buildx build --platform linux/amd64 --build-arg POSTHOG_KEY=$(POSTHOG_KEY) --build-arg POSTHOG_API_HOST=$(POSTHOG_API_HOST) --build-arg POSTHOG_UI_HOST=$(POSTHOG_UI_HOST) --build-arg API_URL=$(API_URL) --build-arg AUTH_URL=${AUTH_URL} --build-arg AUTH_SECRET=${AUTH_SECRET} -t $(Image) .
 	docker tag $(Image) $(ECR):$(TAG)
 	docker push $(ECR):$(TAG)
 

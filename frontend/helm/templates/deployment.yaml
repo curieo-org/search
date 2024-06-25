@@ -24,9 +24,13 @@ spec:
         - name: NEXT_PUBLIC_POSTHOG_KEY
           value: phc_Qau6pGkA8BXUr7JuDxgALufZqhxMKAk9UVGY4UFQyXu
         - name: NEXT_PUBLIC_POSTHOG_API_HOST
-          value: https://search-fronrend.search.svc.cluster.local:3000/ingest
+          value: https://search.curieo.ai/ingest
         - name: NEXT_PUBLIC_API_URL
-          value: http://search-server.search.svc.cluster.local:3030        
+          value: http://search-server.search.svc.cluster.local:3030   
+        - name: AUTH_URL
+          value: https://search.curieo.ai
+        - name: AUTH_SECRET
+          value: 05mk7ukF/GSG1dHLYVp04Mxa49slQb2W3N9v1aMcRTM=
         name: search-{{ .Release.Name }}
         ports:
         - containerPort: {{ .Values.service.port }}
