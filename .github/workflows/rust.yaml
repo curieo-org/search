@@ -1,0 +1,38 @@
+name: Rust CI
+
+on: push
+
+defaults:
+  run:
+    working-directory: server
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  RUSTFLAGS: "-D warnings"
+  RUSTUP_MAX_RETRIES: 10
+
+jobs:
+  coverage-and-linting:
+    name: Test coverage & linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: ./.github/actions/toolchain-cargo-cached
+        with:
+          components: llvm-tools-preview, rustfmt, clippy
+          crates: cargo-llvm-cov
+
+      - name: Tests & coverage
+        run: cargo llvm-cov test --no-fail-fast --workspace
+
+      - name: Linting rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Linting clippy
+        run: cargo clippy --
