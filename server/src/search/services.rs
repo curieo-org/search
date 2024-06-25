@@ -10,7 +10,7 @@ pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
     search_query_request: &api_models::SearchQueryRequest,
-    rephrased_query: &String,
+    rephrased_query: &str,
 ) -> crate::Result<data_models::Search> {
     let thread = match search_query_request.thread_id {
         Some(thread_id) => {

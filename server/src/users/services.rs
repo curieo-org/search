@@ -1,5 +1,5 @@
-use crate::secrets::Secret;
 use crate::auth::utils::hash_password;
+use crate::secrets::Secret;
 use crate::users::models;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -11,8 +11,8 @@ pub async fn update_profile(
     update_profile_request: models::UpdateProfileRequest,
 ) -> crate::Result<models::User> {
     let user = sqlx::query_as!(
-      models::User,
-      "
+        models::User,
+        "
       update users
       set
         username = coalesce($1::text, username),
@@ -22,19 +22,18 @@ pub async fn update_profile(
         company = coalesce($5::text, company)
       where user_id = $6 returning *
       ",
-      update_profile_request.username,
-      update_profile_request.email,
-      update_profile_request.fullname,
-      update_profile_request.title,
-      update_profile_request.company,
-      user_id,
+        update_profile_request.username,
+        update_profile_request.email,
+        update_profile_request.fullname,
+        update_profile_request.title,
+        update_profile_request.company,
+        user_id,
     )
     .fetch_one(pool)
     .await?;
 
     return Ok(user);
 }
-
 
 #[tracing::instrument(level = "debug", ret, err)]
 pub async fn update_password(
@@ -44,10 +43,10 @@ pub async fn update_password(
 ) -> crate::Result<()> {
     let password_hash = hash_password(password).await?;
     sqlx::query_as!(
-      User,
-      "update users set password_hash = $1 where user_id = $2",
-      password_hash.expose(),
-      user_id
+        User,
+        "update users set password_hash = $1 where user_id = $2",
+        password_hash.expose(),
+        user_id
     )
     .execute(pool)
     .await?;

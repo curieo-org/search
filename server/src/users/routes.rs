@@ -1,14 +1,14 @@
-use crate::auth::AuthSession;
 use crate::auth::utils::verify_user_password;
+use crate::auth::AuthSession;
 use crate::err::AppError;
 use crate::startup::AppState;
-use crate::users::{User, UserRecord, models, services};
-use color_eyre::eyre::eyre;
+use crate::users::{models, services, User, UserRecord};
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, patch};
-use axum::extract::State;
 use axum::{Form, Json, Router};
+use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
@@ -25,11 +25,11 @@ async fn get_user_handler(auth_session: AuthSession) -> crate::Result<Json<UserR
 async fn update_profile_handler(
     State(pool): State<PgPool>,
     user: User,
-    Json(update_profile_request): Json<models::UpdateProfileRequest>
-) -> crate::Result<Json<UserRecord>>  {
+    Json(update_profile_request): Json<models::UpdateProfileRequest>,
+) -> crate::Result<Json<UserRecord>> {
     let user_id = user.user_id;
     if !update_profile_request.has_any_value() {
-        return Err(eyre!("At least one field has to be updated.").into())
+        return Err(eyre!("At least one field has to be updated.").into());
     }
     let updated_user = services::update_profile(&pool, &user_id, update_profile_request).await?;
 
@@ -40,21 +40,23 @@ async fn update_profile_handler(
 async fn update_password_handler(
     State(pool): State<PgPool>,
     user: User,
-    Form(update_password_request): Form<models::UpdatePasswordRequest>
-) -> crate::Result<impl IntoResponse>  {
+    Form(update_password_request): Form<models::UpdatePasswordRequest>,
+) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
-    if update_password_request.old_password.expose() == update_password_request.new_password.expose() {
+    if update_password_request.old_password.expose()
+        == update_password_request.new_password.expose()
+    {
         return Err(eyre!("Old and new password can not be the same.").into());
     }
 
     match verify_user_password(Some(user), update_password_request.old_password) {
         Ok(Some(_user)) => {
-            services::update_password(&pool, &user_id, update_password_request.new_password).await?;
+            services::update_password(&pool, &user_id, update_password_request.new_password)
+                .await?;
             Ok((StatusCode::OK, ()))
-        },
-        _ => Err(eyre!("Failed to authenticate old password").into())
-        
+        }
+        _ => Err(eyre!("Failed to authenticate old password").into()),
     }
 }
 

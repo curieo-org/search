@@ -90,7 +90,7 @@ impl AppState {
             cache: CachePool::new(&settings.cache).await?,
             agency_service: agency_service_connect(settings.agency_api.expose()).await?,
             oauth2_clients: settings.oauth2_clients.clone(),
-            brave_config: brave_search::prepare_brave_api_config(&settings.brave),
+            brave_config: settings.brave.clone().into(),
             settings,
             openai_stream_regex: Regex::new(r#"\"content\":\"(.*?)\"}"#)
                 .map_err(|e| eyre!("Failed to compile OpenAI stream regex: {}", e))?,

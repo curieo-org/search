@@ -25,6 +25,54 @@ pub struct BraveAPIConfig {
     pub headers: HeaderMap<HeaderValue>,
 }
 
+impl From<BraveSettings> for BraveAPIConfig {
+    fn from(brave_settings: BraveSettings) -> Self {
+        let queries = vec![
+            (String::from("count"), brave_settings.count.to_string()),
+            (
+                String::from("goggles_id"),
+                brave_settings.goggles_id.clone(),
+            ),
+            (
+                String::from("result_filter"),
+                brave_settings.result_filter.clone(),
+            ),
+            (
+                String::from("search_lang"),
+                brave_settings.search_lang.clone(),
+            ),
+            (
+                String::from("extra_snippets"),
+                brave_settings.extra_snippets.to_string(),
+            ),
+            (
+                String::from("safesearch"),
+                brave_settings.safesearch.clone(),
+            ),
+        ];
+
+        let headers = HeaderMap::from_iter(
+            vec![
+                ("Accept", "application/json"),
+                ("Accept-Encoding", "gzip"),
+                (
+                    "X-Subscription-Token",
+                    brave_settings.subscription_key.expose(),
+                ),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    HeaderName::from_bytes(k.as_bytes()).unwrap(),
+                    HeaderValue::from_str(v).unwrap(),
+                )
+            }),
+        );
+
+        BraveAPIConfig { queries, headers }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BraveWebSearchResult {
     pub title: String,
@@ -44,52 +92,6 @@ struct BraveWebAPIResponse {
 #[derive(Debug, Serialize, Deserialize)]
 struct BraveAPIResponse {
     pub web: BraveWebAPIResponse,
-}
-
-pub fn prepare_brave_api_config(brave_settings: &BraveSettings) -> BraveAPIConfig {
-    let queries = vec![
-        (String::from("count"), brave_settings.count.to_string()),
-        (
-            String::from("goggles_id"),
-            brave_settings.goggles_id.clone(),
-        ),
-        (
-            String::from("result_filter"),
-            brave_settings.result_filter.clone(),
-        ),
-        (
-            String::from("search_lang"),
-            brave_settings.search_lang.clone(),
-        ),
-        (
-            String::from("extra_snippets"),
-            brave_settings.extra_snippets.to_string(),
-        ),
-        (
-            String::from("safesearch"),
-            brave_settings.safesearch.clone(),
-        ),
-    ];
-
-    let headers = HeaderMap::from_iter(
-        vec![
-            ("Accept", "application/json"),
-            ("Accept-Encoding", "gzip"),
-            (
-                "X-Subscription-Token",
-                brave_settings.subscription_key.expose(),
-            ),
-        ]
-        .into_iter()
-        .map(|(k, v)| {
-            (
-                HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                HeaderValue::from_str(v).unwrap(),
-            )
-        }),
-    );
-
-    BraveAPIConfig { queries, headers }
 }
 
 #[tracing::instrument(level = "debug", ret, err)]

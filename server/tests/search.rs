@@ -1,15 +1,11 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
 use server::cache::{CachePool, CacheSettings};
-use server::proto::{SearchResponse, Source};
+use server::rag::{search, SearchResponse, Source};
 use server::search::{
-    get_one_search_history, get_search_history, get_top_searches, insert_search_history, search,
-    update_search_reaction,
+    get_one_search, insert_new_search, update_search_reaction, SearchByIdRequest, SourceType,
 };
-use server::search::{
-    SearchHistoryByIdRequest, SearchHistoryRequest, SearchQueryRequest, SearchReactionRequest,
-    TopSearchRequest,
-};
+use server::search::{SearchQueryRequest, SearchReactionRequest};
 use server::settings::Settings;
 use server::startup::agency_service_connect;
 use server::Result;
@@ -24,35 +20,19 @@ async fn search_test() -> Result<()> {
         .await
         .unwrap();
     let cache = CachePool::new(&settings.cache).await?;
+    let brave_api_config = settings.brave.clone().into();
 
-    let search_query = SearchQueryRequest {
-        session_id: Some(Uuid::new_v4()),
-        query: "test".to_string(),
-    };
-
-    let search_result = search(&cache, &mut agency_service, &search_query).await;
+    let search_result = search(
+        &settings,
+        &brave_api_config,
+        &cache,
+        &mut agency_service,
+        "test",
+    )
+    .await;
 
     assert!(search_result.is_ok());
-    assert_eq!(search_result.unwrap().status, 200);
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn top_searches_test() -> Result<()> {
-    let cache_settings = CacheSettings {
-        url: "redis://127.0.0.1/".to_string().into(),
-        enabled: true,
-        ttl: 3600,
-        max_sorted_size: 100,
-    };
-    let cache = CachePool::new(&cache_settings).await?;
-
-    let top_search_query = TopSearchRequest { limit: Some(1) };
-
-    let top_searches_result = get_top_searches(&cache, &top_search_query).await;
-    assert!(top_searches_result.is_ok());
-    assert_eq!(top_searches_result.unwrap().len(), 1);
+    assert_eq!(search_result.unwrap().result, "");
 
     Ok(())
 }
@@ -75,14 +55,17 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
 
     let user_id = new_user.user_id;
     let search_query = SearchQueryRequest {
-        session_id: Some(Uuid::new_v4()),
-        query: "test_query".to_string(),
+        thread_id: Some(Uuid::new_v4()),
+        query: "test-query".to_string(),
     };
-    let search_response = SearchResponse {
-        status: 200,
-        result: "test_result".to_string(),
+    let rephrased_query = "test-rephrased-query";
+    let expected_response = SearchResponse {
+        result: "test-result".to_string(),
         sources: vec![Source {
-            url: "test_url".to_string(),
+            url: "test-url".to_string(),
+            title: "test-title".to_string(),
+            description: "test-description".to_string(),
+            source_type: SourceType::Pdf,
             metadata: HashMap::from([
                 ("test_key1".to_string(), "test_value1".to_string()),
                 ("test_key2".to_string(), "test_value2".to_string()),
@@ -91,40 +74,20 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
     };
 
     let search_insertion_result =
-        insert_search_history(&pool, &cache, &user_id, &search_query, &search_response).await;
+        insert_new_search(&pool, &user_id, &search_query, rephrased_query).await?;
 
-    assert!(search_insertion_result.is_ok());
-
-    let one_search_history_request = SearchHistoryByIdRequest {
-        search_history_id: search_insertion_result.unwrap().search_history_id,
+    let one_search_history_request = SearchByIdRequest {
+        search_id: search_insertion_result.search_id,
     };
 
-    let one_search_history_result =
-        get_one_search_history(&pool, &user_id, &one_search_history_request).await;
+    let actual_response = get_one_search(&pool, &user_id, &one_search_history_request).await?;
 
-    assert!(one_search_history_result.is_ok());
-    let one_search_history_result = one_search_history_result.unwrap();
-
-    assert_eq!(one_search_history_result.query, search_query.query);
-    assert_eq!(one_search_history_result.user_id, user_id);
-    assert_eq!(one_search_history_result.result, search_response.result);
-    assert_eq!(one_search_history_result.sources.0, search_response.sources);
-
-    let search_history_request = SearchHistoryRequest {
-        limit: Some(1),
-        offset: Some(0),
-    };
-
-    let search_history_result = get_search_history(&pool, &user_id, &search_history_request).await;
-
-    assert!(&search_history_result.is_ok());
-    let search_history_result = search_history_result.unwrap();
-
-    assert_eq!(&search_history_result.len(), &1);
-    assert_eq!(&search_history_result[0].query, &search_query.query);
-    assert_eq!(search_history_result[0].user_id, user_id);
-    assert_eq!(search_history_result[0].result, search_response.result);
-    assert_eq!(search_history_result[0].sources.0, search_response.sources);
+    assert_eq!(actual_response.search.query, search_query.query);
+    assert_eq!(actual_response.search.result, expected_response.result);
+    assert_eq!(actual_response.sources.len(), 1);
+    let actual_source = actual_response.sources[0].clone();
+    let expected_source = expected_response.sources[0].clone();
+    assert_eq!(actual_source.title, expected_source.title);
 
     Ok(())
 }
@@ -147,42 +110,36 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
 
     let user_id = new_user.user_id;
     let search_query = SearchQueryRequest {
-        session_id: None,
-        query: "test_query".to_string(),
+        thread_id: Some(Uuid::new_v4()),
+        query: "test-query".to_string(),
     };
-    let search_response = SearchResponse {
-        status: 200,
-        result: "test_result".to_string(),
+    let rephrased_query = "test-rephrased-query";
+    let expected_response = SearchResponse {
+        result: "test-result".to_string(),
         sources: vec![Source {
-            url: "test_url".to_string(),
+            url: "test-url".to_string(),
+            title: "test-title".to_string(),
+            description: "test-description".to_string(),
+            source_type: SourceType::Pdf,
             metadata: HashMap::from([
                 ("test_key1".to_string(), "test_value1".to_string()),
                 ("test_key2".to_string(), "test_value2".to_string()),
             ]),
         }],
     };
-
     let search_insertion_result =
-        insert_search_history(&pool, &cache, &user_id, &search_query, &search_response).await;
-
-    assert!(search_insertion_result.is_ok());
-    let search_insertion_result = search_insertion_result.unwrap();
+        insert_new_search(&pool, &user_id, &search_query, rephrased_query).await?;
 
     let search_reaction_request = SearchReactionRequest {
-        search_history_id: search_insertion_result.search_history_id,
+        search_id: search_insertion_result.search_id,
         reaction: true,
     };
 
     let search_reaction_result =
-        update_search_reaction(&pool, &user_id, &search_reaction_request).await;
-
-    assert!(&search_reaction_result.is_ok());
-    let search_reaction_result = search_reaction_result.unwrap();
+        update_search_reaction(&pool, &user_id, &search_reaction_request).await?;
 
     assert_eq!(&search_reaction_result.query, &search_query.query);
-    assert_eq!(&search_reaction_result.user_id, &user_id);
-    assert_eq!(&search_reaction_result.result, &search_response.result);
-    assert_eq!(&search_reaction_result.sources.0, &search_response.sources);
+    assert_eq!(&search_reaction_result.result, &expected_response.result);
     assert_eq!(
         search_reaction_result.reaction.unwrap(),
         search_reaction_request.reaction

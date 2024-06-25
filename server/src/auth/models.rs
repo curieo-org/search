@@ -115,7 +115,8 @@ async fn oauth_authenticate(
         .map_err(BackendError::Reqwest)?;
 
     // Persist user in our database, so we can use `get_user`.
-    let user = sqlx::query_as!(User,
+    let user = sqlx::query_as!(
+        User,
         "
         insert into users (username, access_token)
         values ($1, $2)

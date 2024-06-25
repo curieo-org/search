@@ -6,7 +6,10 @@ use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn register(pool: PgPool, request: models::RegisterUserRequest) -> crate::Result<UserRecord> {
+pub async fn register(
+    pool: PgPool,
+    request: models::RegisterUserRequest,
+) -> crate::Result<UserRecord> {
     if let Some(password) = request.password {
         let password_hash = utils::hash_password(password).await?;
         let user = sqlx::query_as!(
@@ -49,12 +52,16 @@ pub async fn register(pool: PgPool, request: models::RegisterUserRequest) -> cra
 }
 
 pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> crate::Result<bool> {
-    let whitelisted_email = sqlx::query_as!(models::WhitelistedEmail, "SELECT * FROM whitelisted_emails WHERE email = $1", email)
+    let whitelisted_email = sqlx::query_as!(
+        models::WhitelistedEmail,
+        "SELECT * FROM whitelisted_emails WHERE email = $1",
+        email
+    )
     .fetch_one(pool)
     .await;
 
     match whitelisted_email {
         Ok(whitelisted_email) => Ok(whitelisted_email.approved),
-        _ => Ok(false)
+        _ => Ok(false),
     }
- }
+}

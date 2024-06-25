@@ -11,19 +11,19 @@ use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum UserGroup {
-  Alpha,
-  Beta,
-  Public,
+    Alpha,
+    Beta,
+    Public,
 } // Move Public to top before public release
 
 impl From<i32> for UserGroup {
-  fn from(value: i32) -> Self {
-      match value {
-        0 => UserGroup::Alpha,
-        1 => UserGroup::Beta,
-        _ => UserGroup::Public,
-      }
-  }
+    fn from(value: i32) -> Self {
+        match value {
+            0 => UserGroup::Alpha,
+            1 => UserGroup::Beta,
+            _ => UserGroup::Public,
+        }
+    }
 }
 
 #[derive(sqlx::FromRow, Serialize, Clone, Debug)]
@@ -117,7 +117,6 @@ pub struct UpdatePasswordRequest {
     pub new_password: Secret<String>,
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateProfileRequest {
     pub username: Option<String>,
@@ -127,14 +126,16 @@ pub struct UpdateProfileRequest {
     pub company: Option<String>,
 }
 
-
 impl UpdateProfileRequest {
     pub fn has_any_value(&self) -> bool {
-        [self.username.is_some(),
-         self.email.is_some(),
-         self.fullname.is_some(),
-         self.title.is_some(),
-         self.company.is_some()
-        ].iter().any(|&x| x)
+        [
+            self.username.is_some(),
+            self.email.is_some(),
+            self.fullname.is_some(),
+            self.title.is_some(),
+            self.company.is_some(),
+        ]
+        .iter()
+        .any(|&x| x)
     }
 }

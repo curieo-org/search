@@ -53,12 +53,15 @@ async fn register_users_works(pool: PgPool) {
     let agency_service = agency_service_connect(&settings.agency_api.expose())
         .await
         .unwrap();
+    let brave_api_config = settings.brave.clone().into();
     let state = AppState::new(
-        pool.clone(),
+        pool,
         cache,
         agency_service,
-        settings.oauth2_clients.clone(),
+        vec![],
         settings,
+        brave_api_config,
+        regex::Regex::new("").unwrap(),
     )
     .await
     .unwrap();

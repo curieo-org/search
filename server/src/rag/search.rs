@@ -14,7 +14,7 @@ pub async fn search(
     brave_api_config: &brave_search::BraveAPIConfig,
     cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &String,
+    search_query: &str,
 ) -> crate::Result<rag::SearchResponse> {
     if let Some(response) = cache.get(&search_query).await {
         return Ok(response);
@@ -47,7 +47,7 @@ pub async fn search(
     let compressed_results = prompt_compression::compress(
         &settings.llm,
         prompt_compression::PromptCompressionInput {
-            query: search_query.clone(),
+            query: search_query.to_string(),
             target_token: 300,
             context_texts_list: retrieved_results.iter().map(|r| r.text.clone()).collect(),
         },
@@ -67,7 +67,7 @@ pub async fn search(
 async fn retrieve_result_from_agency(
     settings: &Settings,
     agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &String,
+    search_query: &str,
 ) -> crate::Result<Vec<rag::RetrievedResult>> {
     let agency_service = Arc::new(agency_service.clone());
     let query_embeddings =
