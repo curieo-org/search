@@ -2,7 +2,7 @@ import { useSearchQuery } from '@/queries/search/search-query'
 import { ThreadByIdResponse } from '@/types/search'
 import { QueryObserverResult } from '@tanstack/react-query'
 import _ from 'lodash'
-import { Fragment, HTMLAttributes, useEffect, useState } from 'react'
+import { Fragment, HTMLAttributes, useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
 import { H1 } from '../lib/typography'
@@ -16,6 +16,7 @@ type ThreadProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export default function Thread(props: ThreadProps) {
+  const pageEndRef = useRef<null | HTMLDivElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [queryTrigger, setQueryTrigger] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -26,10 +27,19 @@ export default function Thread(props: ThreadProps) {
     isError,
     isTimedOut,
   } = useSearchQuery(searchQuery, queryTrigger, setIsStreaming, props.data.thread.thread_id)
+
   const handleSearch = () => {
     setIsLoading(true)
     setQueryTrigger(true)
   }
+
+  const scrollToBottom = () => {
+    pageEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [isLoading, newSearchResult])
 
   useEffect(() => {
     setSearchQuery('')
@@ -81,6 +91,8 @@ export default function Thread(props: ThreadProps) {
       <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">
         <SearchInput handleSearch={handleSearch} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </div>
+
+      <div ref={pageEndRef} />
     </div>
   )
 }

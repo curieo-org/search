@@ -84,7 +84,15 @@ export default function Search() {
       ) : isLoading ? (
         <>{isStreaming ? <NewSearchResponse response={newSearchResult} /> : <SearchResultPageSkeleton />}</>
       ) : (
-        <NewSearch handleSearch={handleSearch} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <NewSearch
+          handleSearch={() => {
+            if (!isLoading) {
+              handleSearch()
+            }
+          }}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
       )}
     </>
   )
