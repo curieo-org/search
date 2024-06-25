@@ -3,23 +3,14 @@
 # Declare variables to be passed into your templates.
 
 service:
-  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-server:5.0
+  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-server:7.0
   replica_count: 1
   port: 3030
   aws_account_number: 698471419283
   aws_iam_role: search-server-k8s-service-iam-role
-  aws_secret_name: "rds!db-69faccbe-cb63-415d-b424-5b27d0629590"
+  aws_rds_secret_name: "rds!db-69faccbe-cb63-415d-b424-5b27d0629590"
+  deployment_envs_secret_name: dev-search-server-deployment-envs
   dns_zone: dev.curieo.ai
-
-database:
-  host: curieo-db-1.cjgu6u6kc9e8.eu-central-1.rds.amazonaws.com
-  port: "5432"
-
-redis:
-  host: dev-redis-cache.d0u9q0.clustercfg.euc1.cache.amazonaws.com
-
-agency:
-  host: agency.dev.svc.cluster.local:50051
 
 resources:
   limits:
