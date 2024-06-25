@@ -11,7 +11,6 @@ export const GET = async (req: NextRequest) => {
   }
 
   async function pump(reader: ReadableStreamDefaultReader<Uint8Array>, writer: WritableStreamDefaultWriter<any>) {
-    const decoder = new TextDecoder()
     while (true) {
       const { done, value } = await reader.read()
       if (done) break

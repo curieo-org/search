@@ -2,11 +2,11 @@ import { SearchByIdResponse } from '@/types/search'
 import _ from 'lodash'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { H1, Span } from '../lib/typography'
+import { Span } from '../lib/typography'
 import SearchInput from './search-input'
 import SearchResponse from './search-response'
-import SourcesMenu from './sources-menu'
 import SearchTitle from './search-title'
+import SourcesMenu from './sources-menu'
 
 type NewSearchResponseProps = HTMLAttributes<HTMLDivElement> & {
   response: SearchByIdResponse[]
