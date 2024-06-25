@@ -38,15 +38,12 @@ export default function Search() {
     if (isCompleted) {
       setSearchQuery('')
       setQueryTrigger(false)
+      setIsLoading(false)
+      setIsStreaming(false)
       if (newSearchResult.length === 0) {
         toast.error('Failed to fetch search result. Please try again later...')
-        setIsLoading(false)
-        setIsStreaming(false)
       } else {
         setThreadId(newSearchResult[0].search.thread_id)
-        setIsLoading(false)
-        setIsStreaming(false)
-
         const params = new URLSearchParams()
         params.set('thread_id', newSearchResult[0].search.thread_id)
         window.history.pushState(null, '', `?${params.toString()}`)
@@ -63,6 +60,16 @@ export default function Search() {
       toast.error('The server took too long to respond. Please try again later.')
     }
   }, [isTimedOut])
+
+  useEffect(() => {
+    if (isError) {
+      setIsLoading(false)
+      setIsStreaming(false)
+      setSearchQuery('')
+      setQueryTrigger(false)
+      toast.error('The server ran into an error while generating stream.')
+    }
+  }, [isError])
 
   useEffect(() => {
     if (Boolean(threadId)) {

@@ -32,6 +32,10 @@ export default function Thread(props: ThreadProps) {
   }
 
   useEffect(() => {
+    setSearchQuery('')
+  }, [isStreaming])
+
+  useEffect(() => {
     if (isCompleted) {
       setSearchQuery('')
       setQueryTrigger(false)

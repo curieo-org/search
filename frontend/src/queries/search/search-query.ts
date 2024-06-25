@@ -16,6 +16,13 @@ export const useSearchQuery = (
   const [isTimedOut, setIsTimedOut] = useState(false)
   const queryClient = useQueryClient()
 
+  const initialize = () => {
+    setData([])
+    setIsCompleted(false)
+    setIsError(false)
+    setIsTimedOut(false)
+  }
+
   const fetchStream = async () => {
     try {
       const timeNow = new Date()
@@ -56,6 +63,7 @@ export const useSearchQuery = (
 
   useEffect(() => {
     if (queryTrigger) {
+      initialize()
       fetchStream()
       return () => {}
     }
