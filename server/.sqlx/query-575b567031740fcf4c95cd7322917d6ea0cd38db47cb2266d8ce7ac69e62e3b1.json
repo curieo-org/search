@@ -1,66 +1,59 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from users where username = $1 and password_hash is not null",
+  "query": "insert into searches (thread_id, query, rephrased_query, result) values ($1, $2, $3, $4) returning *",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "user_id",
+        "name": "search_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "username",
-        "type_info": "Text"
+        "name": "thread_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "email",
-        "type_info": "Text"
+        "name": "query",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "fullname",
+        "name": "rephrased_query",
         "type_info": "Varchar"
       },
       {
         "ordinal": 4,
-        "name": "title",
-        "type_info": "Varchar"
+        "name": "result",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "company",
-        "type_info": "Varchar"
+        "name": "media_urls",
+        "type_info": "TextArray"
       },
       {
         "ordinal": 6,
-        "name": "user_group",
-        "type_info": "Int4"
+        "name": "reaction",
+        "type_info": "Bool"
       },
       {
         "ordinal": 7,
-        "name": "password_hash",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 8,
-        "name": "access_token",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 10,
+        "ordinal": 8,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
         "Text"
       ]
     },
@@ -68,15 +61,13 @@
       false,
       false,
       false,
-      true,
-      true,
-      true,
+      false,
       false,
       true,
       true,
       false,
-      true
+      false
     ]
   },
-  "hash": "2af097ecfc139606f581858bfebfb6db10aec38671ebe21c8a579d81ffc699d8"
+  "hash": "575b567031740fcf4c95cd7322917d6ea0cd38db47cb2266d8ce7ac69e62e3b1"
 }
