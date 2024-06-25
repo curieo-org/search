@@ -10,7 +10,7 @@ spec:
     - {{ .Release.Name }}.{{ .Values.service.dns_zone }}
   http:
     - match:
-        - port: 80
+        - port: 443
       route:
         - destination:
             host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
