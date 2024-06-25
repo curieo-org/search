@@ -1,7 +1,6 @@
-name: Python CI
-
+name: Agency CI
 on:
-  push:
+  workflow_call:
 
 defaults:
   run:

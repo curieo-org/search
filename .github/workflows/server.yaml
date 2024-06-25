@@ -1,0 +1,75 @@
+name: Rust Server CI
+on:
+  workflow_call:
+
+defaults:
+  run:
+    working-directory: server
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  RUSTFLAGS: "-D warnings"
+  RUSTUP_MAX_RETRIES: 10
+
+jobs:
+  detect-changes:
+    name: Detect which files have changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    # Map a step output to a job output
+    outputs:
+      agency: ${{ steps.changes.outputs.agency }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      llmlingua_service: ${{ steps.changes.outputs.llmlingua_service }}
+      proto: ${{ steps.changes.outputs.proto }}
+      server: ${{ steps.changes.outputs.server }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36  # v2
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yml
+
+  coverage-and-linting:
+    name: Test coverage & linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'src/**'
+
+        # run only if some file in 'src' folder was changed
+      - if: steps.changes.outputs.src == 'true'
+        run: ...
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Rust Toolchain
+        uses: ./.github/actions/toolchain-cargo-cached
+        with:
+          components: llvm-tools-preview, rustfmt, clippy
+          crates: cargo-llvm-cov
+
+      - name: Tests & coverage
+        run: cargo llvm-cov test --no-fail-fast --workspace
+
+      - name: Linting rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Linting clippy
+        run: cargo clippy --

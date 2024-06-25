@@ -1,0 +1,72 @@
+# This is used by the action https://github.com/dorny/paths-filter
+
+# Changes to actions/workflows that can affect any of our project components.
+action_changes: &action_changes
+  - '.github/actions/**/action.yaml'
+  - '.github/workflows/ci.yaml'
+  - '.github/file-filters.yaml'
+
+# Frontend
+frontend_dependencies: &frontend_dependencies
+  - 'frontend/{package,now,vercel}.json'
+  - 'frontend/package-lock.json'
+
+eslint_config: &eslint_config
+  - 'frontend/.eslint*'
+
+frontend_workflow: &frontend_workflow
+  - '.github/workflows/frontend.yaml'
+
+frontend: &frontend
+  - *action_changes
+  - *frontend_dependencies
+  - *frontend_workflow
+  - *eslint_config
+  - 'frontend/**/*.[tj]{s,sx}'
+  - 'frontend/**/tsconfig*.json'
+
+proto: &proto
+  - 'proto/*.proto'
+
+# Agency
+agency_dependencies: &agency_dependencies
+  - 'agency/pyproject.toml'
+  - 'agency/poetry.lock'
+  - 'agency/.python-version'
+
+agency_workflow: &agency_workflow
+  - '.github/workflows/agency.yaml'
+
+agency: &agency
+  - *action_changes
+  - *agency_dependencies
+  - *agency_workflow
+  - *proto
+  - 'agency/app/**/*.py'
+
+# Server
+server_dependencies: &server_dependencies
+  - 'Cargo.toml'
+  - 'Cargo.lock'
+  - 'rust-toolchain.toml'
+
+server_workflow: &server_workflow
+  - '.github/workflows/server.yaml'
+
+server_migrations: &server_migrations
+  - 'server/migrations/**.sql'
+
+sqlx_query_cache: &sqlx_query_cache
+  - 'server/.sqlx/**.json'
+
+server_config: &server_config
+  - 'server/config/**.toml'
+
+server: &server
+  - *action_changes
+  - *server_dependencies
+  - *server_workflow
+  - *server_migrations
+  - *sqlx_query_cache
+  - *proto
+  - 'server/src/**/*.rs'
