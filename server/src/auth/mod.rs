@@ -6,13 +6,12 @@ use openidconnect::{DiscoveryError, UserInfoError};
 pub use routes::*;
 pub use services::*;
 use tokio::task;
-
 pub mod models;
 pub mod oauth_2;
 pub mod routes;
 pub mod services;
 pub(crate) mod sessions;
-mod utils;
+pub mod utils;
 
 #[derive(Debug, thiserror::Error)]
 pub enum OIDCError {

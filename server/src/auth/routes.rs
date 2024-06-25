@@ -1,5 +1,6 @@
 use crate::auth::models::{AuthSession, Credentials, RegisterUserRequest};
-use crate::auth::services::register;
+use crate::auth::oauth_2::Issuer;
+use crate::auth::services;
 use crate::auth::{AccessTokenCredentials, OAuthCredentials, PasswordCredentials};
 use crate::err::AppError;
 use crate::startup::AppState;
@@ -11,8 +12,6 @@ use axum::routing::{get, post};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
 use color_eyre::eyre::eyre;
-
-use crate::auth::oauth_2::Issuer;
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -22,7 +21,10 @@ async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
 ) -> crate::Result<impl IntoResponse> {
-    register(pool, request)
+    if !services::is_email_whitelisted(&pool, &request.email).await? {
+        return Err(eyre!("This email is not whitelisted!").into());
+    }
+    services::register(pool, request)
         .await
         .map(|user| (StatusCode::CREATED, Json(user)))
 }

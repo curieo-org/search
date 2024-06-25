@@ -12,7 +12,6 @@ from llama_index.core.schema import (
 
 DEFAULT_TEXT_NODE_TMPL = "{metadata_str}\n\n{content}"
 DEFAULT_METADATA_TMPL = "{key}: {value}"
-# NOTE: for pretty printing
 TRUNCATE_LENGTH = 350
 WRAP_WIDTH = 70
 

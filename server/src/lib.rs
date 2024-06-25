@@ -7,6 +7,7 @@ pub mod cache;
 pub mod custom_types;
 mod err;
 mod health_check;
+pub mod llms;
 pub mod rag;
 pub mod routing;
 pub mod search;

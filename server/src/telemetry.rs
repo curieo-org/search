@@ -1,10 +1,9 @@
+use crate::settings::LogFmt;
 use tokio::task::JoinHandle;
 use tracing::{subscriber::set_global_default, Subscriber};
 use tracing_error::ErrorLayer;
 use tracing_log::LogTracer;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
-
-use crate::settings::LogFmt;
 
 pub fn get_subscriber(
     _name: String,
@@ -15,7 +14,8 @@ pub fn get_subscriber(
 
     let registry = Registry::default()
         .with(ErrorLayer::default())
-        .with(env_filter);
+        .with(env_filter)
+        .with(sentry::integrations::tracing::layer());
 
     match format {
         LogFmt::Json => {

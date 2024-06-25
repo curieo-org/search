@@ -3,6 +3,7 @@ use crate::auth::OIDCError;
 use crate::cache::CachePool;
 use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
+use crate::rag::brave_search;
 use crate::routing::router;
 use crate::settings::Settings;
 use crate::Result;
@@ -11,6 +12,8 @@ use color_eyre::eyre::eyre;
 use log::info;
 use oauth2::reqwest::async_http_client;
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
+use regex::Regex;
+use sentry::{self, ClientInitGuard, ClientOptions};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -43,6 +46,8 @@ impl Application {
     }
 
     pub async fn run_until_stopped(self) -> Result<()> {
+        let _sentry = sentry_connect();
+
         Ok(self
             .server
             .await
@@ -57,6 +62,8 @@ pub struct AppState {
     pub agency_service: AgencyServiceClient<Channel>,
     pub oidc_clients: Vec<OIDCClient>,
     pub settings: Settings,
+    pub brave_config: brave_search::BraveAPIConfig,
+    pub openai_stream_regex: regex::Regex,
 }
 
 impl AppState {
@@ -66,6 +73,8 @@ impl AppState {
         agency_service: AgencyServiceClient<Channel>,
         oidc_clients: Vec<OIDCClient>,
         settings: Settings,
+        brave_config: brave_search::BraveAPIConfig,
+        openai_stream_regex: regex::Regex,
     ) -> Result<Self> {
         Ok(Self {
             db,
@@ -73,17 +82,31 @@ impl AppState {
             agency_service,
             oidc_clients,
             settings,
+            brave_config,
+            openai_stream_regex,
         })
     }
+
     pub async fn initialize(settings: Settings) -> Result<Self> {
         Ok(Self {
             db: db_connect(settings.db.expose()).await?,
             cache: CachePool::new(&settings.cache).await?,
             agency_service: agency_service_connect(settings.agency_api.expose()).await?,
             oidc_clients: initialize_oidc_clients(settings.oidc.clone()).await?,
+            brave_config: brave_search::prepare_brave_api_config(&settings.brave),
             settings,
+            openai_stream_regex: Regex::new(r#"\"content\":\"(.*?)\"}"#)
+                .map_err(|e| eyre!("Failed to compile OpenAI stream regex: {}", e))?,
         })
     }
+}
+
+pub fn sentry_connect() -> ClientInitGuard {
+    sentry::init(ClientOptions {
+        release: sentry::release_name!(),
+        traces_sample_rate: 1.0,
+        ..Default::default()
+    })
 }
 
 async fn initialize_oidc_clients(oidc: Vec<OIDCClientInfo>) -> Result<Vec<OIDCClient>> {

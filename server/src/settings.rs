@@ -1,5 +1,7 @@
 use crate::auth::oauth_2::OIDCClientInfo;
 use crate::cache::CacheSettings;
+use crate::llms;
+use crate::rag;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
@@ -81,6 +83,13 @@ pub struct Settings {
     pub cache: CacheSettings,
     pub agency_api: Secret<String>,
     pub oidc: Vec<OIDCClientInfo>,
+    pub pubmed: rag::PubmedSettings,
+    pub brave: rag::BraveSettings,
+    pub llm: llms::LLMSettings,
+    pub summarizer: llms::SummarizerSettings,
+    pub search: rag::SearchSettings,
+    pub query_rephraser: llms::QueryRephraserSettings,
+    pub openai: llms::OpenAISettings,
 }
 
 impl Settings {

@@ -1,19 +1,22 @@
 use crate::custom_types::DateTime;
-use crate::proto::SourceType as AgencySourceType;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use sqlx::FromRow;
 use std::fmt::Debug;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SourceType(pub AgencySourceType);
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SourceType {
+    Pdf,
+    Image,
+    Url,
+}
 
 impl From<i32> for SourceType {
     fn from(value: i32) -> Self {
         match value {
-            0 => SourceType(AgencySourceType::Pdf),
-            1 => SourceType(AgencySourceType::Image),
-            _ => SourceType(AgencySourceType::Url),
+            0 => SourceType::Pdf,
+            1 => SourceType::Image,
+            _ => SourceType::Url,
         }
     }
 }
@@ -34,6 +37,7 @@ pub struct Search {
     pub search_id: uuid::Uuid,
     pub thread_id: uuid::Uuid,
     pub query: String,
+    pub rephrased_query: String,
     pub result: String,
     pub media_urls: Option<Vec<String>>,
     pub reaction: Option<bool>,

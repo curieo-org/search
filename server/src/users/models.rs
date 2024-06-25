@@ -9,11 +9,32 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::time;
 use std::fmt::Debug;
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum UserGroup {
+    Alpha,
+    Beta,
+    Public,
+} // Move Public to top before public release
+
+impl From<i32> for UserGroup {
+    fn from(value: i32) -> Self {
+        match value {
+            0 => UserGroup::Alpha,
+            1 => UserGroup::Beta,
+            _ => UserGroup::Public,
+        }
+    }
+}
+
 #[derive(sqlx::FromRow, Serialize, Clone, Debug)]
 pub struct UserRecord {
     pub user_id: uuid::Uuid,
     pub email: String,
     pub username: String,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
+    pub user_group: UserGroup,
 }
 
 impl From<User> for UserRecord {
@@ -22,6 +43,10 @@ impl From<User> for UserRecord {
             user_id: user.user_id,
             email: user.email,
             username: user.username,
+            fullname: user.fullname,
+            title: user.title,
+            company: user.company,
+            user_group: user.user_group,
         }
     }
 }
@@ -31,6 +56,10 @@ pub struct User {
     pub user_id: uuid::Uuid,
     pub email: String,
     pub username: String,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
+    pub user_group: UserGroup,
     pub password_hash: Secret<Option<String>>,
     pub access_token: Secret<Option<String>>,
 
@@ -79,5 +108,34 @@ impl AuthUser for User {
         }
 
         &[]
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePasswordRequest {
+    pub old_password: Secret<String>,
+    pub new_password: Secret<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateProfileRequest {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub fullname: Option<String>,
+    pub title: Option<String>,
+    pub company: Option<String>,
+}
+
+impl UpdateProfileRequest {
+    pub fn has_any_value(&self) -> bool {
+        [
+            self.username.is_some(),
+            self.email.is_some(),
+            self.fullname.is_some(),
+            self.title.is_some(),
+            self.company.is_some(),
+        ]
+        .iter()
+        .any(|&x| x)
     }
 }

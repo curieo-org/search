@@ -1,4 +1,4 @@
-use crate::auth::models::RegisterUserRequest;
+use crate::auth::models;
 use crate::auth::utils;
 use crate::err::{AppError, ResultExt};
 use crate::users::{User, UserRecord};
@@ -6,7 +6,10 @@ use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "debug", ret, err)]
-pub async fn register(pool: PgPool, request: RegisterUserRequest) -> crate::Result<UserRecord> {
+pub async fn register(
+    pool: PgPool,
+    request: models::RegisterUserRequest,
+) -> crate::Result<UserRecord> {
     if let Some(password) = request.password {
         let password_hash = utils::hash_password(password).await?;
         let user = sqlx::query_as!(
@@ -46,4 +49,19 @@ pub async fn register(pool: PgPool, request: RegisterUserRequest) -> crate::Resu
         return Ok(user.into());
     }
     Err(eyre!("Either password or access_token must be provided to create a user").into())
+}
+
+pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> crate::Result<bool> {
+    let whitelisted_email = sqlx::query_as!(
+        models::WhitelistedEmail,
+        "SELECT * FROM whitelisted_emails WHERE email = $1",
+        email
+    )
+    .fetch_one(pool)
+    .await;
+
+    match whitelisted_email {
+        Ok(whitelisted_email) => Ok(whitelisted_email.approved),
+        _ => Ok(false),
+    }
 }
