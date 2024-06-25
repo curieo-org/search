@@ -46,14 +46,10 @@ export const useSearchQuery = (
           break
         }
 
+        // TODO: split by data : and maintain a string buffer. To handle the case when data : is in value
         const text = decoder.decode(value, { stream: true })
-        const lines = text.split('\n').filter(Boolean)
-        lines.forEach(line => {
-          if (line.startsWith('data: ')) {
-            const newData: SearchByIdResponse = JSON.parse(line.slice(6))
-            setData(prevData => [...prevData, newData])
-          }
-        })
+        const newData: SearchByIdResponse = JSON.parse(text.slice(6))
+        setData(prevData => [...prevData, newData])
       }
     } catch (error) {
       setIsError(true)
