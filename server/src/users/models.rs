@@ -106,3 +106,15 @@ pub struct UpdateProfileRequest {
     pub title: Option<String>,
     pub company: Option<String>,
 }
+
+
+impl UpdateProfileRequest {
+    pub fn has_any_value(&self) -> bool {
+        [self.username.is_some(),
+         self.email.is_some(),
+         self.fullname.is_some(),
+         self.title.is_some(),
+         self.company.is_some()
+        ].iter().any(|&x| x)
+    }
+}

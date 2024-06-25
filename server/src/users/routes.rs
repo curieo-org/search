@@ -28,6 +28,9 @@ async fn update_profile_handler(
     Json(update_profile_request): Json<models::UpdateProfileRequest>
 ) -> crate::Result<Json<UserRecord>>  {
     let user_id = user.user_id;
+    if !update_profile_request.has_any_value() {
+        return Err(eyre!("At least one field has to be updated.").into())
+    }
     let updated_user = services::update_profile(&pool, &user_id, update_profile_request).await?;
 
     Ok(Json(UserRecord::from(updated_user)))
