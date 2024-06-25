@@ -12,7 +12,7 @@ use color_eyre::eyre::eyre;
 use log::info;
 use oauth2::reqwest::async_http_client;
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
-use regex::Regex;
+use regex;
 use sentry::{self, ClientInitGuard, ClientOptions};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
@@ -93,9 +93,9 @@ impl AppState {
             cache: CachePool::new(&settings.cache).await?,
             agency_service: agency_service_connect(settings.agency_api.expose()).await?,
             oidc_clients: initialize_oidc_clients(settings.oidc.clone()).await?,
-            brave_config: brave_search::prepare_brave_api_config(&settings.brave),
+            brave_config: settings.brave.clone().into(),
             settings,
-            openai_stream_regex: Regex::new(r#"\"content\":\"(.*?)\"}"#)
+            openai_stream_regex: regex::Regex::new(r#""content":"(.*?)"}"#)
                 .map_err(|e| eyre!("Failed to compile OpenAI stream regex: {}", e))?,
         })
     }

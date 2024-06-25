@@ -61,7 +61,7 @@ fn prepare_llm_context_string(
         Question: {}\n\nSolution draft: {}\n\nAnswer:", summarizer_input.query, summarizer_input.retrieved_result),
         parameters: SummarizerParams {
             model: Some(settings.model.clone()),
-            max_new_tokens: Some(settings.max_new_tokens.clone()),
+            max_new_tokens: Some(settings.max_new_tokens),
             temperature: Some(settings.temperature),
             top_p: Some(settings.top_p),
         },
@@ -97,7 +97,7 @@ pub async fn generate_text_with_llm(
         let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
         let chunk = &chunk[5..chunk.len() - 2];
 
-        let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(&chunk)
+        let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(chunk)
             .map_err(|e| eyre!("Failed to parse summarizer response: {e}"))?;
 
         if !summarizer_api_response.token.special {
@@ -115,7 +115,7 @@ pub async fn generate_text_with_llm(
                 })
                 .await;
 
-            if let Ok(_) = tx_response {
+            if tx_response.is_ok() {
                 buffer.clear();
             }
         }
@@ -230,7 +230,7 @@ pub async fn generate_text_with_openai(
             })
             .await;
 
-        if let Ok(_) = tx_response {
+        if tx_response.is_ok() {
             buffer.clear();
         }
     }

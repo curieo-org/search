@@ -1,12 +1,11 @@
 use server::auth::models::RegisterUserRequest;
 use server::auth::register;
 use server::cache::CachePool;
-use server::proto::{SearchResponse, Source};
-use server::rag::search;
-use server::search::SearchQueryRequest;
+use server::rag::{search, SearchResponse, Source};
 use server::search::{
     get_one_search, get_threads, insert_new_search, SearchByIdRequest, ThreadHistoryRequest,
 };
+use server::search::{SearchQueryRequest, SourceType};
 use server::settings::Settings;
 use server::startup::agency_service_connect;
 use server::Result;
@@ -22,15 +21,18 @@ async fn search_test() -> Result<()> {
         .unwrap();
     let cache = CachePool::new(&settings.cache).await?;
 
-    let search_query = SearchQueryRequest {
-        thread_id: Some(Uuid::new_v4()),
-        query: "test".to_string(),
-    };
-
-    let search_result = search(&cache, &mut agency_service, &search_query).await;
+    let brave_api_config = settings.brave.clone().into();
+    let search_result = search(
+        &settings,
+        &brave_api_config,
+        &cache,
+        &mut agency_service,
+        "test",
+    )
+    .await;
 
     assert!(search_result.is_ok());
-    assert_eq!(search_result.unwrap().status, 200);
+    assert_eq!(search_result.unwrap().result, "");
 
     Ok(())
 }
@@ -54,13 +56,12 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         query: "test-query".to_string(),
     };
     let search_response = SearchResponse {
-        status: 200,
         result: "test-result".to_string(),
         sources: vec![Source {
             url: "test-url".to_string(),
             title: "test-title".to_string(),
             description: "test-description".to_string(),
-            source_type: 0,
+            source_type: SourceType::from(0),
             metadata: HashMap::from([
                 ("test-key1".to_string(), "test-value1".to_string()),
                 ("test-key2".to_string(), "test-value2".to_string()),
@@ -68,7 +69,7 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         }],
     };
 
-    let search_insertion_result = insert_new_search(&pool, &user_id, &search_query).await;
+    let search_insertion_result = insert_new_search(&pool, &user_id, &search_query, "").await;
 
     assert!(search_insertion_result.is_ok());
 

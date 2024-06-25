@@ -27,7 +27,7 @@ pub async fn predict_toxicity(
     headers.insert(
         HeaderName::from_bytes(b"Authorization")
             .map_err(|e| eyre!("Failed to create header: {e}"))?,
-        HeaderValue::from_str(&llm_settings.toxicity_auth_token.expose())
+        HeaderValue::from_str(llm_settings.toxicity_auth_token.expose())
             .map_err(|e| eyre!("Failed to create header: {e}"))?,
     );
     let client = Client::new();
@@ -47,7 +47,7 @@ pub async fn predict_toxicity(
 
     let toxicity_score = toxicity_api_response
         .into_iter()
-        .find(|x| x.label == String::from("toxic"))
+        .find(|x| x.label == "toxic")
         .unwrap_or(ToxicityScore {
             score: 0.0,
             label: String::from(""),
