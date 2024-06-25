@@ -1,0 +1,99 @@
+name: 'Checkout, rust toolchain, and cache'
+description: 'This action checks out the commit, sets up rust and installs dependencies. Uses caching internally.'
+
+inputs:
+  # Toolchain, targets, target, and components are passed into dtolnay/rust-toolchain
+  toolchain:
+    description: Rust toolchain specification -- see https://rust-lang.github.io/rustup/concepts/toolchains.html#toolchain-specification
+    required: true
+    default: "1.77.1"
+  targets:
+    description: Comma-separated list of target triples to install for this toolchain
+    required: false
+  target:
+    description: Alias for `targets`
+    required: false
+  components:
+    description: Comma-separated list of components to be additionally installed
+    required: false
+
+  # Install additional crates. For example cargo-audit.
+  crates:
+    description: Comma-separated list of crates to be additionally installed
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - id: toolchain-cache-key
+      run: |
+        : Get current year and week like "2024-w4"
+        date="$(date +'%Y-w%U')"
+        : construct toolchain cache key
+        toolchain_cache_key="$(echo -n "$components" | md5sum | awk '{ print $1 }')"
+        echo "cachekey=$toolchain_cache_key-$date" >> $GITHUB_OUTPUT
+      env:
+        components: ${{ inputs.components }}
+      shell: bash
+
+      # Caching the toolchain, so we don't install rust for every commit/PR.
+      # Including the date from the previous step in the cache key means
+      # that the cache is invalidated on a weekly basis - so we're still
+      # up-to-date.
+    - name: Cache toolchain
+      # Don't cache if it's a scheduled job.
+      if: github.event_name != 'schedule'
+      id: toolchain-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.rustup/settings.toml
+          ~/.rustup/toolchains/${{ inputs.toolchain }}-*
+          ~/.rustup/update-hashes/${{ inputs.toolchain }}-*
+        key: rust-toolchain-${{ inputs.toolchain }}-${{ steps.toolchain-cache-key.outputs.cachekey }}
+
+    - name: Install rust toolchain
+      # Only install the toolchain if it isn't cached.
+      if: steps.toolchain-cache.outputs.cache-hit != 'true'
+      id: toolchain
+      # Pin on SHA for immutability.
+      uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        targets: ${{ inputs.targets }}
+        target: ${{ inputs.target }}
+        components: ${{ inputs.components }}
+
+    - id: cargo-crates-cachekey
+      run: |
+        : construct crate cache key
+        crates_cache_key="$(echo -n "$crates" | md5sum | awk '{ print $1 }')"
+        echo "cache_key=$crates_cache_key" >> $GITHUB_OUTPUT
+      env:
+        crates: ${{ inputs.crates }}
+      shell: bash
+
+      # Pin on SHA for immutability.
+    - uses: Swatinem/rust-cache@9bdad043e88c75890e36ad3bbc8d27f0090dd609
+      id: rust-cache
+      if: github.event_name != 'schedule'
+      with:
+        shared-key: ${{ steps.cargo-crates-cachekey.outputs.cachekey }}
+
+    - name: Cargo install dependencies
+      # Only install crates if they aren't cached.
+      if: steps.rust-cache.outputs.cache-hit != 'true'
+      id: cargo-install
+      run: |
+        IFS=',' read -ra crates_array <<< "$crates"
+        for c in "${crates_array[@]}"; do
+          echo "::debug::cargo install $c"
+          cargo install $c;
+        done
+        unset IFS;
+      env:
+        crates: ${{ inputs.crates }}
+      shell: bash
