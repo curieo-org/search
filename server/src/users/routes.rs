@@ -43,6 +43,11 @@ async fn update_password_handler(
     Form(update_password_request): Form<models::UpdatePasswordRequest>
 ) -> crate::Result<impl IntoResponse>  {
     let user_id = user.user_id;
+
+    if update_password_request.old_password.expose() == update_password_request.new_password.expose() {
+        return Err(eyre!("Old and new password can not be the same.").into());
+    }
+
     match verify_user_password(Some(user), update_password_request.old_password) {
         Ok(Some(_user)) => {
             services::update_password(&pool, &user_id, update_password_request.new_password).await?;
