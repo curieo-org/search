@@ -14,26 +14,12 @@ pub async fn update_profile(
       models::User,
       "
       update users
-      set username = case 
-              when $1::text is not null then $1::text
-              else username
-          end,
-          email = case 
-              when $2::text is not null then $2::text
-              else email
-          end,
-          fullname = case 
-              when $3::text is not null then $3::text
-              else fullname
-          end,
-          title = case 
-              when $4::text is not null then $4::text
-              else title
-          end,
-          company = case 
-              when $5::text is not null then $5::text
-              else company
-          end
+      set
+        username = coalesce($1::text, username),
+        email = coalesce($2::text, email),
+        fullname = coalesce($3::text, fullname),
+        title = coalesce($4::text, title),
+        company = coalesce($5::text, company)
       where user_id = $6 returning *
       ",
       update_profile_request.username,
