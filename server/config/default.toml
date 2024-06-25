@@ -16,13 +16,16 @@ top_p = 0.7
 [openai]
 api_url = "https://api.openai.com/v1/chat/completions"
 model = "gpt-4o"
+api_key = "<openai-api-key>"
 
 [query_rephraser]
 model = "mistralai/Mistral-7B-Instruct-v0.2"
 max_tokens = 100
+api_key = "<query-rephraser-api-key>"
 
 [llm]
 toxicity_threshold = 0.75
+toxicity_auth_token = ""
 
 [pubmed]
 url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
@@ -34,6 +37,8 @@ result_filter = "query,web"
 search_lang = "en"
 extra_snippets = true
 safesearch = "strict"
+goggles_id = ""
+subscription_key = ""
 
 [log]
 level = "debug"
