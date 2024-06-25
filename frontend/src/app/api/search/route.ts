@@ -32,8 +32,8 @@ export const GET = async (req: NextRequest) => {
     }
 
     const headers = new Headers(response.headers)
-    headers.delete('content-encoding')
-    headers.set('content-encoding', 'none')
+    headers.delete('Content-Encoding')
+    headers.set('Content-Encoding', 'identity')
 
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
