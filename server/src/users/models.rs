@@ -13,13 +13,15 @@ use std::fmt::Debug;
 pub enum UserGroup {
   Alpha,
   Beta,
-}
+  Public,
+} // Move Public to top before public release
 
 impl From<i32> for UserGroup {
   fn from(value: i32) -> Self {
       match value {
-          0 => UserGroup::Alpha,
-          _ => UserGroup::Beta,
+        0 => UserGroup::Alpha,
+        1 => UserGroup::Beta,
+        _ => UserGroup::Public,
       }
   }
 }
