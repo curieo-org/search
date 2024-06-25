@@ -50,18 +50,12 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 async fn register_users_works(pool: PgPool) {
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api.expose())
+    let agency_service = agency_service_connect(settings.agency_api.expose())
         .await
         .unwrap();
-    let state = AppState::new(
-        pool.clone(),
-        cache,
-        agency_service,
-        settings.oauth2_clients.clone(),
-        settings,
-    )
-    .await
-    .unwrap();
+    let state = AppState::new(pool.clone(), cache, agency_service, vec![], settings)
+        .await
+        .unwrap();
 
     let router = router(state).unwrap();
 

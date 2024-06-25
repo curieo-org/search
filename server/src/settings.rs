@@ -1,4 +1,4 @@
-use crate::auth::oauth2::OAuth2Client;
+use crate::auth::oauth_2::OIDCClientInfo;
 use crate::cache::CacheSettings;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};
@@ -80,7 +80,7 @@ pub struct Settings {
     pub db: Secret<String>,
     pub cache: CacheSettings,
     pub agency_api: Secret<String>,
-    pub oauth2_clients: Vec<OAuth2Client>,
+    pub oidc: Vec<OIDCClientInfo>,
 }
 
 impl Settings {

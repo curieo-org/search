@@ -24,7 +24,6 @@ function curieoApiUrl(reqInfo?: RequestInfo): URL {
 
 export async function curieoFetch(reqInfo: RequestInfo, init?: RequestInit): Promise<Response> {
   const cookie = next_headers().get('cookie')
-  console.debug(cookie)
   let headers = init ? new Headers(init.headers) : new Headers()
   if (cookie) {
     headers.set('cookie', cookie)

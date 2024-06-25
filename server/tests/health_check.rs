@@ -12,18 +12,12 @@ use server::startup::{agency_service_connect, AppState};
 async fn health_check_works(pool: PgPool) {
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api.expose())
+    let agency_service = agency_service_connect(settings.agency_api.expose())
         .await
         .unwrap();
-    let state = AppState::new(
-        pool,
-        cache,
-        agency_service,
-        settings.oauth2_clients.clone(),
-        settings,
-    )
-    .await
-    .unwrap();
+    let state = AppState::new(pool, cache, agency_service, vec![], settings)
+        .await
+        .unwrap();
     let router = router(state).unwrap();
     let request = Request::builder()
         .uri("/health")

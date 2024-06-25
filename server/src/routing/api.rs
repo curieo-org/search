@@ -27,7 +27,7 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     //
     // This combines the session layer with our backend to establish the auth
     // service which will provide the auth session as a request extension.
-    let backend = PostgresBackend::new(state.db.clone(), state.oauth2_clients.clone());
+    let backend = PostgresBackend::new(state.db.clone(), state.oidc_clients.clone());
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
     let api_routes = Router::new()

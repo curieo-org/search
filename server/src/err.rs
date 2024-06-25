@@ -1,4 +1,4 @@
-use crate::auth::BackendError;
+use crate::auth::{AuthError, OIDCError};
 use crate::cache::CacheError;
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
@@ -57,13 +57,25 @@ impl From<sqlx::migrate::MigrateError> for AppError {
     }
 }
 
-impl From<BackendError> for AppError {
-    fn from(e: BackendError) -> Self {
+impl From<OIDCError> for AppError {
+    fn from(e: OIDCError) -> Self {
         match e {
-            BackendError::Sqlx(e) => AppError::Sqlx(e),
-            BackendError::Reqwest(e) => AppError::GenericError(eyre!(e)),
-            BackendError::OAuth2(e) => AppError::GenericError(eyre!(e)),
-            BackendError::TaskJoin(e) => AppError::GenericError(eyre!(e)),
+            OIDCError::Discovery(e) => AppError::GenericError(eyre!(e)),
+            OIDCError::Configuration(e) => AppError::GenericError(eyre!(e)),
+            OIDCError::UserInfo(_) => AppError::Unauthorized,
+            OIDCError::Other(e) => AppError::GenericError(eyre!(e)),
+        }
+    }
+}
+
+impl From<AuthError> for AppError {
+    fn from(e: AuthError) -> Self {
+        match e {
+            AuthError::Sqlx(e) => AppError::Sqlx(e),
+            AuthError::Reqwest(e) => AppError::GenericError(eyre!(e)),
+            AuthError::OAuth2(e) => AppError::GenericError(eyre!(e)),
+            AuthError::TaskJoin(e) => AppError::GenericError(eyre!(e)),
+            AuthError::OIDC(e) => AppError::GenericError(eyre!(e)),
         }
     }
 }

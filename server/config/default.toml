@@ -5,4 +5,8 @@ port = 3030
 level = "debug"
 format = "pretty"
 
-[[oauth2_clients]]
+[[oidc]]
+issuer = "google"
+issuer_url = "https://accounts.google.com"
+client_id = "651376704187-j13qq7p0p3vivbq9av86nhgd3lt9b3lp.apps.googleusercontent.com"
+client_secret = "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"

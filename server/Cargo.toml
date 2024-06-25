@@ -63,6 +63,7 @@ prost = "0.12"
 bb8-redis = "0.15.0"
 time = { version = "0.3.36", features = ["serde"] }
 dashmap = { version = "5.5.3", features = ["inline", "serde"] }
+openidconnect = "3.5.0"
 
 [dependencies.openssl-sys]
 version = "0.9.102"

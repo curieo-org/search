@@ -1,4 +1,5 @@
-use crate::auth::oauth2::OAuth2Client;
+use crate::auth::oauth_2::{OIDCClient, OIDCClientInfo};
+use crate::auth::OIDCError;
 use crate::cache::CachePool;
 use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
@@ -8,6 +9,8 @@ use crate::Result;
 use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use log::info;
+use oauth2::reqwest::async_http_client;
+use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -52,7 +55,7 @@ pub struct AppState {
     pub db: PgPool,
     pub cache: CachePool,
     pub agency_service: AgencyServiceClient<Channel>,
-    pub oauth2_clients: Vec<OAuth2Client>,
+    pub oidc_clients: Vec<OIDCClient>,
     pub settings: Settings,
 }
 
@@ -61,14 +64,14 @@ impl AppState {
         db: PgPool,
         cache: CachePool,
         agency_service: AgencyServiceClient<Channel>,
-        oauth2_clients: Vec<OAuth2Client>,
+        oidc_clients: Vec<OIDCClient>,
         settings: Settings,
     ) -> Result<Self> {
         Ok(Self {
             db,
             cache,
             agency_service,
-            oauth2_clients,
+            oidc_clients,
             settings,
         })
     }
@@ -77,10 +80,29 @@ impl AppState {
             db: db_connect(settings.db.expose()).await?,
             cache: CachePool::new(&settings.cache).await?,
             agency_service: agency_service_connect(settings.agency_api.expose()).await?,
-            oauth2_clients: settings.oauth2_clients.clone(),
+            oidc_clients: initialize_oidc_clients(settings.oidc.clone()).await?,
             settings,
         })
     }
+}
+
+async fn initialize_oidc_clients(oidc: Vec<OIDCClientInfo>) -> Result<Vec<OIDCClient>> {
+    let mut clients: Vec<OIDCClient> = vec![];
+    for oidc_info in oidc {
+        let issuer = oidc_info.issuer.clone();
+
+        let metadata =
+            CoreProviderMetadata::discover_async(oidc_info.issuer_url.clone(), async_http_client)
+                .await
+                .map_err(OIDCError::Discovery)?;
+        let client = CoreClient::from_provider_metadata(
+            metadata,
+            oidc_info.client_id,
+            Some(oidc_info.client_secret),
+        );
+        clients.push(OIDCClient { issuer, client })
+    }
+    Ok(clients)
 }
 
 pub async fn db_connect(database_url: &str) -> Result<PgPool> {

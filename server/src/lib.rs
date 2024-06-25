@@ -21,7 +21,7 @@ pub mod proto {
     tonic::include_proto!("agency");
 }
 
-pub type Result<T> = std::result::Result<T, err::AppError>;
+pub type Result<T> = core::result::Result<T, err::AppError>;
 
 pub async fn run() -> Result<Application> {
     color_eyre::install()?;
