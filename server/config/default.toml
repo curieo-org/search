@@ -19,7 +19,13 @@ model = "gpt-4o"
 
 [query_rephraser]
 model = "mistralai/Mistral-7B-Instruct-v0.2"
-max_tokens = 100
+max_tokens = 512
+temperature = 0.0
+top_p = 1.0
+top_k = 20
+repetition_penalty = 1.0
+n = 1
+stop = "\n\n---"
 
 [llm]
 toxicity_threshold = 0.75
