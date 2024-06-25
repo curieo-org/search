@@ -1,13 +1,12 @@
 'use client'
 
-import { handleOpenLinkInNewTab } from '@/utils/navigation'
-import { HTMLAttributes, MouseEvent, useEffect, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { H3, P } from '../lib/typography'
-import SourceSkeleton from '../skeletons/source-skeleton'
-import TextLink from './text-link'
 import { Source } from '@/types/search'
+import { handleOpenLinkInNewTab } from '@/utils/navigation'
+import { HTMLAttributes, MouseEvent } from 'react'
+import { twMerge } from 'tailwind-merge'
 import BookIcon from '../icons/book'
+import { H3, P } from '../lib/typography'
+import HtmlRenderer from './html-renderer'
 
 type LinkPreviewProps = HTMLAttributes<HTMLDivElement> & {
   source: Source
@@ -28,7 +27,9 @@ export default function LinkPreview(props: LinkPreviewProps) {
       </div>
       <div className="flex flex-col">
         <H3 className="mb-2 text-sm text-opacity-80 font-semibold line-clamp-2">{source.title}</H3>
-        <P className="text-2xs text-opacity-70 line-clamp-4">{source.description}</P>
+        <P className="text-2xs text-opacity-70 line-clamp-4">
+          <HtmlRenderer htmlString={source.description} />
+        </P>
       </div>
     </div>
   )
