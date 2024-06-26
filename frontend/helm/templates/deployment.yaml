@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: search-{{ .Release.Name }}
     spec:
       containers:
       - image: {{ .Values.service.replica_count }}
