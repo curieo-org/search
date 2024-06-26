@@ -16,7 +16,7 @@ spec:
         app: search-{{ .Release.Name }}
     spec:
       containers:
-      - image: {{ .Values.service.replica_count }}
+      - image: {{ .Values.service.image }}
         imagePullPolicy: Always
         env:
         - name: NEXT_PUBLIC_POSTHOG_UI_HOST
