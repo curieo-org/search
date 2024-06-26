@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select s.* from searches s inner join threads t on s.thread_id = t.thread_id where s.search_id = $1 and t.user_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "search_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "thread_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "rephrased_query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "result",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "media_urls",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "reaction",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "7f3aa259bd32b4d8ce02e5d1995ce24d4a1803ab24474b6e4af2ddaf5f6f00e0"
+}

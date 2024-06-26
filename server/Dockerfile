@@ -28,7 +28,7 @@ WORKDIR app
 COPY config config
 COPY --from=builder /app/target/release/server /usr/local/bin
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends openssl \
+    && apt-get install -y --no-install-recommends ca-certificates openssl \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 

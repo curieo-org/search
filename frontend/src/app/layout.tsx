@@ -3,11 +3,11 @@ import Providers from '@/components/wrappers/providers'
 import { appDescription, appTitle } from '@/constants/app'
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
-import { Onest } from 'next/font/google'
+import { Manrope } from 'next/font/google'
 import { ReactNode } from 'react'
 import 'react-toastify/dist/ReactToastify.css'
 
-const onest = Onest({ subsets: ['latin'] })
+const manrope = Manrope({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: appTitle,
@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: LayoutProps) {
         <link rel="icon" type="image/x-icon" href="/images/curieo-logo.svg" />
         <title>Curieo Search</title>
       </head>
-      <body className={onest.className} suppressHydrationWarning={true}>
+      <body className={manrope.className} suppressHydrationWarning={true}>
         <Providers>
           <App>{children}</App>
         </Providers>

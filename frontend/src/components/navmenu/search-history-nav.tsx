@@ -1,5 +1,5 @@
 import { useFetchSearchHistoryQuery } from '@/queries/search/fetch-search-history-query'
-import { SearchResult } from '@/types/search'
+import { SearchHistoryResponse, SearchResult, Thread } from '@/types/search'
 import classNames from 'classnames'
 import { startOfDay, sub } from 'date-fns'
 import _ from 'lodash'
@@ -13,11 +13,11 @@ export default function SearchHistoryNav(props: SearchHistoryNavProps) {
   const { data, isFetching, fetchNextPage } = useFetchSearchHistoryQuery()
   const [showScrollbar, setShowScrollbar] = useState(false)
 
-  if (!data) {
+  if (!data?.pages[0]) {
     return null
   }
 
-  const searchHistory = _.flatten(data.pages) as SearchResult[]
+  const searchHistory = _.flatten(data.pages.map(history => (history as SearchHistoryResponse).threads)) as Thread[]
 
   const startOfToday = startOfDay(new Date())
   const todayData = searchHistory.filter(searchResult => new Date(searchResult.created_at) >= startOfToday)
@@ -56,11 +56,11 @@ export default function SearchHistoryNav(props: SearchHistoryNavProps) {
       onMouseEnter={() => setShowScrollbar(true)}
       onMouseLeave={() => setShowScrollbar(false)}
     >
-      {todayData.length > 0 && <SearchHistorySlab title="Today" searchHistoryList={todayData} />}
-      {yesterdayData.length > 0 && <SearchHistorySlab title="Yesterday" searchHistoryList={yesterdayData} />}
-      {lastWeekData.length > 0 && <SearchHistorySlab title="Last week" searchHistoryList={lastWeekData} />}
+      {todayData.length > 0 && <SearchHistorySlab title="Today" threads={todayData} />}
+      {yesterdayData.length > 0 && <SearchHistorySlab title="Yesterday" threads={yesterdayData} />}
+      {lastWeekData.length > 0 && <SearchHistorySlab title="Last week" threads={lastWeekData} />}
       {moreThanAWeekAgoData.length > 0 && (
-        <SearchHistorySlab title="More than a week ago" searchHistoryList={moreThanAWeekAgoData} />
+        <SearchHistorySlab title="More than a week ago" threads={moreThanAWeekAgoData} />
       )}
     </div>
   )

@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update searches set result = result || $1 where search_id = $2 returning *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "search_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "thread_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "rephrased_query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "result",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "media_urls",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "reaction",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "ce09df1d8db96f4d5fe17991e9f71939a4e9bb5fbaf1232a5fde29021ed5170e"
+}

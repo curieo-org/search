@@ -20,6 +20,15 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      serviceAccount: {{ .Release.Name }}
+      serviceAccountName: {{ .Release.Name }}
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ .Release.Name }}
       containers:
       - env:
         - name: DB_USERNAME
@@ -33,15 +42,84 @@ spec:
               key: DB_PASSWORD
               name: {{ .Release.Name }}
         - name: DB_HOST
-          value: {{ .Values.database.host }}
+          valueFrom:
+            secretKeyRef:
+              key: DB_HOST
+              name: {{ .Release.Name }}
         - name: DB_PORT
-          value: {{ .Values.database.port }}
+          valueFrom:
+            secretKeyRef:
+              key: DB_PORT
+              name: {{ .Release.Name }}
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              key: DB_NAME
+              name: {{ .Release.Name }}
         - name: DB
-          value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/curieo
-        - name: CACHE__URL
-          value: redis://{{ .Values.redis.host }}    
+          value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
+        - name: DATABASE_URL
+          value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
+        - name: BRAVE__SUBSCRIPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: BRAVE__SUBSCRIPTION_KEY
+              name: {{ .Release.Name }}
+        - name: BRAVE__GOGGLES_ID
+          valueFrom:
+            secretKeyRef:
+              key: BRAVE__GOGGLES_ID
+              name: {{ .Release.Name }}
+        - name: LLM__TOXICITY_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: LLM__TOXICITY_AUTH_TOKEN
+              name: {{ .Release.Name }}
+        - name: QUERY_REPHRASER__API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: QUERY_REPHRASER__API_KEY
+              name: {{ .Release.Name }}
+        - name: OPENAI__API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENAI__API_KEY
+              name: {{ .Release.Name }}
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: SENTRY_DSN
+              name: {{ .Release.Name }}
         - name: AGENCY_API
-          value: http://{{ .Values.agency.host }}               
+          valueFrom:
+            secretKeyRef:
+              key: AGENCY_API
+              name: {{ .Release.Name }}
+        - name: LLM__PROMPT_COMPRESSION_URL
+          valueFrom:
+            secretKeyRef:
+              key: LLM__PROMPT_COMPRESSION_URL
+              name: {{ .Release.Name }}
+        - name: LLM__TOXICITY_URL
+          valueFrom:
+            secretKeyRef:
+              key: LLM__TOXICITY_URL
+              name: {{ .Release.Name }}
+        - name: SUMMARIZER__API_URL
+          valueFrom:
+            secretKeyRef:
+              key: SUMMARIZER__API_URL
+              name: {{ .Release.Name }}
+        - name: QUERY_REPHRASER__API_URL
+          valueFrom:
+            secretKeyRef:
+              key: QUERY_REPHRASER__API_URL
+              name: {{ .Release.Name }}
+        - name: CACHE__URL
+          valueFrom:
+            secretKeyRef:
+              key: CACHE__URL
+              name: {{ .Release.Name }}
         image: {{ .Values.service.image }}
         imagePullPolicy: Always
         ports:
@@ -49,6 +127,10 @@ spec:
             containerPort: {{ .Values.service.port }}
             protocol: TCP
         name: {{ .Release.Name }}
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
         resources:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}

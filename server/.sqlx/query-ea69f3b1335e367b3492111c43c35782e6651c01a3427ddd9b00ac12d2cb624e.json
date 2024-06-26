@@ -1,0 +1,72 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update searches s set reaction = $1 from threads t where s.search_id = $2 and s.thread_id = t.thread_id and t.user_id = $3 returning s.*",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "search_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "thread_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "rephrased_query",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "result",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "media_urls",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "reaction",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "ea69f3b1335e367b3492111c43c35782e6651c01a3427ddd9b00ac12d2cb624e"
+}

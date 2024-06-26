@@ -45,7 +45,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
-        <div className="absolute right-4 top-5">{!!icon && icon}</div>
+        <div className="absolute right-4 top-4">{!!icon && icon}</div>
         {errorMessage && <span className="text-xs italic text-red-600">{errorMessage}</span>}
       </div>
     )
