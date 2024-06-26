@@ -75,7 +75,7 @@ export default function Thread(props: ThreadProps) {
   return (
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="flex flex-col">
-        <H1 className="px-10 py-4 text-2xl xl:text-3xl font-semibold">{props.data?.thread.title}</H1>
+        {/* <H1 className="px-10 py-4 text-2xl xl:text-3xl font-semibold">{props.data?.thread.title}</H1> */}
         <div className="pt-4 flex flex-col gap-y-4">
           {_.reverse([...props.data?.searches]).map((search, index) => (
             <Fragment key={`search-response-${props.data.thread.thread_id}-${index}`}>

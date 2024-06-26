@@ -17,7 +17,7 @@ export default function NewSearchResponse(props: NewSearchResponseProps) {
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="w-full flex">
         <div className="w-full flex flex-col px-10">
-          <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} />
+          {/* <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} /> */}
           <div className="flex flex-col px-10">
             <div className="flex items-center gap-x-3 my-6">
               <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
