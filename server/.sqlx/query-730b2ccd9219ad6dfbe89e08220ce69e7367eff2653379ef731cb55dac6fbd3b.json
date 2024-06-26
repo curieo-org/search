@@ -1,27 +1,27 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into search_history (user_id, session_id, query, result, sources) values ($1, $2, $3, $4, $5) returning *",
+  "query": "select s.* from searches s where s.thread_id = $1 order by s.created_at desc limit $2",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "search_history_id",
+        "name": "search_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "user_id",
+        "name": "thread_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "session_id",
-        "type_info": "Uuid"
+        "name": "query",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "query",
-        "type_info": "Text"
+        "name": "rephrased_query",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 4,
@@ -30,8 +30,8 @@
       },
       {
         "ordinal": 5,
-        "name": "sources",
-        "type_info": "Jsonb"
+        "name": "media_urls",
+        "type_info": "TextArray"
       },
       {
         "ordinal": 6,
@@ -52,10 +52,7 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid",
-        "Text",
-        "Text",
-        "Jsonb"
+        "Int8"
       ]
     },
     "nullable": [
@@ -64,11 +61,11 @@
       false,
       false,
       false,
-      false,
+      true,
       true,
       false,
       false
     ]
   },
-  "hash": "a101d3708b8506c9af02ee42596fe07202b5c5f4de22a80fd504364c130cb496"
+  "hash": "730b2ccd9219ad6dfbe89e08220ce69e7367eff2653379ef731cb55dac6fbd3b"
 }

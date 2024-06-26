@@ -53,6 +53,12 @@ cargo run --release
 cargo watch -x run
 ```
 
+## Contribution
+```bash
+# Run and push changes after adding new sqlx query.
+cargo sqlx prepare
+```
+
 ## Deployment
 ```bash
 # Update the following line in the Makefile for the TAG

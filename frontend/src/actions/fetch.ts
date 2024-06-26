@@ -1,3 +1,4 @@
+import { signOut } from '@/auth'
 import { headers as next_headers } from 'next/headers'
 
 function curieoApiUrl(reqInfo?: RequestInfo): URL {
@@ -36,6 +37,13 @@ export async function curieoFetch(reqInfo: RequestInfo, init?: RequestInit): Pro
   } else {
     init = { headers }
   }
+
   const url: URL = curieoApiUrl(reqInfo)
-  return fetch(url, init)
+  const response = await fetch(url, init)
+
+  if (response.status === 405) {
+    await signOut()
+  }
+
+  return response.ok ? Promise.resolve(response) : Promise.reject(response)
 }
