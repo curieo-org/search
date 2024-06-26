@@ -39,6 +39,8 @@ export const useSearchQuery = (
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
 
+      let streamBuffer = ''
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) {
@@ -46,12 +48,24 @@ export const useSearchQuery = (
           break
         }
 
-        const SPLIT_PREFIX_LEN = 6 // length of data : is 6
+        const SPLIT_PREFIX = 'data: {'
+        const text = streamBuffer + decoder.decode(value, { stream: true })
+        const chunks = text.split(SPLIT_PREFIX)
+        streamBuffer = ''
 
-        // TODO: split by data : and maintain a string buffer. To handle the case when data : is in value
-        const text = decoder.decode(value, { stream: true })
-        const newData: SearchByIdResponse = JSON.parse(text.slice(SPLIT_PREFIX_LEN))
-        setData(prevData => [...prevData, newData])
+        for (let index = 0; index < chunks.length; index++) {
+          if (chunks[index].length === 0) {
+            continue
+          }
+          try {
+            const jsonString = '{' + chunks[index]
+            const newData: SearchByIdResponse = JSON.parse(jsonString)
+            setData(prevData => [...prevData, newData])
+          } catch (error) {
+            streamBuffer = SPLIT_PREFIX + chunks.slice(index).join(SPLIT_PREFIX)
+            break
+          }
+        }
       }
     } catch (error) {
       setIsError(true)

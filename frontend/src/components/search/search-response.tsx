@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { HTMLAttributes, useState } from 'react'
+import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { P } from '../lib/typography'
 
