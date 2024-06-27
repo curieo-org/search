@@ -115,10 +115,12 @@ class WandbSettings(BaseSettings):
 
 class TracingSettings(BaseSettings):
     sentry_dsn: SecretStr
+    jaeger_endpoint: str = "http://127.0.0.1:4317"
     enable_tracing: bool = False
     environment: str = "development"
     phoenix_api: str = "http://127.0.0.1:6006/v1/traces"
-    phoenix_project_name: str = "Curieo Search Agency"
+    project_name: str = "Curieo Search"
+    service_name: str = "agency-service"
 
 
 class GroqSettings(BaseSettings):
