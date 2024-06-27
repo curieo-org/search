@@ -5,7 +5,7 @@ use sqlx::PgPool;
 use std::collections::HashSet;
 use uuid::Uuid;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
@@ -49,7 +49,7 @@ pub async fn insert_new_search(
     return Ok(search);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn append_search_result(
     pool: &PgPool,
     search: &data_models::Search,
@@ -68,7 +68,7 @@ pub async fn append_search_result(
     Ok(search)
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn add_search_sources(
     pool: &PgPool,
     search: &data_models::Search,
@@ -121,7 +121,7 @@ pub async fn add_search_sources(
     return Ok(sources);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_one_search(
     pool: &PgPool,
     user_id: &Uuid,
@@ -151,7 +151,7 @@ pub async fn get_one_search(
     return Ok(api_models::SearchByIdResponse { search, sources });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_last_n_searches(
     pool: &PgPool,
     last_n: u8,
@@ -172,7 +172,7 @@ pub async fn get_last_n_searches(
     return Ok(searches);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_threads(
     pool: &PgPool,
     user_id: &Uuid,
@@ -191,7 +191,7 @@ pub async fn get_threads(
     return Ok(api_models::ThreadHistoryResponse { threads });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_one_thread(
     pool: &PgPool,
     user_id: &Uuid,
@@ -246,7 +246,7 @@ pub async fn get_one_thread(
     return Ok(api_models::SearchThreadResponse { thread, searches });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_thread(
     pool: &PgPool,
     user_id: &Uuid,
@@ -265,7 +265,7 @@ pub async fn update_thread(
     return Ok(thread);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_search_reaction(
     pool: &PgPool,
     user_id: &Uuid,

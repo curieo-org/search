@@ -4,7 +4,7 @@ use crate::users::models;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_profile(
     pool: &PgPool,
     user_id: &Uuid,
@@ -36,7 +36,7 @@ pub async fn update_profile(
 }
 
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_password(
     pool: &PgPool,
     user_id: &Uuid,

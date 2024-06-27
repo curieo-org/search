@@ -5,7 +5,7 @@ use crate::users::{User, UserRecord};
 use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn register(pool: PgPool, request: models::RegisterUserRequest) -> crate::Result<UserRecord> {
     if let Some(password) = request.password {
         let password_hash = utils::hash_password(password).await?;
