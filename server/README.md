@@ -30,17 +30,42 @@ Search server is responsible for serving all the search APIs and communication w
 4. Create a database: `CREATE DATABASE curieo_search;`
 
 ## Usage
+
+In order for the server to work, you need to configure the services that the services needs. 
+These services are (at least) the following. In the `.config` folder you find `.toml` files with the services required.
+
+- the search application (`Agency`)
+- llm 
+	- prompt compression (LLM lingua)
+	- toxicity predictor 
+	- query rephraser
+- cache (REDIS)
+
+Additionally, in the `.env` file, some services get additional configuration.
+
 ```bash
 # setup the environment and configure
 cp .env.template .env
 
+```
+
+- database (see below)
+- authorization tokens
+	- brave
+	- toxicity predictor
+	- query rephraser 
+	- open ai 
+
+```
 # use the following url for database migration
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/curieo_search
+```
 
-# (Optional) create new tables or schemas
-# maintain current ordering in the `migrations` directory
-# make sure that the order of schema creation 
-# is not create error in the database
+To locally compile and run, optionally, you need to create new tables or schemas.
+
+Maintain current ordering in the `migrations` directory; making sure that the order of schema creation is not create error in the database.
+
+```
 sqlx migrate add schema_name
 
 # configure the database
