@@ -1,6 +1,6 @@
 Image = curieo-search-server
 ECR = 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-server
-TAG = 7.0
+TAG = 8.0
 
 PLATFORM ?= linux/amd64
 

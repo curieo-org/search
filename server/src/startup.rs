@@ -10,7 +10,6 @@ use axum::{extract::FromRef, routing::IntoMakeService, serve::Serve, Router};
 use color_eyre::eyre::eyre;
 use log::info;
 use regex::Regex;
-use sentry::{self, ClientInitGuard, ClientOptions};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -43,8 +42,6 @@ impl Application {
     }
 
     pub async fn run_until_stopped(self) -> Result<()> {
-        let _sentry = sentry_connect();
-
         Ok(self
             .server
             .await
@@ -96,14 +93,6 @@ impl AppState {
                 .map_err(|e| eyre!("Failed to compile OpenAI stream regex: {}", e))?,
         })
     }
-}
-
-pub fn sentry_connect() -> ClientInitGuard {
-    sentry::init(ClientOptions {
-        release: sentry::release_name!(),
-        traces_sample_rate: 1.0,
-        ..Default::default()
-    })
 }
 
 pub async fn db_connect(database_url: &str) -> Result<PgPool> {

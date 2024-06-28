@@ -92,7 +92,7 @@ pub fn prepare_brave_api_config(brave_settings: &BraveSettings) -> BraveAPIConfi
     BraveAPIConfig { queries, headers }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn web_search(
     brave_settings: &BraveSettings,
     brave_api_config: &BraveAPIConfig,

@@ -58,7 +58,7 @@ fn prepare_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
         + "\n\nReasoning: Let's think step by step in order to...\n\nAnswer: [/INST]"
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn rephrase_query(
     settings: &QueryRephraserSettings,
     query_rephraser_input: &QueryRephraserInput,

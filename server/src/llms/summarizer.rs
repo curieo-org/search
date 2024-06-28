@@ -69,7 +69,7 @@ fn prepare_llm_context_string(
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn generate_text_with_llm(
     settings: SummarizerSettings,
     summarizer_input: SummarizerInput,
@@ -163,7 +163,7 @@ fn prepare_openai_input(
     })
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn generate_text_with_openai(
     settings: OpenAISettings,
     summarizer_input: SummarizerInput,

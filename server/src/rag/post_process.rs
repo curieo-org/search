@@ -8,7 +8,7 @@ use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
-#[tracing::instrument(level = "debug", ret)]
+#[tracing::instrument(level = "info", ret, err)]
 pub fn rerank_search_results(
     query_embeddings: &Embeddings,
     results_embeddings: &Vec<Embeddings>,
@@ -34,7 +34,7 @@ pub fn rerank_search_results(
         .collect()
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn summarize_search_results(
     settings: Settings,
     search_query_request: api_models::SearchQueryRequest,
