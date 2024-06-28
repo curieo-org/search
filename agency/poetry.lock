@@ -1570,6 +1570,17 @@ perf = ["ipython"]
 testing = ["flufl.flake8", "importlib-resources (>=1.3)", "jaraco.test (>=5.4)", "packaging", "pyfakefs", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-perf (>=0.9.2)", "pytest-ruff (>=0.2.1)"]
 
 [[package]]
+name = "inflection"
+version = "0.5.1"
+description = "A port of Ruby on Rails inflector to Python"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2"},
+    {file = "inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417"},
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.0.0"
 description = "brain-dead simple config-ini parsing"
@@ -3166,6 +3177,44 @@ setuptools = ">=16.0"
 wrapt = ">=1.0.0,<2.0.0"
 
 [[package]]
+name = "opentelemetry-instrumentation-grpc"
+version = "0.46b0"
+description = "OpenTelemetry gRPC instrumentation"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_instrumentation_grpc-0.46b0-py3-none-any.whl", hash = "sha256:cccfb28db07c28849709f2dcf330237fae0fca9f86971bfce27b28bb9a8b0577"},
+    {file = "opentelemetry_instrumentation_grpc-0.46b0.tar.gz", hash = "sha256:9c5738592cf82672805099826b676d352324b54e03f9ac72a1368ba0605d6ff9"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.46b0"
+opentelemetry-semantic-conventions = "0.46b0"
+wrapt = ">=1.0.0,<2.0.0"
+
+[package.extras]
+instruments = ["grpcio (>=1.27,<2.0)"]
+
+[[package]]
+name = "opentelemetry-instrumentation-llamaindex"
+version = "0.23.0"
+description = "OpenTelemetry LlamaIndex instrumentation"
+optional = false
+python-versions = "<4,>=3.9"
+files = [
+    {file = "opentelemetry_instrumentation_llamaindex-0.23.0-py3-none-any.whl", hash = "sha256:792f7e6fe1b9051fae128dce2da30e8bc4dc4ff0593978ff86d145df64148290"},
+    {file = "opentelemetry_instrumentation_llamaindex-0.23.0.tar.gz", hash = "sha256:8fe25346f431689822560a1dbf844732d28fd91e7dfd73754afdc1d97d334a7b"},
+]
+
+[package.dependencies]
+inflection = ">=0.5.1,<0.6.0"
+opentelemetry-api = ">=1.25.0,<2.0.0"
+opentelemetry-instrumentation = ">=0.46b0,<0.47"
+opentelemetry-semantic-conventions = ">=0.46b0,<0.47"
+opentelemetry-semantic-conventions-ai = "0.3.1"
+
+[[package]]
 name = "opentelemetry-proto"
 version = "1.25.0"
 description = "OpenTelemetry Python Proto"
@@ -3208,6 +3257,17 @@ files = [
 
 [package.dependencies]
 opentelemetry-api = "1.25.0"
+
+[[package]]
+name = "opentelemetry-semantic-conventions-ai"
+version = "0.3.1"
+description = "OpenTelemetry Semantic Conventions Extension for Large Language Models"
+optional = false
+python-versions = "<4,>=3.9"
+files = [
+    {file = "opentelemetry_semantic_conventions_ai-0.3.1-py3-none-any.whl", hash = "sha256:14af6daefa46e15d12e5ca192a4f9ca4400698bc267326da53f3cde6d4978031"},
+    {file = "opentelemetry_semantic_conventions_ai-0.3.1.tar.gz", hash = "sha256:02c6418719b423f4add17b7d65408b21977e4d3abcd736fffb961245403e7dc6"},
+]
 
 [[package]]
 name = "optuna"
@@ -5934,4 +5994,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "5496407bf8ec36e08b1269c6d134149a9ab2803c6f9d3641dca988001764a2e8"
+content-hash = "4e8b2fec95d601f2100a96dab147cee30722857d66596a0028a4e7fe60f5177b"

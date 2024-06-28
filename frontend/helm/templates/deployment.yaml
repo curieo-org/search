@@ -16,21 +16,11 @@ spec:
         app: search-{{ .Release.Name }}
     spec:
       containers:
-      - image: {{ .Values.service.image }}
+      - envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-configmap
+        image: {{ .Values.service.image }}
         imagePullPolicy: Always
-        env:
-        - name: NEXT_PUBLIC_POSTHOG_UI_HOST
-          value: https://app.posthog.com
-        - name: NEXT_PUBLIC_POSTHOG_KEY
-          value: phc_Qau6pGkA8BXUr7JuDxgALufZqhxMKAk9UVGY4UFQyXu
-        - name: NEXT_PUBLIC_POSTHOG_API_HOST
-          value: https://search.curieo.ai/ingest
-        - name: NEXT_PUBLIC_API_URL
-          value: http://search-server.search.svc.cluster.local:3030   
-        - name: AUTH_URL
-          value: https://search.curieo.ai
-        - name: AUTH_SECRET
-          value: 05mk7ukF/GSG1dHLYVp04Mxa49slQb2W3N9v1aMcRTM=
         name: search-{{ .Release.Name }}
         ports:
         - containerPort: {{ .Values.service.port }}

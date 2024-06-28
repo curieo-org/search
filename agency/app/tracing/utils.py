@@ -4,7 +4,6 @@ import sentry_sdk
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from openinference.semconv.resource import ResourceAttributes
 from opentelemetry import trace
-from opentelemetry import trace as trace_api
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.grpc import GrpcAioInstrumentorServer
 from opentelemetry.instrumentation.llamaindex import (
@@ -25,24 +24,12 @@ from app.settings import TracingSettings
 
 def setup_tracing(settings: TracingSettings) -> None:
     if settings.environment == "production":
-        # jaeger opentelemetry tracing
         resource = Resource(
             attributes={
                 ResourceAttributes.PROJECT_NAME: settings.project_name,
                 "service.name": settings.service_name,
             },
         )
-        trace.set_tracer_provider(TracerProvider(resource=resource))
-        trace.get_tracer_provider().add_span_processor(
-            BatchSpanProcessor(
-                OTLPSpanExporter(
-                    endpoint=settings.jaeger_endpoint,
-                )
-            )
-        )
-        set_global_textmap(TraceContextTextMapPropagator())
-        GrpcAioInstrumentorServer().instrument()
-        OpentelemetryLlamaIndexInstrumentor().instrument()
 
         # sentry tracing
         sentry_sdk.init(
@@ -60,5 +47,17 @@ def setup_tracing(settings: TracingSettings) -> None:
         span_exporter = OTLPSpanExporter(endpoint=settings.phoenix_api)
         span_processor = SimpleSpanProcessor(span_exporter=span_exporter)
         tracer_provider.add_span_processor(span_processor=span_processor)
-        trace_api.set_tracer_provider(tracer_provider=tracer_provider)
+        trace.set_tracer_provider(tracer_provider=tracer_provider)
         LlamaIndexInstrumentor().instrument()
+
+        # jaeger opentelemetry tracing
+        trace.get_tracer_provider().add_span_processor(
+            BatchSpanProcessor(
+                OTLPSpanExporter(
+                    endpoint=settings.jaeger_endpoint,
+                )
+            )
+        )
+        set_global_textmap(TraceContextTextMapPropagator())
+        GrpcAioInstrumentorServer().instrument()
+        OpentelemetryLlamaIndexInstrumentor().instrument()
