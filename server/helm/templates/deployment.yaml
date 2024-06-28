@@ -60,6 +60,11 @@ spec:
           value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
         - name: DATABASE_URL
           value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
+        - name: OPENTELEMETRY_COLLECTOR
+          valueFrom:
+            secretKeyRef:
+              key: OPENTELEMETRY_COLLECTOR
+              name: {{ .Release.Name }}
         - name: BRAVE__SUBSCRIPTION_KEY
           valueFrom:
             secretKeyRef:
