@@ -6,7 +6,7 @@ service:
   image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-server:8.0
   replica_count: 1
   port: 3030
-  aws_account_number: 698471419283
+  aws_account_number: "698471419283"
   aws_iam_role: search-server-k8s-service-iam-role
   aws_rds_secret_name: "rds!db-69faccbe-cb63-415d-b424-5b27d0629590"
   deployment_envs_secret_name: dev-search-server-deployment-envs
