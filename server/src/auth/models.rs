@@ -59,7 +59,7 @@ impl PostgresBackend {
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 async fn password_authenticate(
     db: &PgPool,
     password_credentials: PasswordCredentials,
@@ -81,7 +81,7 @@ async fn password_authenticate(
     .await?
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 async fn oauth_authenticate(
     db: &PgPool,
     oauth2_clients: &[OAuth2Client],
@@ -140,7 +140,7 @@ impl AuthnBackend for PostgresBackend {
     type Credentials = Credentials;
     type Error = BackendError;
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn authenticate(
         &self,
         creds: Self::Credentials,
@@ -155,7 +155,7 @@ impl AuthnBackend for PostgresBackend {
         }
     }
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
         sqlx::query_as!(
             Self::User,

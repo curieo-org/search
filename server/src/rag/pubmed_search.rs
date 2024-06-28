@@ -29,7 +29,7 @@ pub fn convert_to_retrieved_result(
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn pubmed_parent_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,
@@ -50,7 +50,7 @@ pub async fn pubmed_parent_search(
     Ok(response.sources)
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn pubmed_cluster_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,

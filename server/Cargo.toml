@@ -67,6 +67,11 @@ tokio-stream = { version = "0.1.15", features = ["full"] }
 sentry = { version = "0.34.0", features = ["tracing"] }
 sentry-tower = { version = "0.34.0", features = ["http"] }
 regex = "1.10.5"
+opentelemetry = "0.23.0"
+opentelemetry_sdk = { version = "0.23.0", features = ["rt-tokio"] }
+tracing-opentelemetry = "0.24.0"
+opentelemetry-otlp = { version = "0.16.0", features = ["tls-roots"] }
+opentelemetry-semantic-conventions = "0.15.0"
 
 [dependencies.openssl-sys]
 version = "0.9.102"

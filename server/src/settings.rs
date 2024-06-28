@@ -76,6 +76,7 @@ impl<'de> Deserialize<'de> for Env {
 #[allow(unused)]
 pub struct Settings {
     pub environment: Env,
+    pub opentelemetry_collector: String,
     pub log: Log,
     pub host: String,
     pub port: u16,

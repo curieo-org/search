@@ -40,6 +40,10 @@ qdrant-client = "^1.9.1"
 
 llmlingua = "^0.2.2"
 llama-index-llms-huggingface = "^0.2.2"
+opentelemetry-instrumentation-llamaindex = "^0.23.0"
+opentelemetry-sdk = "^1.25.0"
+opentelemetry-instrumentation = "^0.46b0"
+opentelemetry-instrumentation-grpc = "^0.46b0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 mypy = "^1.9.0"
