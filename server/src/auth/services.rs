@@ -1,5 +1,4 @@
-use crate::auth::utils;
-use crate::auth::{api_models, models};
+use crate::auth::{api_models, models, utils};
 use crate::users::{User, UserError, UserRecord};
 use sqlx::PgPool;
 

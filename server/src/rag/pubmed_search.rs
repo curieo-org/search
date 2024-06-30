@@ -1,8 +1,8 @@
-use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{Embeddings, PubmedResponse, PubmedSource};
+use crate::proto::{
+    agency_service_client::AgencyServiceClient, Embeddings, PubmedResponse, PubmedSource,
+};
 use crate::rag::{RetrievedResult, Source};
-use crate::search::SearchError;
-use crate::search::SourceType;
+use crate::search::{SearchError, SourceType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

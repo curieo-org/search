@@ -1,9 +1,8 @@
 use crate::llms::query_rephraser;
-use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{Embeddings, EmbeddingsOutput, SearchInput};
-use crate::search::api_models;
-use crate::search::services as search_services;
-use crate::search::SearchError;
+use crate::proto::{
+    agency_service_client::AgencyServiceClient, Embeddings, EmbeddingsOutput, SearchInput,
+};
+use crate::search::{api_models, services as search_services, SearchError};
 use crate::settings::Settings;
 use sqlx::PgPool;
 use std::sync::Arc;

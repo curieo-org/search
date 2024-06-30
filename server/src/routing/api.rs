@@ -1,6 +1,5 @@
 use axum::Router;
-use axum_login::tower_sessions::cookie::time::Duration;
-use axum_login::tower_sessions::cookie::SameSite;
+use axum_login::tower_sessions::cookie::{time::Duration, SameSite};
 use axum_login::tower_sessions::{CachingSessionStore, Expiry, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
 use sentry_tower::{NewSentryLayer, SentryHttpLayer};

@@ -1,14 +1,10 @@
-use crate::auth::AuthError;
-use crate::cache::CacheError;
-use crate::search::SearchError;
-use crate::users::UserError;
+use crate::{auth::AuthError, cache::CacheError, search::SearchError, users::UserError};
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use std::borrow::Cow;
-use std::collections::HashMap;
 use std::fmt::{Debug, Display};
+use std::{borrow::Cow, collections::HashMap};
 use tokio::task;
 
 pub trait ErrorExt {

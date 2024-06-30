@@ -1,6 +1,5 @@
 use crate::rag::{RetrievedResult, Source};
-use crate::search::SearchError;
-use crate::search::SourceType;
+use crate::search::{SearchError, SourceType};
 use crate::secrets::Secret;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;

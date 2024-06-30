@@ -1,8 +1,6 @@
 use crate::custom_types::DateTime;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use sqlx::FromRow;
-use std::fmt::Debug;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SourceType {

@@ -1,7 +1,6 @@
+use crate::users::{User, UserRecord};
 use sqlx::types::uuid;
 use sqlx::PgPool;
-
-use crate::users::{User, UserRecord};
 
 #[tracing::instrument(level = "info", ret, err)]
 pub async fn get_user(pool: PgPool, user_id: uuid::Uuid) -> crate::Result<Option<UserRecord>> {

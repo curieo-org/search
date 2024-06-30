@@ -1,6 +1,5 @@
 use crate::llms::OpenAISettings;
-use crate::search::api_models;
-use crate::search::SearchError;
+use crate::search::{api_models, SearchError};
 use futures::StreamExt;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};

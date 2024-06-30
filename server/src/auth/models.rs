@@ -1,15 +1,12 @@
-use crate::auth::oauth2::OAuth2Client;
-use crate::auth::{utils, AuthError};
+use crate::auth::{oauth2::OAuth2Client, utils, AuthError};
 use crate::err::AppError;
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
-use crate::users::User;
-use crate::users::UserError;
+use crate::users::{User, UserError};
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
 use axum_login::{AuthnBackend, UserId};
-use oauth2::url::Url;
-use oauth2::{AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
+use oauth2::{url::Url, AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use validator::Validate;

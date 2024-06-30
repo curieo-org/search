@@ -1,7 +1,9 @@
 use crate::search::SearchError;
 use crate::secrets::Secret;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    Client,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

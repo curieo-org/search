@@ -1,12 +1,8 @@
 use crate::err::ErrorExt;
-use crate::search::Search;
-use crate::search::{Source, Thread};
+use crate::search::{Search, Source, Thread};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::Arc;
+use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc};
 use validator::Validate;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;

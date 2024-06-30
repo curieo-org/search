@@ -1,8 +1,7 @@
 use crate::cache::CachePool;
 use crate::llms::prompt_compression;
 use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::rag::{self, post_process, pre_process};
-use crate::rag::{brave_search, pubmed_search};
+use crate::rag::{self, brave_search, post_process, pre_process, pubmed_search};
 use crate::search::SearchError;
 use crate::settings::Settings;
 use std::sync::Arc;

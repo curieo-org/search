@@ -2,11 +2,9 @@ use crate::err::AppError;
 use crate::secrets::Secret;
 use axum::extract::FromRef;
 use bb8::Pool;
-use bb8_redis::bb8;
-use bb8_redis::RedisConnectionManager;
+use bb8_redis::{bb8, RedisConnectionManager};
 use redis::{AsyncCommands, SetOptions};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Debug, Clone, Deserialize)]

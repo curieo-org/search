@@ -1,10 +1,9 @@
 use crate::auth::services;
-use crate::auth::AuthError;
-use crate::auth::{AuthSession, Credentials, RegisterUserRequest};
-use crate::auth::{OAuthCredentials, PasswordCredentials};
+use crate::auth::{
+    AuthError, AuthSession, Credentials, OAuthCredentials, PasswordCredentials, RegisterUserRequest,
+};
 use crate::startup::AppState;
-use crate::users::UserError;
-use crate::users::UserRecord;
+use crate::users::{UserError, UserRecord};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};

@@ -1,8 +1,6 @@
 use crate::auth::oauth2::OAuth2Client;
-use crate::cache::CacheSettings;
-use crate::llms;
-use crate::rag;
 use crate::secrets::Secret;
+use crate::{cache::CacheSettings, llms, rag};
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
 use once_cell::sync::Lazy;

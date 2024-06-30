@@ -1,11 +1,8 @@
 use crate::auth::utils::verify_user_password;
 use crate::startup::AppState;
 use crate::users::{api_models, services, User, UserError, UserRecord};
-use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::routing::{get, patch};
-use axum::{Form, Json, Router};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Form, Json, Router};
 use sqlx::PgPool;
 use validator::Validate;
 

@@ -1,6 +1,5 @@
 use crate::rag::Source;
-use crate::search::SearchError;
-use crate::search::{api_models, data_models};
+use crate::search::{api_models, data_models, SearchError};
 use sqlx::PgPool;
 use std::collections::HashSet;
 use uuid::Uuid;
