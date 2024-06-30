@@ -123,7 +123,7 @@ impl Display for AppError {
 
 #[derive(serde::Serialize, Debug)]
 pub struct ErrorMap {
-    errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
+    errors: HashMap<Cow<'static, str>, Cow<'static, str>>,
 }
 
 impl<K, V, I> From<I> for ErrorMap
@@ -136,10 +136,7 @@ where
         let mut errors = HashMap::new();
 
         for (key, val) in i {
-            errors
-                .entry(key.into())
-                .or_insert_with(Vec::new)
-                .push(val.into());
+            errors.entry(key.into()).or_insert_with(|| val.into());
         }
 
         ErrorMap { errors }

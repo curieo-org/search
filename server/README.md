@@ -12,6 +12,7 @@
   - [Deployment](#deployment)
   - [Error Practices](#error-practices)
   - [Error Codes and Corresponding Status Codes](#error-codes-and-corresponding-status-codes)
+  - [Error Response Format](#error-response-format)
 
 ## Introduction
 Search server is responsible for serving all the search APIs and communication with the respective modules to compute the results. It also communicates with different LLM models and database engines to fetch the results.
@@ -116,3 +117,14 @@ Follow the below `HTTP Status Code` to maintain the consistency in the error han
     - foreign_key_violation: 400
     - database_error: 500
     - internal_server_error: 500
+5. Other Error: Response may contain only the status code and not the body
+
+## Error Response Format
+```json
+{
+    "errors": {
+        "message": ""
+        "error_code": ""
+    }
+}
+```
