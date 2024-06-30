@@ -8,7 +8,10 @@
   - [API Documentation](#api-documentation)
   - [Prerequisites](#prerequisites)
   - [Usage](#usage)
+  - [Contribution](#contribution)
   - [Deployment](#deployment)
+  - [Error Practices](#error-practices)
+  - [Error Codes and Corresponding Status Codes](#error-codes-and-corresponding-status-codes)
 
 ## Introduction
 Search server is responsible for serving all the search APIs and communication with the respective modules to compute the results. It also communicates with different LLM models and database engines to fetch the results.
@@ -76,3 +79,40 @@ helm install search-server ./helm -n <NAMESPACE> --values ./helm/values.yaml
 # Update the already existing deployment in the Kubernetes from the root directory
 helm upgrade search-server ./helm -n <NAMESPACE> --values ./helm/values.yaml
 ```
+
+## Error Practices
+Follow the below `HTTP Status Code` to maintain the consistency in the error handling.
+1. `400 BAD REQUEST`: Invalid request, missing parameters, invalid parameters, foreign key constraint violation, or invalid request body.
+2. `401 UNAUTHORIZED`: Invalid credentials, invalid access token, expired session, or invalid session. User failed to authenticate.
+3. `403 FORBIDDEN`: Access denied, user does not have permission to access the resource.
+4. `404 Not Found`: Requested resource not found. Either the resource does not exist or the URL is incorrect.
+5. `405 METHOD NOT ALLOWED`: Requested method not allowed on the resource.
+6. `409 CONFLICT`: Unique constraint violation, the resource already exists, or the resource is in a conflicting state.
+7. `422 UNPROCESSABLE ENTITY`: Request body or parameters are invalid. The request is syntactically correct but semantically incorrect.
+8. `500 Internal Server Error`: Unexpected or unhandled error occurred on the server. The server failed to process the request.
+
+## Error Codes and Corresponding Status Codes
+1. Search Error
+   - toxic_query: 422
+   - invalid_query: 422
+   - agency_failure: 500
+   - llm_failure: 500
+   - brave_failure: 500
+   - stream_failure: 500
+   - no_results: 404
+   - no_sources: 404
+2. User Error
+   - not_whitelisted: 403
+   - invalid_data: 422
+   - invalid_password: 401
+3. Authentication Error
+   - unauthorized: 401
+   - invalid_session: 401
+   - backend_error: 500
+4. General Error
+    - resource_not_found: 404
+    - invalid_data: 400
+    - unique_key_violation: 409
+    - foreign_key_violation: 400
+    - database_error: 500
+    - internal_server_error: 500

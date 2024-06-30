@@ -52,7 +52,7 @@ impl ErrorExt for UserError {
         match self {
             UserError::NotWhitelisted(_) => StatusCode::FORBIDDEN,
             UserError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
-            UserError::InvalidPassword(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            UserError::InvalidPassword(_) => StatusCode::UNAUTHORIZED,
         }
     }
 }
