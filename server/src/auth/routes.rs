@@ -1,6 +1,6 @@
-use crate::auth::models::{AuthSession, Credentials, RegisterUserRequest};
 use crate::auth::services;
 use crate::auth::AuthError;
+use crate::auth::{AuthSession, Credentials, RegisterUserRequest};
 use crate::auth::{OAuthCredentials, PasswordCredentials};
 use crate::startup::AppState;
 use crate::users::UserError;
@@ -14,12 +14,17 @@ use axum_login::tower_sessions::Session;
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
+use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
 ) -> crate::Result<impl IntoResponse> {
+    request
+        .validate()
+        .map_err(|e| UserError::InvalidData(format!("Invalid data: {}", e)))?;
+
     if !services::is_email_whitelisted(&pool, &request.email).await? {
         return Err(UserError::NotWhitelisted(format!("This email is not whitelisted!")).into());
     }

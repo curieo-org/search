@@ -34,15 +34,15 @@ impl Debug for UpdateResultProcessor {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum RouteCategory {
-    ResearchArticle = 0,
-    ClinicalTrials = 1,
-    Drug = 2,
-    NotSpecified = 3,
+    ResearchArticle,
+    ClinicalTrials,
+    Drug,
+    NotSpecified,
 }
 
 #[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct SearchQueryRequest {
-    #[validate(length(min = 1, max = 255))]
+    #[validate(length(min = 1, max = 300))]
     pub query: String,
     pub thread_id: Option<uuid::Uuid>,
 }
@@ -57,6 +57,7 @@ pub struct SearchByIdResponse {
 pub struct ThreadHistoryRequest {
     #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
+    #[validate(range(min = 0))]
     pub offset: Option<u8>,
 }
 
@@ -70,6 +71,7 @@ pub struct GetThreadRequest {
     pub thread_id: uuid::Uuid,
     #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
+    #[validate(range(min = 0))]
     pub offset: Option<u8>,
 }
 

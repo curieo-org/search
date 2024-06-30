@@ -1,12 +1,12 @@
-use crate::auth::models;
 use crate::auth::utils;
+use crate::auth::{api_models, models};
 use crate::users::{User, UserError, UserRecord};
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "info", ret, err)]
 pub async fn register(
     pool: PgPool,
-    request: models::RegisterUserRequest,
+    request: api_models::RegisterUserRequest,
 ) -> crate::Result<UserRecord> {
     if let Some(password) = request.password {
         let password_hash = utils::hash_password(password).await?;
@@ -14,7 +14,7 @@ pub async fn register(
             User,
             "insert into users (email, username, password_hash) values ($1, $2, $3) returning *",
             request.email,
-            request.username,
+            request.email,
             password_hash.expose()
         )
         .fetch_one(&pool)
@@ -26,7 +26,7 @@ pub async fn register(
             User,
             "insert into users (email, username, access_token) values ($1, $2, $3) returning *",
             request.email,
-            request.username,
+            request.email,
             access_token.expose()
         )
         .fetch_one(&pool)
@@ -48,7 +48,10 @@ pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> crate::Resul
         email
     )
     .fetch_one(pool)
-    .await?;
+    .await;
 
-    Ok(whitelisted_email.approved)
+    match whitelisted_email {
+        Err(_) => Ok(false),
+        Ok(whitelisted_email) => Ok(whitelisted_email.approved),
+    }
 }

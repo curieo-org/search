@@ -1,63 +1,18 @@
 use crate::auth::oauth2::OAuth2Client;
-use crate::auth::utils;
+use crate::auth::{utils, AuthError};
 use crate::err::AppError;
-use crate::err::ErrorExt;
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
 use crate::users::User;
+use crate::users::UserError;
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
-use axum::http::StatusCode;
 use axum_login::{AuthnBackend, UserId};
 use oauth2::url::Url;
 use oauth2::{AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
-use serde::de::Error;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-
-#[derive(Debug)]
-pub enum AuthError {
-    Unauthorized(String),
-    InvalidSession(String),
-    BackendError(String),
-}
-
-impl ErrorExt for AuthError {
-    fn to_error_code(&self) -> String {
-        match self {
-            AuthError::Unauthorized(_) => "unauthorized".to_string(),
-            AuthError::InvalidSession(_) => "invalid_session".to_string(),
-            AuthError::BackendError(_) => "backend_error".to_string(),
-        }
-    }
-
-    fn to_status_code(&self) -> StatusCode {
-        match self {
-            AuthError::Unauthorized(_) | AuthError::InvalidSession(_) => StatusCode::UNAUTHORIZED,
-            AuthError::BackendError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-}
-
-#[derive(Deserialize, Clone, Debug)]
-#[serde(remote = "Self")]
-pub struct RegisterUserRequest {
-    pub email: String,
-    pub username: String,
-    pub password: Option<Secret<String>>,
-    pub access_token: Option<Secret<String>>,
-}
-
-impl<'de> Deserialize<'de> for RegisterUserRequest {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = Self::deserialize(deserializer)?;
-        if s.password.is_some() && s.access_token.is_some() {
-            return Err(Error::custom("should only have password or access token"));
-        }
-
-        Ok(s)
-    }
-}
+use validator::Validate;
 
 #[derive(Debug, Deserialize)]
 struct UserInfo {
@@ -90,8 +45,8 @@ async fn password_authenticate(
 ) -> crate::Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
-        "select * from users where username = $1 and password_hash is not null",
-        password_credentials.username
+        "select * from users where email = $1 and password_hash is not null",
+        password_credentials.email
     )
     .fetch_optional(db)
     .await?;
@@ -165,6 +120,9 @@ impl AuthnBackend for PostgresBackend {
     async fn authenticate(&self, creds: Self::Credentials) -> crate::Result<Option<Self::User>> {
         match creds {
             Credentials::Password(password_cred) => {
+                password_cred
+                    .validate()
+                    .map_err(|e| UserError::InvalidData(format!("Invalid credentials: {}", e)))?;
                 password_authenticate(&self.db, password_cred).await
             }
             Credentials::OAuth(oauth_creds) => {
@@ -193,9 +151,10 @@ pub enum Credentials {
     OAuth(OAuthCredentials),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct PasswordCredentials {
-    pub username: String,
+    #[validate(email)]
+    pub email: String,
     pub password: Secret<String>,
     pub csrf_token: Option<CsrfToken>,
     pub next: Option<String>,
@@ -206,6 +165,12 @@ pub struct OAuthCredentials {
     pub code: String,
     pub old_state: CsrfToken,
     pub new_state: CsrfToken,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WhitelistedEmail {
+    pub email: String,
+    pub approved: bool,
 }
 
 // We use a type alias for convenience.
@@ -222,9 +187,4 @@ mod tests {
     async fn test_dummy_verify_password() {
         assert!(dummy_verify_password(Secret::new("password")).is_ok());
     }
-}
-
-pub struct WhitelistedEmail {
-    pub email: String,
-    pub approved: bool,
 }

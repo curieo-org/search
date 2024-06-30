@@ -1,5 +1,4 @@
 use crate::auth::AuthSession;
-use crate::err::ErrorExt;
 use crate::secrets::Secret;
 use async_trait::async_trait;
 use axum::extract::FromRequestParts;
@@ -108,59 +107,5 @@ impl AuthUser for User {
         }
 
         &[]
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UpdatePasswordRequest {
-    pub old_password: Secret<String>,
-    pub new_password: Secret<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UpdateProfileRequest {
-    pub username: Option<String>,
-    pub email: Option<String>,
-    pub fullname: Option<String>,
-    pub title: Option<String>,
-    pub company: Option<String>,
-}
-
-impl UpdateProfileRequest {
-    pub fn has_any_value(&self) -> bool {
-        [
-            self.username.is_some(),
-            self.email.is_some(),
-            self.fullname.is_some(),
-            self.title.is_some(),
-            self.company.is_some(),
-        ]
-        .iter()
-        .any(|&x| x)
-    }
-}
-
-#[derive(Debug)]
-pub enum UserError {
-    NotWhitelisted(String),
-    InvalidData(String),
-    InvalidPassword(String),
-}
-
-impl ErrorExt for UserError {
-    fn to_error_code(&self) -> String {
-        match self {
-            UserError::NotWhitelisted(_) => "not_whitelisted".to_string(),
-            UserError::InvalidData(_) => "invalid_data".to_string(),
-            UserError::InvalidPassword(_) => "invalid_password".to_string(),
-        }
-    }
-
-    fn to_status_code(&self) -> StatusCode {
-        match self {
-            UserError::NotWhitelisted(_) => StatusCode::FORBIDDEN,
-            UserError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
-            UserError::InvalidPassword(_) => StatusCode::UNPROCESSABLE_ENTITY,
-        }
     }
 }

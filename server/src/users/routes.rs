@@ -1,12 +1,13 @@
 use crate::auth::utils::verify_user_password;
 use crate::startup::AppState;
-use crate::users::{models, services, User, UserError, UserRecord};
+use crate::users::{api_models, services, User, UserError, UserRecord};
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, patch};
 use axum::{Form, Json, Router};
 use sqlx::PgPool;
+use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_user_handler(user: User) -> crate::Result<Json<UserRecord>> {
@@ -17,8 +18,12 @@ async fn get_user_handler(user: User) -> crate::Result<Json<UserRecord>> {
 async fn update_profile_handler(
     State(pool): State<PgPool>,
     user: User,
-    Json(update_profile_request): Json<models::UpdateProfileRequest>,
+    Json(update_profile_request): Json<api_models::UpdateProfileRequest>,
 ) -> crate::Result<Json<UserRecord>> {
+    update_profile_request
+        .validate()
+        .map_err(|e| UserError::InvalidData(format!("Invalid data: {}", e)))?;
+
     let user_id = user.user_id;
     if !update_profile_request.has_any_value() {
         return Err(
@@ -34,7 +39,7 @@ async fn update_profile_handler(
 async fn update_password_handler(
     State(pool): State<PgPool>,
     user: User,
-    Form(update_password_request): Form<models::UpdatePasswordRequest>,
+    Form(update_password_request): Form<api_models::UpdatePasswordRequest>,
 ) -> crate::Result<impl IntoResponse> {
     let user_id = user.user_id;
 
