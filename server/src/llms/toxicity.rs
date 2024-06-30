@@ -1,5 +1,5 @@
-use crate::err::AppError;
 use crate::llms::LLMSettings;
+use crate::search::SearchError;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -25,10 +25,12 @@ pub async fn predict_toxicity(
 ) -> crate::Result<bool> {
     let mut headers = HeaderMap::new();
     headers.insert(
-        HeaderName::from_bytes(b"Authorization")
-            .map_err(|e| AppError::InternalServerError(format!("Failed to create header: {e}")))?,
-        HeaderValue::from_str(&llm_settings.toxicity_auth_token.expose())
-            .map_err(|e| AppError::InternalServerError(format!("Failed to create header: {e}")))?,
+        HeaderName::from_bytes(b"Authorization").map_err(|e| {
+            SearchError::LLMFailure(format!("Failed to create toxicity header: {e}"))
+        })?,
+        HeaderValue::from_str(&llm_settings.toxicity_auth_token.expose()).map_err(|e| {
+            SearchError::LLMFailure(format!("Failed to create toxicity header: {e}"))
+        })?,
     );
     let client = Client::new();
 
@@ -38,10 +40,10 @@ pub async fn predict_toxicity(
         .headers(headers)
         .send()
         .await
-        .map_err(|e| AppError::ServiceUnavailable(format!("Request to toxicity failed: {}", e)))?;
+        .map_err(|e| SearchError::LLMFailure(format!("Request to toxicity failed: {}", e)))?;
 
     let toxicity_api_response: Vec<ToxicityScore> = response.json().await.map_err(|e| {
-        AppError::InvalidResponse(format!("Failed to parse toxicity response: {}", e))
+        SearchError::LLMFailure(format!("Failed to parse toxicity response: {}", e))
     })?;
 
     let toxicity_score = toxicity_api_response

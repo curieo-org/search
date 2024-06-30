@@ -1,17 +1,43 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::auth::utils;
 use crate::err::AppError;
+use crate::err::ErrorExt;
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
 use crate::users::User;
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
+use axum::http::StatusCode;
 use axum_login::{AuthnBackend, UserId};
 use oauth2::url::Url;
 use oauth2::{AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 use sqlx::PgPool;
+
+#[derive(Debug)]
+pub enum AuthError {
+    Unauthorized(String),
+    InvalidSession(String),
+    BackendError(String),
+}
+
+impl ErrorExt for AuthError {
+    fn to_error_code(&self) -> String {
+        match self {
+            AuthError::Unauthorized(_) => "unauthorized".to_string(),
+            AuthError::InvalidSession(_) => "invalid_session".to_string(),
+            AuthError::BackendError(_) => "backend_error".to_string(),
+        }
+    }
+
+    fn to_status_code(&self) -> StatusCode {
+        match self {
+            AuthError::Unauthorized(_) | AuthError::InvalidSession(_) => StatusCode::UNAUTHORIZED,
+            AuthError::BackendError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(remote = "Self")]
@@ -94,7 +120,7 @@ async fn oauth_authenticate(
     let token_res = client
         .exchange_code(AuthorizationCode::new(oauth_creds.code))
         .await
-        .map_err(AppError::OAuth2)?;
+        .map_err(|e| AuthError::Unauthorized(e.to_string()))?;
 
     // Use access token to request user info.
     let user_info = reqwest::Client::new()
@@ -105,14 +131,13 @@ async fn oauth_authenticate(
             format!("Bearer {}", token_res.access_token().secret()),
         )
         .send()
-        .await
-        .map_err(AppError::Reqwest)?
+        .await?
         .json::<UserInfo>()
-        .await
-        .map_err(AppError::Reqwest)?;
+        .await?;
 
     // Persist user in our database, so we can use `get_user`.
-    let user = sqlx::query_as!(User,
+    let user = sqlx::query_as!(
+        User,
         "
         insert into users (username, access_token)
         values ($1, $2)
@@ -157,7 +182,7 @@ impl AuthnBackend for PostgresBackend {
         )
         .fetch_optional(&self.db)
         .await
-        .map_err(Self::Error::Sqlx)
+        .map_err(|e| e.into())
     }
 }
 

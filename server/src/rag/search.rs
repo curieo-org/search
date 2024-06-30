@@ -3,8 +3,8 @@ use crate::llms::prompt_compression;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::rag::{brave_search, pubmed_search};
+use crate::search::SearchError;
 use crate::settings::Settings;
-use color_eyre::eyre::eyre;
 use std::sync::Arc;
 use tonic::transport::Channel;
 
@@ -41,7 +41,7 @@ pub async fn search(
     }
 
     if retrieved_results.is_empty() {
-        return Err(eyre!("No results found").into());
+        return Err(SearchError::NoSources(format!("No sources found")).into());
     }
 
     let compressed_results = prompt_compression::compress(

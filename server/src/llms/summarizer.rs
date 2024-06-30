@@ -1,7 +1,6 @@
-use crate::err::AppError;
 use crate::llms::OpenAISettings;
 use crate::search::api_models;
-use color_eyre::eyre::eyre;
+use crate::search::SearchError;
 use futures::StreamExt;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -84,16 +83,13 @@ pub async fn generate_text_with_llm(
         .json(&summarizer_input)
         .send()
         .await
-        .map_err(|e| {
-            AppError::ServiceUnavailable(format!("Request to summarizer failed: {}", e))
-        })?;
+        .map_err(|e| SearchError::LLMFailure(format!("Request to summarizer failed: {}", e)))?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(AppError::NotFound(format!(
-            "Request failed with status: {:?}",
-            response.status()
-        )));
+        response
+            .error_for_status_ref()
+            .map_err(|e| SearchError::LLMFailure(format!("Request failed with status: {:?}", e)))?;
     }
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
@@ -101,12 +97,12 @@ pub async fn generate_text_with_llm(
     while let Some(chunk) = stream.next().await {
         // remove `data` from the start of the chunk and `\n\n` from the end
         let chunk =
-            chunk.map_err(|e| AppError::InvalidResponse(format!("Failed to read chunk: {e}")))?;
+            chunk.map_err(|e| SearchError::LLMFailure(format!("Failed to read chunk: {e}")))?;
         let chunk = &chunk[5..chunk.len() - 2];
 
         let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(&chunk)
             .map_err(|e| {
-                AppError::InvalidResponse(format!("Failed to parse summarizer response: {e}"))
+                SearchError::LLMFailure(format!("Failed to parse summarizer response: {e}"))
             })?;
 
         if !summarizer_api_response.token.special {
@@ -174,9 +170,9 @@ pub async fn generate_text_with_openai(
     let mut headers = HeaderMap::new();
     headers.insert(
         HeaderName::from_bytes(b"Authorization")
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+            .map_err(|e| SearchError::LLMFailure(format!("Failed to create openai header: {e}")))?,
         HeaderValue::from_str(settings.api_key.expose())
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+            .map_err(|e| SearchError::LLMFailure(format!("Failed to create openai header: {e}")))?,
     );
 
     let client = Client::new();
@@ -188,14 +184,13 @@ pub async fn generate_text_with_openai(
         .headers(headers)
         .send()
         .await
-        .map_err(|e| AppError::ServiceUnavailable(format!("Request to openai failed: {}", e)))?;
+        .map_err(|e| SearchError::LLMFailure(format!("Request to openai failed: {}", e)))?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(AppError::NotFound(format!(
-            "Request failed with status: {:?}",
-            response.status()
-        )));
+        response
+            .error_for_status_ref()
+            .map_err(|e| SearchError::LLMFailure(format!("Request failed with status: {:?}", e)))?;
     }
 
     let mut stream = response.bytes_stream();
@@ -204,7 +199,7 @@ pub async fn generate_text_with_openai(
 
     while let Some(chunk) = stream.next().await {
         let chunk =
-            chunk.map_err(|e| AppError::InvalidResponse(format!("Failed to read chunk: {e}")))?;
+            chunk.map_err(|e| SearchError::LLMFailure(format!("Failed to read chunk: {e}")))?;
         stream_data.push_str(&String::from_utf8_lossy(&chunk));
 
         let parsed_chunk = stream_regex

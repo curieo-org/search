@@ -1,7 +1,8 @@
 use crate::cache::CachePool;
-use crate::err::AppError;
+use crate::llms;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
+use crate::search::SearchError;
 use crate::search::{api_models, services};
 use crate::settings::Settings;
 use crate::startup::AppState;
@@ -21,6 +22,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Channel;
+use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
@@ -33,17 +35,23 @@ async fn get_search_query_handler(
     user: User,
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
+    search_query_request.validate().map_err(|e| {
+        SearchError::InvalidQuery(format!("Invalid search query: {}", e.to_string()))
+    })?;
     let user_id = user.user_id;
 
-    let (query_validity, rephrased_query) = tokio::join!(
-        pre_process::check_query_validity(&settings, &search_query_request),
+    let (query_toxicity, rephrased_query) = tokio::join!(
+        llms::toxicity::predict_toxicity(
+            &settings.llm,
+            llms::ToxicityInput {
+                inputs: search_query_request.query.to_string(),
+            }
+        ),
         pre_process::rephrase_query(&pool, &settings, &search_query_request)
     );
 
-    if let Ok(false) = query_validity {
-        return Err(AppError::UnprocessableEntity(
-            "Query is invalid to proceed".to_string(),
-        ));
+    if let Ok(true) = query_toxicity {
+        return Err(SearchError::ToxicQuery("Query is too toxic to proceed".to_string()).into());
     }
     let rephrased_query = match rephrased_query {
         Ok(rephrased_query) => rephrased_query,
@@ -72,7 +80,7 @@ async fn get_search_query_handler(
         sources,
     })
     .await
-    .map_err(|e| AppError::InternalServerError(format!("Failed to send search result: {}", e)))?;
+    .map_err(|e| SearchError::StreamFailure(format!("Failed to send search result: {}", e)))?;
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();

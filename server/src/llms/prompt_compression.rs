@@ -1,5 +1,5 @@
-use crate::err::AppError;
 use crate::llms::LLMSettings;
+use crate::search::SearchError;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -32,14 +32,14 @@ pub async fn compress(
         .send()
         .await
         .map_err(|e| {
-            AppError::ServiceUnavailable(format!("Request to prompt compression failed: {}", e))
+            SearchError::LLMFailure(format!("Request to prompt compression failed: {}", e))
         })?;
 
     let prompt_compression_response = response
         .json::<PromptCompressionAPIResponse>()
         .await
         .map_err(|e| {
-            AppError::InvalidResponse(format!(
+            SearchError::LLMFailure(format!(
                 "Failed to parse prompt compression response: {}",
                 e
             ))

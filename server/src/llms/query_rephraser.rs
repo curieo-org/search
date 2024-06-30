@@ -1,5 +1,5 @@
+use crate::search::SearchError;
 use crate::secrets::Secret;
-use color_eyre::eyre::eyre;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -66,10 +66,12 @@ pub async fn rephrase_query(
     let client = Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
-        HeaderName::from_bytes(b"Authorization")
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
-        HeaderValue::from_str(&settings.api_key.expose())
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+        HeaderName::from_bytes(b"Authorization").map_err(|e| {
+            SearchError::LLMFailure(format!("Failed to create rephrase query header: {e}"))
+        })?,
+        HeaderValue::from_str(&settings.api_key.expose()).map_err(|e| {
+            SearchError::LLMFailure(format!("Failed to create rephrase query header: {e}"))
+        })?,
     );
 
     let prompt = prepare_prompt(query_rephraser_input);
@@ -90,15 +92,15 @@ pub async fn rephrase_query(
         .headers(headers)
         .send()
         .await
-        .map_err(|e| eyre!("Request to query rephraser failed: {e}"))?;
+        .map_err(|e| SearchError::LLMFailure(format!("Request to query rephraser failed: {e}")))?;
 
-    let response_body = serde_json::from_slice::<QueryRephraserAPIResponse>(
-        &response
-            .bytes()
-            .await
-            .map_err(|e| eyre!("Failed to read response: {e}"))?,
-    )
-    .map_err(|e| eyre!("Failed to parse response: {e}"))?;
+    let response_body =
+        serde_json::from_slice::<QueryRephraserAPIResponse>(&response.bytes().await.map_err(
+            |e| SearchError::LLMFailure(format!("Failed to read query rephraser response: {e}")),
+        )?)
+        .map_err(|e| {
+            SearchError::LLMFailure(format!("Failed to parse query rephraser response: {e}"))
+        })?;
 
     Ok(QueryRephraserOutput {
         rephrased_query: response_body.output.choices[0].text.trim().to_string(),

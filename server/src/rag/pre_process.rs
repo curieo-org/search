@@ -1,10 +1,9 @@
-use crate::err::AppError;
 use crate::llms::query_rephraser;
-use crate::llms::toxicity;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{Embeddings, EmbeddingsOutput, SearchInput};
 use crate::search::api_models;
 use crate::search::services as search_services;
+use crate::search::SearchError;
 use crate::settings::Settings;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -23,39 +22,17 @@ pub async fn compute_embeddings(
     let response: EmbeddingsOutput = agency_service
         .embeddings_compute(request)
         .await
-        .map_err(|e| AppError::ServiceUnavailable(format!("Request to agency failed: {e}")))?
+        .map_err(|e| SearchError::AgencyFailure(format!("Request to agency failed: {e}")))?
         .into_inner();
 
     if response.status != 200 {
-        return Err(AppError::BadRequest(
-            "Failed to get search results".to_string(),
-        ));
+        return Err(SearchError::AgencyFailure("Failed to get embeddings".to_string()).into());
     }
 
     match response.embeddings {
-        None => Err(AppError::InvalidResponse("No embeddings found".to_string())),
+        None => Err(SearchError::AgencyFailure("No embeddings found".to_string()).into()),
         Some(embeddings) => Ok(embeddings),
     }
-}
-
-#[tracing::instrument(level = "info", ret, err)]
-pub async fn check_query_validity(
-    settings: &Settings,
-    search_query_request: &api_models::SearchQueryRequest,
-) -> crate::Result<bool> {
-    if search_query_request.query.len() > settings.search.max_query_length as usize {
-        return Ok(false);
-    }
-
-    let toxicity_prediction = toxicity::predict_toxicity(
-        &settings.llm,
-        toxicity::ToxicityInput {
-            inputs: search_query_request.query.to_string(),
-        },
-    )
-    .await?;
-
-    Ok(!toxicity_prediction)
 }
 
 #[tracing::instrument(level = "info", ret, err)]

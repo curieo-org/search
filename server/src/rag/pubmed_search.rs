@@ -1,7 +1,7 @@
-use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::proto::{Embeddings, PubmedResponse, PubmedSource};
 use crate::rag::{RetrievedResult, Source};
+use crate::search::SearchError;
 use crate::search::SourceType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -40,13 +40,14 @@ pub async fn pubmed_parent_search(
     let response: PubmedResponse = agency_service
         .pubmed_parent_search(request)
         .await
-        .map_err(|e| AppError::ServiceUnavailable(format!("Request to agency failed: {e}")))?
+        .map_err(|e| SearchError::AgencyFailure(format!("Request to agency failed: {e}")))?
         .into_inner();
 
     if response.status != 200 {
-        return Err(AppError::NotFound(
-            "Failed to get pubmed parent search results".to_string(),
-        ));
+        return Err(SearchError::AgencyFailure(format!(
+            "Failed to get pubmed parent search results"
+        ))
+        .into());
     }
 
     Ok(response.sources)
@@ -63,13 +64,14 @@ pub async fn pubmed_cluster_search(
     let response: PubmedResponse = agency_service
         .pubmed_cluster_search(request)
         .await
-        .map_err(|e| AppError::ServiceUnavailable(format!("Request to agency failed: {e}")))?
+        .map_err(|e| SearchError::AgencyFailure(format!("Request to agency failed: {e}")))?
         .into_inner();
 
     if response.status != 200 {
-        return Err(AppError::NotFound(
-            "Failed to get pubmed cluster search results".to_string(),
-        ));
+        return Err(SearchError::AgencyFailure(format!(
+            "Failed to get pubmed cluster search results"
+        ))
+        .into());
     }
 
     Ok(response.sources)

@@ -34,7 +34,10 @@ pub fn router(state: AppState) -> crate::Result<Router> {
     let api_routes = Router::new()
         .nest("/users", users::routes())
         .nest("/search", search::routes())
-        .route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
+        .route_layer(login_required!(
+            PostgresBackend,
+            login_url = "/auth/session"
+        ))
         .nest("/auth", auth::routes());
 
     Ok(Router::new()

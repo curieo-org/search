@@ -1,6 +1,5 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::CachePool;
-use crate::err::AppError;
 use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::brave_search;
 use crate::routing::router;
@@ -100,7 +99,7 @@ pub async fn db_connect(database_url: &str) -> Result<PgPool> {
         .max_connections(10)
         .connect(database_url)
         .await
-        .map_err(|e| AppError::Sqlx(e).into())
+        .map_err(|e| e.into())
 }
 
 pub async fn agency_service_connect(
@@ -108,9 +107,7 @@ pub async fn agency_service_connect(
 ) -> Result<AgencyServiceClient<Channel>> {
     let agency_service = AgencyServiceClient::connect(agency_service_url.to_owned())
         .await
-        .map_err(|e| {
-            AppError::ServiceUnavailable(format!("Failed to connect to agency service: {}", e))
-        })?;
+        .map_err(|e| eyre!("Failed to connect to agency service: {}", e))?;
 
     Ok(agency_service)
 }
