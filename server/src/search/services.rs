@@ -53,7 +53,7 @@ pub async fn insert_new_search(
 pub async fn append_search_result(
     pool: &PgPool,
     search: &data_models::Search,
-    result_suffix: &String,
+    result_suffix: &str,
 ) -> crate::Result<data_models::Search> {
     // Only used by internal services, so no need to check if user_id is the owner of the search
     let search = sqlx::query_as!(

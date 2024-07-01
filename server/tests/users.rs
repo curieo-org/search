@@ -2,16 +2,17 @@ use axum::body::Body;
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
 use server::auth::models::RegisterUserRequest;
-use server::auth::register;
+use server::auth::{register, WhitelistedEmail};
 use server::cache::CachePool;
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::agency_service_connect;
 use server::startup::AppState;
 use server::users::selectors::get_user;
 use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
+
+mod utils;
 
 /// Helper function to create a GET request for a given URI.
 fn _send_get_request(uri: &str) -> Request<Body> {
@@ -48,11 +49,18 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
+    let WhitelistedEmail { email, .. } = sqlx::query_as!(
+        WhitelistedEmail,
+        "insert into whitelisted_emails (email, approved) values ($1, true) returning *",
+        "my-email@email.com",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api.expose())
-        .await
-        .unwrap();
+    let (_, agency_service) = utils::agency_server_and_client_stub().await;
     let brave_api_config = settings.brave.clone().into();
     let state = AppState::new(
         pool,
@@ -65,11 +73,10 @@ async fn register_users_works(pool: PgPool) {
     )
     .await
     .unwrap();
-
     let router = router(state).unwrap();
 
     let form = &[
-        ("email", "my-email@email.com"),
+        ("email", email.as_str()),
         ("username", "my-username"),
         ("password", "my-password"),
     ];
@@ -87,7 +94,7 @@ async fn register_users_works(pool: PgPool) {
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 
     let form = &[
-        ("email", "another-email@email.com"),
+        ("email", "not-whitelisted-email"),
         ("username", "another-username"),
         ("access_token", "my-access-token"),
     ];
@@ -98,5 +105,5 @@ async fn register_users_works(pool: PgPool) {
         .unwrap();
 
     let response = router.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::CREATED);
+    assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
 }

@@ -211,6 +211,11 @@ pub enum BackendError {
 // Note that we've supplied our concrete backend here.
 pub type AuthSession = axum_login::AuthSession<PostgresBackend>;
 
+pub struct WhitelistedEmail {
+    pub email: String,
+    pub approved: bool,
+}
+
 #[cfg(test)]
 mod tests {
     use crate::auth::utils::dummy_verify_password;
@@ -220,9 +225,4 @@ mod tests {
     async fn test_dummy_verify_password() {
         assert!(dummy_verify_password(Secret::new("password")).is_ok());
     }
-}
-
-pub struct WhitelistedEmail {
-    pub email: String,
-    pub approved: bool,
 }

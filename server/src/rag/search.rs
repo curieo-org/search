@@ -16,13 +16,13 @@ pub async fn search(
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &str,
 ) -> crate::Result<rag::SearchResponse> {
-    if let Some(response) = cache.get(&search_query).await {
+    if let Some(response) = cache.get(search_query).await {
         return Ok(response);
     }
 
     let (agency_results, fallback_results) = tokio::join!(
         retrieve_result_from_agency(settings, agency_service, search_query),
-        brave_search::web_search(&settings.brave, brave_api_config, &search_query),
+        brave_search::web_search(&settings.brave, brave_api_config, search_query),
     );
 
     let mut retrieved_results = Vec::new();

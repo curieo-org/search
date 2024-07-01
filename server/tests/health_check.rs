@@ -1,20 +1,18 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use server::cache::CachePool;
-use sqlx::PgPool;
-use tower::ServiceExt;
-
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::{agency_service_connect, AppState};
+use server::startup::AppState;
+use sqlx::PgPool;
+use tower::ServiceExt;
+mod utils;
 
 #[sqlx::test]
 async fn health_check_works(pool: PgPool) {
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api.expose())
-        .await
-        .unwrap();
+    let (_, agency_service) = utils::agency_server_and_client_stub().await;
     let brave_api_config = settings.brave.clone().into();
     let state = AppState::new(
         pool,
