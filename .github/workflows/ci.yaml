@@ -12,7 +12,7 @@ env:
 
 jobs:
   detect-changes:
-    name: Detect which files have changed
+    name: Detect file changes
     runs-on: ubuntu-latest
     timeout-minutes: 3
     # Map a step output to a job output

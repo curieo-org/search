@@ -1,66 +1,57 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from users where user_id = $1",
+  "query": "update searches set result = result || $1 where search_id = $2 returning *",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "user_id",
+        "name": "search_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "username",
-        "type_info": "Text"
+        "name": "thread_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "email",
-        "type_info": "Text"
+        "name": "query",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "fullname",
+        "name": "rephrased_query",
         "type_info": "Varchar"
       },
       {
         "ordinal": 4,
-        "name": "title",
-        "type_info": "Varchar"
+        "name": "result",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "company",
-        "type_info": "Varchar"
+        "name": "media_urls",
+        "type_info": "TextArray"
       },
       {
         "ordinal": 6,
-        "name": "user_group",
-        "type_info": "Int4"
+        "name": "reaction",
+        "type_info": "Bool"
       },
       {
         "ordinal": 7,
-        "name": "password_hash",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 8,
-        "name": "access_token",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 10,
+        "ordinal": 8,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
+        "Text",
         "Uuid"
       ]
     },
@@ -68,15 +59,13 @@
       false,
       false,
       false,
-      true,
-      true,
-      true,
+      false,
       false,
       true,
       true,
       false,
-      true
+      false
     ]
   },
-  "hash": "65b1487c46bb050524858ef3ebf8876af384eee82317f2be5ad4b0ff0914c273"
+  "hash": "ce09df1d8db96f4d5fe17991e9f71939a4e9bb5fbaf1232a5fde29021ed5170e"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from users where username = $1 and password_hash is not null",
+  "query": "\n      update users\n      set\n        username = coalesce($1::text, username),\n        email = coalesce($2::text, email),\n        fullname = coalesce($3::text, fullname),\n        title = coalesce($4::text, title),\n        company = coalesce($5::text, company)\n      where user_id = $6 returning *\n      ",
   "describe": {
     "columns": [
       {
@@ -61,7 +61,12 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid"
       ]
     },
     "nullable": [
@@ -78,5 +83,5 @@
       true
     ]
   },
-  "hash": "2af097ecfc139606f581858bfebfb6db10aec38671ebe21c8a579d81ffc699d8"
+  "hash": "16ab4584237414a8b3f1011fb10b45e788e6f3b415b8f72e48927ec5f99b8fe3"
 }
