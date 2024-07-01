@@ -14,7 +14,7 @@ pub async fn search(
     cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &String,
-) -> crate::Result<rag::SearchResponse> {
+) -> Result<rag::SearchResponse, SearchError> {
     if let Some(response) = cache.get(&search_query).await {
         return Ok(response);
     }
@@ -67,7 +67,7 @@ async fn retrieve_result_from_agency(
     settings: &Settings,
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &String,
-) -> crate::Result<Vec<rag::RetrievedResult>> {
+) -> Result<Vec<rag::RetrievedResult>, SearchError> {
     let agency_service = Arc::new(agency_service.clone());
     let query_embeddings =
         pre_process::compute_embeddings(Arc::clone(&agency_service), search_query).await?;

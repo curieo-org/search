@@ -33,14 +33,13 @@ pub fn convert_to_retrieved_result(
 pub async fn pubmed_parent_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<PubmedSource>> {
+) -> Result<Vec<PubmedSource>, SearchError> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
         .pubmed_parent_search(request)
-        .await
-        .map_err(|e| SearchError::AgencyFailure(format!("Request to agency failed: {e}")))?
+        .await?
         .into_inner();
 
     if response.status != 200 {
@@ -57,14 +56,13 @@ pub async fn pubmed_parent_search(
 pub async fn pubmed_cluster_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<PubmedSource>> {
+) -> Result<Vec<PubmedSource>, SearchError> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
         .pubmed_cluster_search(request)
-        .await
-        .map_err(|e| SearchError::AgencyFailure(format!("Request to agency failed: {e}")))?
+        .await?
         .into_inner();
 
     if response.status != 200 {

@@ -1,8 +1,9 @@
-use crate::err::ErrorExt;
 use crate::search::{Search, Source, Thread};
-use axum::http::StatusCode;
+use reqwest::header::{InvalidHeaderName, InvalidHeaderValue};
 use serde::{Deserialize, Serialize};
+use serde_json::Error as SerdeError;
 use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc};
+use tonic::Status as TonicStatus;
 use validator::Validate;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;
@@ -95,42 +96,23 @@ pub struct UpdateThreadRequest {
     pub title: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum SearchError {
+    Reqwest(#[from] reqwest::Error),
+    ReqwestHeaderName(#[from] InvalidHeaderName),
+    ReqwestHeaderValue(#[from] InvalidHeaderValue),
+    Serde(#[from] SerdeError),
+    Tonic(#[from] TonicStatus),
     ToxicQuery(String),
     InvalidQuery(String),
     AgencyFailure(String),
-    LLMFailure(String),
-    BraveFailure(String),
-    StreamFailure(String),
     NoResults(String),
     NoSources(String),
+    Other(String),
 }
 
-impl ErrorExt for SearchError {
-    fn to_error_code(&self) -> String {
-        match self {
-            SearchError::ToxicQuery(_) => format!("toxic_query"),
-            SearchError::InvalidQuery(_) => format!("invalid_query"),
-            SearchError::AgencyFailure(_) => format!("agency_failure"),
-            SearchError::LLMFailure(_) => format!("llm_failure"),
-            SearchError::BraveFailure(_) => format!("brave_failure"),
-            SearchError::StreamFailure(_) => format!("stream_failure"),
-            SearchError::NoResults(_) => format!("no_results"),
-            SearchError::NoSources(_) => format!("no_sources"),
-        }
-    }
-
-    fn to_status_code(&self) -> StatusCode {
-        match self {
-            SearchError::ToxicQuery(_) => StatusCode::UNPROCESSABLE_ENTITY,
-            SearchError::InvalidQuery(_) => StatusCode::UNPROCESSABLE_ENTITY,
-            SearchError::AgencyFailure(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            SearchError::LLMFailure(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            SearchError::BraveFailure(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            SearchError::StreamFailure(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            SearchError::NoResults(_) => StatusCode::NOT_FOUND,
-            SearchError::NoSources(_) => StatusCode::NOT_FOUND,
-        }
+impl std::fmt::Display for SearchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SearchError: {}", self)
     }
 }

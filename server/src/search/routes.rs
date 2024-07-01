@@ -75,7 +75,7 @@ async fn get_search_query_handler(
         sources,
     })
     .await
-    .map_err(|e| SearchError::StreamFailure(format!("Failed to send search result: {}", e)))?;
+    .map_err(|e| SearchError::Other(format!("Failed to send search result: {}", e)))?;
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();

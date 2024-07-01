@@ -1,7 +1,7 @@
 use crate::llms::summarizer;
 use crate::proto::Embeddings;
 use crate::rag::utils;
-use crate::search::api_models;
+use crate::search::{api_models, SearchError};
 use crate::settings::Settings;
 use rand::Rng;
 use regex::Regex;
@@ -41,7 +41,7 @@ pub async fn summarize_search_results(
     update_processor: api_models::UpdateResultProcessor,
     stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
-) -> crate::Result<()> {
+) -> Result<(), SearchError> {
     let random_number = rand::thread_rng().gen_range(0.0..1.0);
 
     if random_number < settings.search.beta_usage_ratio {

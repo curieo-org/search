@@ -22,15 +22,11 @@ struct ToxicityScore {
 pub async fn predict_toxicity(
     llm_settings: &LLMSettings,
     toxicity_input: ToxicityInput,
-) -> crate::Result<bool> {
+) -> Result<bool, SearchError> {
     let mut headers = HeaderMap::new();
     headers.insert(
-        HeaderName::from_bytes(b"Authorization").map_err(|e| {
-            SearchError::LLMFailure(format!("Failed to create toxicity header: {e}"))
-        })?,
-        HeaderValue::from_str(&llm_settings.toxicity_auth_token.expose()).map_err(|e| {
-            SearchError::LLMFailure(format!("Failed to create toxicity header: {e}"))
-        })?,
+        HeaderName::from_bytes(b"Authorization")?,
+        HeaderValue::from_str(&llm_settings.toxicity_auth_token.expose())?,
     );
     let client = Client::new();
 
@@ -39,12 +35,8 @@ pub async fn predict_toxicity(
         .json(&toxicity_input)
         .headers(headers)
         .send()
-        .await
-        .map_err(|e| SearchError::LLMFailure(format!("Request to toxicity failed: {}", e)))?;
-
-    let toxicity_api_response: Vec<ToxicityScore> = response.json().await.map_err(|e| {
-        SearchError::LLMFailure(format!("Failed to parse toxicity response: {}", e))
-    })?;
+        .await?;
+    let toxicity_api_response: Vec<ToxicityScore> = response.json().await?;
 
     let toxicity_score = toxicity_api_response
         .into_iter()

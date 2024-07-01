@@ -1,6 +1,4 @@
-use crate::err::ErrorExt;
 use crate::secrets::Secret;
-use axum::http::StatusCode;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 use validator::Validate;
@@ -10,23 +8,6 @@ pub enum AuthError {
     Unauthorized(String),
     InvalidSession(String),
     BackendError(String),
-}
-
-impl ErrorExt for AuthError {
-    fn to_error_code(&self) -> String {
-        match self {
-            AuthError::Unauthorized(_) => "unauthorized".to_string(),
-            AuthError::InvalidSession(_) => "invalid_session".to_string(),
-            AuthError::BackendError(_) => "backend_error".to_string(),
-        }
-    }
-
-    fn to_status_code(&self) -> StatusCode {
-        match self {
-            AuthError::Unauthorized(_) | AuthError::InvalidSession(_) => StatusCode::UNAUTHORIZED,
-            AuthError::BackendError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
 }
 
 #[derive(Deserialize, Clone, Debug, Validate)]

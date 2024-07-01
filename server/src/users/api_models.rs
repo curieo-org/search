@@ -1,6 +1,4 @@
-use crate::err::ErrorExt;
 use crate::secrets::Secret;
-use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -37,22 +35,4 @@ pub enum UserError {
     NotWhitelisted(String),
     InvalidData(String),
     InvalidPassword(String),
-}
-
-impl ErrorExt for UserError {
-    fn to_error_code(&self) -> String {
-        match self {
-            UserError::NotWhitelisted(_) => "not_whitelisted".to_string(),
-            UserError::InvalidData(_) => "invalid_data".to_string(),
-            UserError::InvalidPassword(_) => "invalid_password".to_string(),
-        }
-    }
-
-    fn to_status_code(&self) -> StatusCode {
-        match self {
-            UserError::NotWhitelisted(_) => StatusCode::FORBIDDEN,
-            UserError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
-            UserError::InvalidPassword(_) => StatusCode::UNAUTHORIZED,
-        }
-    }
 }

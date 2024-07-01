@@ -7,11 +7,6 @@ use std::fmt::{Debug, Display};
 use std::{borrow::Cow, collections::HashMap};
 use tokio::task;
 
-pub trait ErrorExt {
-    fn to_status_code(&self) -> StatusCode;
-    fn to_error_code(&self) -> String;
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
     SearchError(SearchError),
@@ -24,12 +19,26 @@ pub enum AppError {
     TaskJoin(#[from] task::JoinError),
 }
 
-impl ErrorExt for AppError {
+impl AppError {
     fn to_error_code(&self) -> String {
         match self {
-            AppError::SearchError(err) => err.to_error_code(),
-            AppError::AuthError(err) => err.to_error_code(),
-            AppError::UserError(err) => err.to_error_code(),
+            AppError::SearchError(err) => match err {
+                SearchError::ToxicQuery(_) => format!("toxic_query"),
+                SearchError::InvalidQuery(_) => format!("invalid_query"),
+                SearchError::NoResults(_) | SearchError::NoSources(_) => format!("no_results"),
+                _ => format!("internal_server_error"),
+            },
+            AppError::UserError(err) => match err {
+                UserError::NotWhitelisted(_) => "not_whitelisted".to_string(),
+                UserError::InvalidData(_) => "invalid_data".to_string(),
+                UserError::InvalidPassword(_) => "invalid_password".to_string(),
+            },
+            AppError::AuthError(err) => match err {
+                AuthError::Unauthorized(_) => "unauthorized".to_string(),
+                AuthError::InvalidSession(_) => "invalid_session".to_string(),
+                AuthError::BackendError(_) => "backend_error".to_string(),
+            },
+
             AppError::Sqlx(err) => match err {
                 sqlx::Error::RowNotFound => "resource_not_found".to_string(),
                 sqlx::Error::Protocol(_) => "invalid_data".to_string(),
@@ -50,9 +59,25 @@ impl ErrorExt for AppError {
 
     fn to_status_code(&self) -> StatusCode {
         match self {
-            AppError::SearchError(err) => err.to_status_code(),
-            AppError::AuthError(err) => err.to_status_code(),
-            AppError::UserError(err) => err.to_status_code(),
+            AppError::SearchError(err) => match err {
+                SearchError::ToxicQuery(_) | SearchError::InvalidQuery(_) => {
+                    StatusCode::UNPROCESSABLE_ENTITY
+                }
+                SearchError::NoResults(_) | SearchError::NoSources(_) => StatusCode::NOT_FOUND,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            AppError::AuthError(err) => match err {
+                AuthError::Unauthorized(_) | AuthError::InvalidSession(_) => {
+                    StatusCode::UNAUTHORIZED
+                }
+                AuthError::BackendError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            AppError::UserError(err) => match err {
+                UserError::NotWhitelisted(_) => StatusCode::FORBIDDEN,
+                UserError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
+                UserError::InvalidPassword(_) => StatusCode::UNAUTHORIZED,
+            },
+
             AppError::Sqlx(err) => match err {
                 sqlx::Error::RowNotFound => StatusCode::NOT_FOUND,
                 sqlx::Error::Protocol(_) => StatusCode::BAD_REQUEST,
@@ -109,7 +134,7 @@ impl From<sqlx::migrate::MigrateError> for AppError {
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AppError::SearchError(e) => e.fmt(f),
+            AppError::SearchError(e) => f.write_fmt(format_args!("{:?}", e)),
             AppError::AuthError(e) => e.fmt(f),
             AppError::UserError(e) => e.fmt(f),
             AppError::Sqlx(e) => write!(f, "{}", e),

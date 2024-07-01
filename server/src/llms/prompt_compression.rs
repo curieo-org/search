@@ -24,26 +24,15 @@ struct PromptCompressionAPIResponse {
 pub async fn compress(
     llm_settings: &LLMSettings,
     prompt_compression_input: PromptCompressionInput,
-) -> crate::Result<PromptCompressionOutput> {
+) -> Result<PromptCompressionOutput, SearchError> {
     let client = Client::new();
     let response = client
         .post(llm_settings.prompt_compression_url.as_str())
         .json(&prompt_compression_input)
         .send()
-        .await
-        .map_err(|e| {
-            SearchError::LLMFailure(format!("Request to prompt compression failed: {}", e))
-        })?;
+        .await?;
 
-    let prompt_compression_response = response
-        .json::<PromptCompressionAPIResponse>()
-        .await
-        .map_err(|e| {
-            SearchError::LLMFailure(format!(
-                "Failed to parse prompt compression response: {}",
-                e
-            ))
-        })?;
+    let prompt_compression_response = response.json::<PromptCompressionAPIResponse>().await?;
 
     Ok(prompt_compression_response.response)
 }

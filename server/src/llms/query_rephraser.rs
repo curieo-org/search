@@ -64,16 +64,12 @@ fn prepare_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
 pub async fn rephrase_query(
     settings: &QueryRephraserSettings,
     query_rephraser_input: &QueryRephraserInput,
-) -> crate::Result<QueryRephraserOutput> {
+) -> Result<QueryRephraserOutput, SearchError> {
     let client = Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
-        HeaderName::from_bytes(b"Authorization").map_err(|e| {
-            SearchError::LLMFailure(format!("Failed to create rephrase query header: {e}"))
-        })?,
-        HeaderValue::from_str(&settings.api_key.expose()).map_err(|e| {
-            SearchError::LLMFailure(format!("Failed to create rephrase query header: {e}"))
-        })?,
+        HeaderName::from_bytes(b"Authorization")?,
+        HeaderValue::from_str(&settings.api_key.expose())?,
     );
 
     let prompt = prepare_prompt(query_rephraser_input);
@@ -93,16 +89,10 @@ pub async fn rephrase_query(
         }))
         .headers(headers)
         .send()
-        .await
-        .map_err(|e| SearchError::LLMFailure(format!("Request to query rephraser failed: {e}")))?;
+        .await?;
 
     let response_body =
-        serde_json::from_slice::<QueryRephraserAPIResponse>(&response.bytes().await.map_err(
-            |e| SearchError::LLMFailure(format!("Failed to read query rephraser response: {e}")),
-        )?)
-        .map_err(|e| {
-            SearchError::LLMFailure(format!("Failed to parse query rephraser response: {e}"))
-        })?;
+        serde_json::from_slice::<QueryRephraserAPIResponse>(&response.bytes().await?)?;
 
     Ok(QueryRephraserOutput {
         rephrased_query: response_body.output.choices[0].text.trim().to_string(),

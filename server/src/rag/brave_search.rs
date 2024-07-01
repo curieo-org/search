@@ -96,7 +96,7 @@ pub async fn web_search(
     brave_settings: &BraveSettings,
     brave_api_config: &BraveAPIConfig,
     search_query: &str,
-) -> crate::Result<Vec<RetrievedResult>> {
+) -> Result<Vec<RetrievedResult>, SearchError> {
     let api_url = brave_settings.url.clone() + "?q=" + search_query;
 
     let client = Client::new();
@@ -105,21 +105,13 @@ pub async fn web_search(
         .query(&brave_api_config.queries)
         .headers(brave_api_config.headers.clone())
         .send()
-        .await
-        .map_err(|e| SearchError::BraveFailure(e.to_string()))?;
+        .await?;
 
     if !response.status().is_success() {
-        response
-            .error_for_status_ref()
-            .map_err(|e| SearchError::BraveFailure(e.to_string()))?;
+        response.error_for_status_ref()?;
     }
 
-    let brave_response: serde_json::Value = response
-        .json()
-        .await
-        .map_err(|e| SearchError::BraveFailure(format!("Failed to parse response: {e}")))?;
-    let brave_response: BraveAPIResponse = serde_json::from_value(brave_response)
-        .map_err(|e| SearchError::BraveFailure(format!("Failed to serialize response: {e}")))?;
+    let brave_response: BraveAPIResponse = serde_json::from_value(response.json().await?)?;
 
     let retrieved_results: Vec<RetrievedResult> = brave_response
         .web
