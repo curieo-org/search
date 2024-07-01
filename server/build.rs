@@ -16,14 +16,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build_server(false)
         .build_client(true)
         .type_attribute(
-            "SearchRequest",
+            "SearchInput",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "SearchResponse",
+            "PubmedSource",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
-        .type_attribute("Source", "#[derive(serde::Deserialize, serde::Serialize)]")
+        .type_attribute(
+            "PubmedResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "EmbeddingsOutput",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "Double2D",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute("Int2D", "#[derive(serde::Deserialize, serde::Serialize)]")
+        .type_attribute(
+            "Embeddings",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .compile(&proto_files, &proto_dir)?;
 
     Ok(())

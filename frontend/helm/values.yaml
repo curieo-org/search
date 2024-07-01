@@ -3,10 +3,10 @@
 # Declare variables to be passed into your templates.
 
 service:
-  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-frontend:4.0
+  image: 698471419283.dkr.ecr.eu-central-1.amazonaws.com/curieo-search-frontend:8.0
   replica_count: 1
   port: 3000
-  dns_zone: dev.curieo.org
+  dns_zone: curieo.ai
 
 resources:
   limits:

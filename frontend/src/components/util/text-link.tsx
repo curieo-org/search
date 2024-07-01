@@ -1,4 +1,4 @@
-import { handleOpenLinkInNewTab } from '@/helpers/navigation'
+import { handleOpenLinkInNewTab } from '@/utils/navigation'
 import { HTMLAttributes, MouseEvent } from 'react'
 import { twMerge } from 'tailwind-merge'
 

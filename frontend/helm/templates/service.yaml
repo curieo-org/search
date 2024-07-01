@@ -10,5 +10,5 @@ spec:
       protocol: TCP
       name: http-web
   selector:
-    app: {{ .Release.Name }}
+    app: search-{{ .Release.Name }}
   sessionAffinity: "ClientIP"

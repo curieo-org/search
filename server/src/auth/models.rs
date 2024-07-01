@@ -59,7 +59,7 @@ impl PostgresBackend {
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 async fn password_authenticate(
     db: &PgPool,
     password_credentials: PasswordCredentials,
@@ -81,7 +81,7 @@ async fn password_authenticate(
     .await?
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 async fn oauth_authenticate(
     db: &PgPool,
     oauth2_clients: &[OAuth2Client],
@@ -115,17 +115,17 @@ async fn oauth_authenticate(
         .map_err(BackendError::Reqwest)?;
 
     // Persist user in our database, so we can use `get_user`.
-    let user = sqlx::query_as(
-        r#"
+    let user = sqlx::query_as!(User,
+        "
         insert into users (username, access_token)
-        values (?, ?)
+        values ($1, $2)
         on conflict(username) do update
         set access_token = excluded.access_token
         returning *
-        "#,
+        ",
+        user_info.login,
+        token_res.access_token().secret()
     )
-    .bind(user_info.login)
-    .bind(token_res.access_token().secret())
     .fetch_one(db)
     .await
     .map_err(BackendError::Sqlx)?;
@@ -140,7 +140,7 @@ impl AuthnBackend for PostgresBackend {
     type Credentials = Credentials;
     type Error = BackendError;
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn authenticate(
         &self,
         creds: Self::Credentials,
@@ -155,7 +155,7 @@ impl AuthnBackend for PostgresBackend {
         }
     }
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
         sqlx::query_as!(
             Self::User,
@@ -179,6 +179,7 @@ pub enum Credentials {
 pub struct PasswordCredentials {
     pub username: String,
     pub password: Secret<String>,
+    pub csrf_token: Option<CsrfToken>,
     pub next: Option<String>,
 }
 
@@ -218,4 +219,9 @@ mod tests {
     async fn test_dummy_verify_password() {
         assert!(dummy_verify_password(Secret::new("password")).is_ok());
     }
+}
+
+pub struct WhitelistedEmail {
+    pub email: String,
+    pub approved: bool,
 }

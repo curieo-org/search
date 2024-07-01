@@ -7,7 +7,7 @@ export default function PaperPlaneIcon(props: IconProps) {
 
   return (
     <svg {...rest} width={size} height={size} viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="16" height="16" transform="translate(0.5)" fill="currentColor" fill-opacity="0.01" />
+      <rect width="16" height="16" transform="translate(0.5)" fill="currentColor" fillOpacity="0.01" />
       <path
         fillRule="evenodd"
         clipRule="evenodd"

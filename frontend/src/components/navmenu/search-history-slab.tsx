@@ -1,11 +1,11 @@
-import { SearchResult } from '@/types/search'
+import { Thread } from '@/types/search'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 import SearchHistoryButton from './search-history-button'
 
 type SearchHistorySlabProps = HTMLAttributes<HTMLDivElement> & {
   title: string
-  searchHistoryList: SearchResult[]
+  threads: Thread[]
 }
 
 export default function SearchHistorySlab(props: SearchHistorySlabProps) {
@@ -13,11 +13,11 @@ export default function SearchHistorySlab(props: SearchHistorySlabProps) {
     <div className={twMerge('w-full', props.className)}>
       <span className="text-input-placeholder text-2xs ml-6">{props.title}</span>
       <div className="flex flex-col mt-0.5">
-        {props.searchHistoryList.map((searchResult, index) => (
+        {props.threads.map((thread, index) => (
           <SearchHistoryButton
-            key={`search-history-nav-${searchResult.search_history_id}`}
+            key={`search-history-nav-${thread.thread_id}`}
             style={{ animation: `fade-in ${Math.min(500 + index * 300, 3000)}ms` }}
-            searchResult={searchResult}
+            thread={thread}
           />
         ))}
       </div>

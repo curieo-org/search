@@ -4,8 +4,11 @@ use startup::Application;
 
 pub mod auth;
 pub mod cache;
+pub mod custom_types;
 mod err;
 mod health_check;
+pub mod llms;
+pub mod rag;
 pub mod routing;
 pub mod search;
 pub mod secrets;
@@ -26,6 +29,7 @@ pub async fn run() -> Result<Application> {
 
     let subscriber = get_subscriber(
         "search-server".into(),
+        &SETTINGS.opentelemetry_collector,
         SETTINGS.log.level.clone(),
         SETTINGS.log.format.clone(),
     );

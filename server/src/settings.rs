@@ -1,5 +1,7 @@
 use crate::auth::oauth2::OAuth2Client;
 use crate::cache::CacheSettings;
+use crate::llms;
+use crate::rag;
 use crate::secrets::Secret;
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
@@ -74,6 +76,7 @@ impl<'de> Deserialize<'de> for Env {
 #[allow(unused)]
 pub struct Settings {
     pub environment: Env,
+    pub opentelemetry_collector: String,
     pub log: Log,
     pub host: String,
     pub port: u16,
@@ -81,6 +84,13 @@ pub struct Settings {
     pub cache: CacheSettings,
     pub agency_api: Secret<String>,
     pub oauth2_clients: Vec<OAuth2Client>,
+    pub pubmed: rag::PubmedSettings,
+    pub brave: rag::BraveSettings,
+    pub llm: llms::LLMSettings,
+    pub summarizer: llms::SummarizerSettings,
+    pub search: rag::SearchSettings,
+    pub query_rephraser: llms::QueryRephraserSettings,
+    pub openai: llms::OpenAISettings,
 }
 
 impl Settings {
