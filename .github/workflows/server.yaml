@@ -35,6 +35,8 @@ jobs:
 
       - name: Tests & coverage
         run: cargo llvm-cov test --no-fail-fast --workspace
+        env:
+          SQLX_OFFLINE: true
 
       - name: Linting rustfmt
         run: cargo fmt --all -- --check

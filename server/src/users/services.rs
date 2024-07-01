@@ -1,4 +1,5 @@
 use crate::auth::utils::hash_password;
+use crate::auth::WhitelistedEmail;
 use crate::secrets::Secret;
 use crate::users::models;
 use sqlx::PgPool;
@@ -52,4 +53,15 @@ pub async fn update_password(
     .await?;
 
     return Ok(());
+}
+
+#[tracing::instrument(level = "debug", ret, err)]
+pub async fn whitelist_email(pool: &PgPool, email: &str) -> crate::Result<WhitelistedEmail> {
+    Ok(sqlx::query_as!(
+        WhitelistedEmail,
+        "insert into whitelisted_emails (email, approved) values ($1, true) returning *",
+        "my-email@email.com",
+    )
+    .fetch_one(pool)
+    .await?)
 }

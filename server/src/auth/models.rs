@@ -211,6 +211,7 @@ pub enum BackendError {
 // Note that we've supplied our concrete backend here.
 pub type AuthSession = axum_login::AuthSession<PostgresBackend>;
 
+#[derive(Debug)]
 pub struct WhitelistedEmail {
     pub email: String,
     pub approved: bool,

@@ -8,6 +8,7 @@ use server::routing::router;
 use server::settings::Settings;
 use server::startup::AppState;
 use server::users::selectors::get_user;
+use server::users::services::whitelist_email;
 use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
@@ -46,17 +47,10 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 
     Ok(())
 }
-
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
-    let WhitelistedEmail { email, .. } = sqlx::query_as!(
-        WhitelistedEmail,
-        "insert into whitelisted_emails (email, approved) values ($1, true) returning *",
-        "my-email@email.com",
-    )
-    .fetch_one(&pool)
-    .await
-    .unwrap();
+    let WhitelistedEmail { email, .. } =
+        whitelist_email(&pool, "my-email@email.com").await.unwrap();
 
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
