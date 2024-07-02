@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 type NewSearchProps = HTMLAttributes<HTMLDivElement> & {
   handleSearch: () => void
   searchQuery: string
-  setSearchQuery: (query: string) => void
+  handleSetSearchQuery: (query: string) => void
 }
 
 export default function NewSearch(props: NewSearchProps) {
@@ -17,7 +17,7 @@ export default function NewSearch(props: NewSearchProps) {
         <SearchInput
           handleSearch={props.handleSearch}
           searchQuery={props.searchQuery}
-          setSearchQuery={props.setSearchQuery}
+          setSearchQuery={props.handleSetSearchQuery}
         />
       </div>
     </div>

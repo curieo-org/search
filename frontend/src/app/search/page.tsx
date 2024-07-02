@@ -4,6 +4,7 @@ import NewSearch from '@/components/search/new-search'
 import NewSearchResponse from '@/components/search/new-search-response'
 import Thread from '@/components/search/thread'
 import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
+import { MAX_QUERY_LENGTH } from '@/constants/search'
 import { useFetchThreadByIdQuery } from '@/queries/search/fetch-thread-by-id-query'
 import { useSearchQuery } from '@/queries/search/search-query'
 import { useSearchParams } from 'next/navigation'
@@ -29,6 +30,15 @@ export default function Search() {
   const threadIdFromParams = searchParams.get('thread_id')
   const [threadId, setThreadId] = useState('')
   const { data: thread, refetch: refetchThread } = useFetchThreadByIdQuery({ threadId: threadId as string })
+
+  const handleSetSearchQuery = (query: string) => {
+    if (query.length > MAX_QUERY_LENGTH) {
+      toast.error(`Maximum allowed length for search query is ${MAX_QUERY_LENGTH} charcaters.`)
+      setSearchQuery(query.substring(0, MAX_QUERY_LENGTH))
+      return
+    }
+    setSearchQuery(query)
+  }
 
   useEffect(() => {
     setThreadId(threadIdFromParams as string)
@@ -80,7 +90,12 @@ export default function Search() {
   return (
     <>
       {!!thread ? (
-        <Thread data={thread} refetch={refetchThread} />
+        <Thread
+          data={thread}
+          refetch={refetchThread}
+          searchQuery={searchQuery}
+          handleSetSearchQuery={handleSetSearchQuery}
+        />
       ) : isLoading ? (
         <>{isStreaming ? <NewSearchResponse response={newSearchResult} /> : <SearchResultPageSkeleton />}</>
       ) : (
@@ -91,7 +106,7 @@ export default function Search() {
             }
           }}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          handleSetSearchQuery={handleSetSearchQuery}
         />
       )}
     </>

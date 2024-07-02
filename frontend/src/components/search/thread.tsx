@@ -13,11 +13,12 @@ import SearchInput from './search-input'
 type ThreadProps = HTMLAttributes<HTMLDivElement> & {
   data: ThreadByIdResponse
   refetch: () => Promise<QueryObserverResult<ThreadByIdResponse, Error>>
+  searchQuery: string
+  handleSetSearchQuery: (query: string) => void
 }
 
 export default function Thread(props: ThreadProps) {
   const pageEndRef = useRef<null | HTMLDivElement>(null)
-  const [searchQuery, setSearchQuery] = useState('')
   const [queryTrigger, setQueryTrigger] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
@@ -26,7 +27,7 @@ export default function Thread(props: ThreadProps) {
     isCompleted,
     isError,
     isTimedOut,
-  } = useSearchQuery(searchQuery, queryTrigger, setIsStreaming, props.data.thread.thread_id)
+  } = useSearchQuery(props.searchQuery, queryTrigger, setIsStreaming, props.data.thread.thread_id)
 
   const handleSearch = () => {
     setIsLoading(true)
@@ -42,12 +43,12 @@ export default function Thread(props: ThreadProps) {
   }, [isLoading, newSearchResult])
 
   useEffect(() => {
-    setSearchQuery('')
+    props.handleSetSearchQuery('')
   }, [isStreaming])
 
   useEffect(() => {
     if (isCompleted) {
-      setSearchQuery('')
+      props.handleSetSearchQuery('')
       setQueryTrigger(false)
       if (newSearchResult.length === 0) {
         toast.error('Failed to fetch search result. Please try again later...')
@@ -64,7 +65,7 @@ export default function Thread(props: ThreadProps) {
 
   useEffect(() => {
     if (isTimedOut) {
-      setSearchQuery('')
+      props.handleSetSearchQuery('')
       setQueryTrigger(false)
       setIsLoading(false)
       setIsStreaming(false)
@@ -89,7 +90,11 @@ export default function Thread(props: ThreadProps) {
       </div>
 
       <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">
-        <SearchInput handleSearch={handleSearch} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchInput
+          handleSearch={handleSearch}
+          searchQuery={props.searchQuery}
+          setSearchQuery={props.handleSetSearchQuery}
+        />
       </div>
 
       <div ref={pageEndRef} />
