@@ -22,8 +22,12 @@ export default function Search() {
     isCompleted,
     isError,
     isTimedOut,
-  } = useSearchQuery(searchQuery, queryTrigger, setIsStreaming)
+  } = useSearchQuery(searchQuery.trim(), queryTrigger, setIsStreaming)
   const handleSearch = () => {
+    if (searchQuery.trim().length === 0) {
+      toast.error(`Search query can not be empty!`)
+      return
+    }
     setIsLoading(true)
     setQueryTrigger(true)
   }

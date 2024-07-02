@@ -29,7 +29,11 @@ export default function SourcesMenu(props: SourcesMenuProps) {
   }, [updateCount])
 
   return (
-    <div className={twMerge('w-full', className)} {...rest} ref={containerRef}>
+    <div
+      className={twMerge('w-72 flex-none p-3 transition-all duration-300 bg-white/2 rounded-l-xl', className)}
+      {...rest}
+      ref={containerRef}
+    >
       <div className="flex items-center justify-center gap-x-2 py-2 mb-2 mr-2.5 bg-white/10 border border-white/10 rounded-lg">
         <LayersIcon className="text-typography-light dark:text-typography-dark" size={14} />
         <H2 className="font-medium text-[#DDDDE3] text-sm">Sources</H2>

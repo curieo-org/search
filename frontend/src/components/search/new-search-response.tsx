@@ -32,10 +32,7 @@ export default function NewSearchResponse(props: NewSearchResponseProps) {
             />
           </div>
         </div>
-        <SourcesMenu
-          className="w-60 xl:w-96 p-3 mt-10 transition-all duration-300 bg-white/2 rounded-l-xl"
-          sources={_.flatten(props.response.map(streamData => streamData.sources))}
-        />
+        <SourcesMenu className="mt-10" sources={_.flatten(props.response.map(streamData => streamData.sources))} />
       </div>
 
       <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">

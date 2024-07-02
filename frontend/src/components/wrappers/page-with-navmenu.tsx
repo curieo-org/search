@@ -14,8 +14,8 @@ export default function PageWithNavMenu({ children }: LayoutProps) {
     <div className="relative flex">
       <div
         className={classNames([
-          'hidden md:block transition-all duration-300',
-          isNavmenuCollapsed ? 'w-20' : 'w-60 lg:w-72 xl:w-90',
+          'hidden md:block flex-none transition-all duration-300',
+          isNavmenuCollapsed ? 'w-20' : 'w-72',
         ])}
       >
         <Navmenu />
