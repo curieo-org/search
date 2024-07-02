@@ -94,28 +94,26 @@ Follow the below `HTTP Status Code` to maintain the consistency in the error han
 
 ## Error Codes and Corresponding Status Codes
 1. Search Error
-   - toxic_query: 422
-   - invalid_query: 422
-   - agency_failure: 500
-   - llm_failure: 500
-   - brave_failure: 500
-   - stream_failure: 500
    - no_results: 404
-   - no_sources: 404
-2. User Error
-   - not_whitelisted: 403
+   - toxic_query: 422
    - invalid_data: 422
-   - invalid_password: 401
+   - internal_server_error: 500
+2. User Error
+   - invalid_password: 400
+   - invalid_data: 422
+   - internal_server_error: 500
 3. Authentication Error
    - unauthorized: 401
    - invalid_session: 401
-   - backend_error: 500
+   - not_whitelisted: 403
+   - user_already_exists: 409
+   - invalid_data: 422
+   - internal_server_error: 500
 4. General Error
-    - resource_not_found: 404
     - invalid_data: 400
-    - unique_key_violation: 409
     - foreign_key_violation: 400
-    - database_error: 500
+    - resource_not_found: 404
+    - unique_key_violation: 409
     - internal_server_error: 500
 5. Other Error: Response may contain only the status code and not the body
 

@@ -119,7 +119,7 @@ pub enum SearchError {
     #[error("Toxic query: {0}")]
     ToxicQuery(String),
     #[error("Agency failure: {0}")]
-    InvalidQuery(String),
+    InvalidData(String),
     #[error("No results: {0}")]
     AgencyFailure(String),
     #[error("No sources: {0}")]

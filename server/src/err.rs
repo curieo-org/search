@@ -52,7 +52,7 @@ impl AppError {
 
             AppError::SearchError(err) => match err {
                 SearchError::ToxicQuery(_) => format!("toxic_query"),
-                SearchError::InvalidQuery(_) => format!("invalid_query"),
+                SearchError::InvalidData(_) => format!("invalid_data"),
                 SearchError::NoResults(_) | SearchError::NoSources(_) => format!("no_results"),
                 _ => format!("internal_server_error"),
             },
@@ -90,7 +90,7 @@ impl AppError {
             },
 
             AppError::SearchError(err) => match err {
-                SearchError::ToxicQuery(_) | SearchError::InvalidQuery(_) => {
+                SearchError::ToxicQuery(_) | SearchError::InvalidData(_) => {
                     StatusCode::UNPROCESSABLE_ENTITY
                 }
                 SearchError::NoResults(_) | SearchError::NoSources(_) => StatusCode::NOT_FOUND,

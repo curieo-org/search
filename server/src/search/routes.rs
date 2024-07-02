@@ -31,7 +31,7 @@ async fn get_search_query_handler(
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
     search_query_request
         .validate()
-        .map_err(|e| SearchError::InvalidQuery(format!("Invalid search query: {}", e)))?;
+        .map_err(|e| SearchError::InvalidData(format!("Invalid search query: {}", e)))?;
     let user_id = user.user_id;
 
     let (query_toxicity, rephrased_query) = tokio::join!(
@@ -123,7 +123,7 @@ async fn get_threads_handler(
 ) -> crate::Result<Json<api_models::ThreadHistoryResponse>> {
     thread_history_request
         .validate()
-        .map_err(|e| SearchError::InvalidQuery(format!("Invalid thread history request: {}", e)))?;
+        .map_err(|e| SearchError::InvalidData(format!("Invalid thread history request: {}", e)))?;
 
     let search_history =
         services::get_threads(&pool, &user.user_id, &thread_history_request).await?;
@@ -138,7 +138,7 @@ async fn get_one_thread_handler(
 ) -> crate::Result<Json<api_models::SearchThreadResponse>> {
     get_thread_request
         .validate()
-        .map_err(|e| SearchError::InvalidQuery(format!("Invalid get thread request: {}", e)))?;
+        .map_err(|e| SearchError::InvalidData(format!("Invalid get thread request: {}", e)))?;
 
     let search_thread = services::get_one_thread(&pool, &user.user_id, &get_thread_request).await?;
     Ok(Json(search_thread))
@@ -152,7 +152,7 @@ async fn update_thread_handler(
 ) -> crate::Result<()> {
     update_thread_request
         .validate()
-        .map_err(|e| SearchError::InvalidQuery(format!("Invalid update thread request: {}", e)))?;
+        .map_err(|e| SearchError::InvalidData(format!("Invalid update thread request: {}", e)))?;
 
     services::update_thread(&pool, &user.user_id, &update_thread_request).await?;
     Ok(())
