@@ -8,6 +8,7 @@ use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
+#[tracing::instrument(level = "info", ret)]
 pub fn rerank_search_results(
     query_embeddings: &Embeddings,
     results_embeddings: &Vec<Embeddings>,
