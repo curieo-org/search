@@ -1,15 +1,17 @@
 use crate::auth::utils::hash_password;
 use crate::secrets::Secret;
-use crate::users::{api_models, models};
+use crate::users::{api_models, models, UserError};
 use sqlx::PgPool;
 use uuid::Uuid;
+
+type Result<T> = std::result::Result<T, UserError>;
 
 #[tracing::instrument(level = "info", ret, err)]
 pub async fn update_profile(
     pool: &PgPool,
     user_id: &Uuid,
     update_profile_request: api_models::UpdateProfileRequest,
-) -> crate::Result<models::User> {
+) -> Result<models::User> {
     let user = sqlx::query_as!(
         models::User,
         "

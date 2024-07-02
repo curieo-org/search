@@ -1,4 +1,3 @@
-use crate::err::AppError;
 use crate::secrets::Secret;
 use axum::extract::FromRef;
 use bb8::Pool;
@@ -32,12 +31,6 @@ pub enum CacheError {
     BB8(#[from] bb8::RunError<redis::RedisError>),
     #[error("Cache deserialize error: {0}")]
     Serde(#[from] serde_json::Error),
-}
-
-impl From<CacheError> for AppError {
-    fn from(e: CacheError) -> Self {
-        AppError::Cache(e)
-    }
 }
 
 impl CachePool {

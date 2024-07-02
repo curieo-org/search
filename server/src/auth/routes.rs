@@ -3,7 +3,7 @@ use crate::auth::{
     AuthError, AuthSession, Credentials, OAuthCredentials, PasswordCredentials, RegisterUserRequest,
 };
 use crate::startup::AppState;
-use crate::users::{UserError, UserRecord};
+use crate::users::UserRecord;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
@@ -22,10 +22,10 @@ async fn register_handler(
 ) -> crate::Result<impl IntoResponse> {
     request
         .validate()
-        .map_err(|e| UserError::InvalidData(format!("Invalid data: {}", e)))?;
+        .map_err(|e| AuthError::InvalidData(format!("Invalid data: {}", e)))?;
 
     if !services::is_email_whitelisted(&pool, &request.email).await? {
-        return Err(UserError::NotWhitelisted(format!("This email is not whitelisted!")).into());
+        return Err(AuthError::NotWhitelisted(format!("This email is not whitelisted!")).into());
     }
     services::register(pool, request)
         .await
@@ -43,13 +43,11 @@ async fn login_handler(
     {
         Ok(Some(user)) => user,
         Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
-        Err(_) => {
-            return Err(AuthError::BackendError(format!("Could not authenticate user")).into())
-        }
+        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(AuthError::BackendError(format!("Could not login user")).into());
+        return Err(AuthError::Other(format!("Could not login user")).into());
     }
     //if let Credentials::Password(_pw_creds) = creds {
     //    if let Some(ref next) = pw_creds.next {
@@ -123,13 +121,11 @@ pub async fn oauth_callback_handler(
     let user = match auth_session.authenticate(creds).await {
         Ok(Some(user)) => user,
         Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
-        Err(_) => {
-            return Err(AuthError::BackendError(format!("Could not authenticate user")).into())
-        }
+        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(AuthError::BackendError(format!("Could not login user")).into());
+        return Err(AuthError::Other(format!("Could not login user")).into());
     }
 
     if let Ok(Some(next)) = session.remove::<String>(NEXT_URL_KEY).await {
@@ -144,7 +140,7 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     auth_session
         .logout()
         .await
-        .map_err(|e| AuthError::BackendError(format!("Could not logout user: {}", e)))?;
+        .map_err(|e| AuthError::Other(format!("Could not logout user: {}", e)))?;
 
     Ok(())
 }

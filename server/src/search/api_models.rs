@@ -98,21 +98,34 @@ pub struct UpdateThreadRequest {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SearchError {
+    #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
-    ReqwestHeaderName(#[from] InvalidHeaderName),
-    ReqwestHeaderValue(#[from] InvalidHeaderValue),
-    Serde(#[from] SerdeError),
-    Tonic(#[from] TonicStatus),
-    ToxicQuery(String),
-    InvalidQuery(String),
-    AgencyFailure(String),
-    NoResults(String),
-    NoSources(String),
-    Other(String),
-}
 
-impl std::fmt::Display for SearchError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SearchError: {}", self)
-    }
+    #[error(transparent)]
+    ReqwestHeaderName(#[from] InvalidHeaderName),
+
+    #[error(transparent)]
+    ReqwestHeaderValue(#[from] InvalidHeaderValue),
+
+    #[error(transparent)]
+    Serde(#[from] SerdeError),
+
+    #[error(transparent)]
+    Tonic(#[from] TonicStatus),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error("Toxic query: {0}")]
+    ToxicQuery(String),
+    #[error("Agency failure: {0}")]
+    InvalidQuery(String),
+    #[error("No results: {0}")]
+    AgencyFailure(String),
+    #[error("No sources: {0}")]
+    NoResults(String),
+    #[error("No sources: {0}")]
+    NoSources(String),
+    #[error("Other error: {0}")]
+    Other(String),
 }

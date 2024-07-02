@@ -30,9 +30,15 @@ impl UpdateProfileRequest {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum UserError {
-    NotWhitelisted(String),
+    #[error("Invalid data: {0}")]
     InvalidData(String),
+    #[error("Invalid password: {0}")]
     InvalidPassword(String),
+    #[error("Other error: {0}")]
+    Other(String),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
 }

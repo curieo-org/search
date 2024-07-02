@@ -2,7 +2,7 @@ use crate::auth::utils::verify_user_password;
 use crate::startup::AppState;
 use crate::users::{api_models, services, User, UserError, UserRecord};
 use axum::routing::{get, patch};
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Form, Json, Router};
+use axum::{extract::State, Form, Json, Router};
 use sqlx::PgPool;
 use validator::Validate;
 
@@ -37,7 +37,7 @@ async fn update_password_handler(
     State(pool): State<PgPool>,
     user: User,
     Form(update_password_request): Form<api_models::UpdatePasswordRequest>,
-) -> crate::Result<impl IntoResponse> {
+) -> crate::Result<()> {
     let user_id = user.user_id;
 
     if update_password_request.old_password.expose()
@@ -52,7 +52,7 @@ async fn update_password_handler(
         Ok(Some(_user)) => {
             services::update_password(&pool, &user_id, update_password_request.new_password)
                 .await?;
-            Ok((StatusCode::OK, ()))
+            Ok(())
         }
         _ => Err(UserError::InvalidPassword(format!("Failed to authenticate old password")).into()),
     }

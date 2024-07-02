@@ -1,8 +1,7 @@
 use crate::auth::{oauth2::OAuth2Client, utils, AuthError};
-use crate::err::AppError;
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
-use crate::users::{User, UserError};
+use crate::users::User;
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
 use axum_login::{AuthnBackend, UserId};
@@ -39,7 +38,7 @@ impl PostgresBackend {
 async fn password_authenticate(
     db: &PgPool,
     password_credentials: PasswordCredentials,
-) -> crate::Result<Option<User>> {
+) -> Result<Option<User>, AuthError> {
     let user = sqlx::query_as!(
         User,
         "select * from users where email = $1 and password_hash is not null",
@@ -61,7 +60,7 @@ async fn oauth_authenticate(
     db: &PgPool,
     oauth2_clients: &[OAuth2Client],
     oauth_creds: OAuthCredentials,
-) -> crate::Result<Option<User>> {
+) -> Result<Option<User>, AuthError> {
     // Ensure the CSRF state has not been tampered with.
     if oauth_creds.old_state.secret() != oauth_creds.new_state.secret() {
         return Ok(None);
@@ -111,15 +110,18 @@ async fn oauth_authenticate(
 impl AuthnBackend for PostgresBackend {
     type User = User;
     type Credentials = Credentials;
-    type Error = AppError;
+    type Error = AuthError;
 
     #[tracing::instrument(level = "info", skip(self), ret, err)]
-    async fn authenticate(&self, creds: Self::Credentials) -> crate::Result<Option<Self::User>> {
+    async fn authenticate(
+        &self,
+        creds: Self::Credentials,
+    ) -> Result<Option<Self::User>, AuthError> {
         match creds {
             Credentials::Password(password_cred) => {
                 password_cred
                     .validate()
-                    .map_err(|e| UserError::InvalidData(format!("Invalid credentials: {}", e)))?;
+                    .map_err(|e| AuthError::Unauthorized(format!("Invalid credentials: {}", e)))?;
                 password_authenticate(&self.db, password_cred).await
             }
             Credentials::OAuth(oauth_creds) => {
@@ -129,7 +131,7 @@ impl AuthnBackend for PostgresBackend {
     }
 
     #[tracing::instrument(level = "info", skip(self), ret, err)]
-    async fn get_user(&self, user_id: &UserId<Self>) -> crate::Result<Option<Self::User>> {
+    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, AuthError> {
         sqlx::query_as!(
             Self::User,
             "select * from users where user_id = $1",

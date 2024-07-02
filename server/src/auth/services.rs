@@ -1,5 +1,7 @@
+use crate::auth::AuthError;
 use crate::auth::{api_models, models, utils};
-use crate::users::{User, UserError, UserRecord};
+use crate::err::ResultExt;
+use crate::users::{User, UserRecord};
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "info", ret, err)]
@@ -17,7 +19,21 @@ pub async fn register(
             password_hash.expose()
         )
         .fetch_one(&pool)
-        .await?;
+        .await
+        .on_constraint("users_username_key", |_| {
+            AuthError::UserAlreadyExists(format!(
+                "User with username {} already exists",
+                request.email
+            ))
+            .into()
+        })
+        .on_constraint("users_email_key", |_| {
+            AuthError::UserAlreadyExists(format!(
+                "User with email {} already exists",
+                request.email
+            ))
+            .into()
+        })?;
 
         return Ok(user.into());
     } else if let Some(access_token) = request.access_token {
@@ -29,18 +45,32 @@ pub async fn register(
             access_token.expose()
         )
         .fetch_one(&pool)
-        .await?;
+        .await
+        .on_constraint("users_username_key", |_| {
+            AuthError::UserAlreadyExists(format!(
+                "User with username {} already exists",
+                request.email
+            ))
+            .into()
+        })
+        .on_constraint("users_email_key", |_| {
+            AuthError::UserAlreadyExists(format!(
+                "User with email {} already exists",
+                request.email
+            ))
+            .into()
+        })?;
 
         return Ok(user.into());
     }
 
-    Err(UserError::InvalidData(format!(
+    Err(AuthError::InvalidData(format!(
         "Either password or access_token must be provided to create a user"
     ))
     .into())
 }
 
-pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> crate::Result<bool> {
+pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> Result<bool, AuthError> {
     let whitelisted_email = sqlx::query_as!(
         models::WhitelistedEmail,
         "SELECT * FROM whitelisted_emails WHERE email = $1",

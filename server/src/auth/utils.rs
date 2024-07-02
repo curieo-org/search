@@ -1,3 +1,4 @@
+use crate::auth::AuthError;
 use crate::secrets::Secret;
 use crate::users::User;
 use password_auth::{generate_hash, verify_password};
@@ -7,7 +8,7 @@ use tokio::task::spawn_blocking;
 pub fn verify_user_password(
     user: Option<User>,
     password_candidate: Secret<String>,
-) -> crate::Result<Option<User>> {
+) -> Result<Option<User>, AuthError> {
     // password-based authentication. Compare our form input with an argon2
     // password hash.
     // To prevent timed side-channel attacks, so we always compare the password
@@ -31,7 +32,7 @@ pub fn verify_user_password(
 }
 
 // Prevent side-channel attacks by always verifying the password.
-pub fn dummy_verify_password(pw: Secret<impl AsRef<[u8]>>) -> crate::Result<Option<User>> {
+pub fn dummy_verify_password(pw: Secret<impl AsRef<[u8]>>) -> Result<Option<User>, AuthError> {
     let _ = verify_password(
         pw.expose_owned().as_ref(),
         "$argon2id$v=19$m=15000,t=2,p=1$\
@@ -42,6 +43,6 @@ pub fn dummy_verify_password(pw: Secret<impl AsRef<[u8]>>) -> crate::Result<Opti
     Ok(None)
 }
 
-pub async fn hash_password(password: Secret<String>) -> crate::Result<Secret<String>> {
+pub async fn hash_password(password: Secret<String>) -> Result<Secret<String>, AuthError> {
     Ok(spawn_blocking(move || Secret::new(generate_hash(password.expose().as_bytes()))).await?)
 }

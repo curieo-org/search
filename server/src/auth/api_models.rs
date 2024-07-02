@@ -1,13 +1,36 @@
 use crate::secrets::Secret;
+use oauth2::{basic::BasicRequestTokenError, reqwest::AsyncHttpClientError};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
+use tokio::task;
 use validator::Validate;
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum AuthError {
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    OAuth2(#[from] BasicRequestTokenError<AsyncHttpClientError>),
+
+    #[error(transparent)]
+    TaskJoin(#[from] task::JoinError),
+
+    #[error("Unauthorized: {0}")]
     Unauthorized(String),
+    #[error("Invalid session: {0}")]
     InvalidSession(String),
-    BackendError(String),
+    #[error("Other error: {0}")]
+    UserAlreadyExists(String),
+    #[error("Other error: {0}")]
+    InvalidData(String),
+    #[error("Not whitelisted: {0}")]
+    NotWhitelisted(String),
+    #[error("Other error: {0}")]
+    Other(String),
 }
 
 #[derive(Deserialize, Clone, Debug, Validate)]
