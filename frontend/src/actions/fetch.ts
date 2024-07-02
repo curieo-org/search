@@ -41,7 +41,7 @@ export async function curieoFetch(reqInfo: RequestInfo, init?: RequestInit): Pro
   const url: URL = curieoApiUrl(reqInfo)
   const response = await fetch(url, init)
 
-  if (response.status === 405) {
+  if (response.status === 401) {
     await signOut()
   }
 
