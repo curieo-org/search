@@ -52,7 +52,8 @@ pub struct QueryRephraserOutput {
     pub rephrased_query: String,
 }
 
-fn prepare_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
+#[tracing::instrument(level = "info", ret)]
+fn prepare_rephrase_query_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
     "[INST] Rephrase the input text based on the context and the final sentence. So that it can be understood without the context. Return the rephrased question only\n\n---\n\nFollow the following format.\n\nContext: contains the chat history\n\nQuestion: ${question}\n\nReasoning: Let's think step by step in order to ${produce the answer}. We ...\n\nAnswer: Given a chat history and the latest user question, which might reference the context from the chat history, formulate a standalone question that can be understood from the history without needing the chat history. DO NOT ANSWER THE QUESTION - just reformulate it and return the rephrased question only \n\n---\n\nContext: ".to_string()
         + query_rephraser_input.previous_context.iter().map(|x| format!("{}: {}", x.query, x.result)).collect::<Vec<String>>().join("\n").as_str()
         + "\n\nQuestion: "
@@ -72,7 +73,7 @@ pub async fn rephrase_query(
         HeaderValue::from_str(&settings.api_key.expose())?,
     );
 
-    let prompt = prepare_prompt(query_rephraser_input);
+    let prompt = prepare_rephrase_query_prompt(query_rephraser_input);
 
     let response = client
         .post(&settings.api_url)

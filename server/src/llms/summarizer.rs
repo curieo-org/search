@@ -48,6 +48,7 @@ pub struct SummarizerStreamOutput {
     pub generated_text: Option<String>,
 }
 
+#[tracing::instrument(level = "info", ret)]
 fn prepare_llm_context_string(
     settings: &SummarizerSettings,
     summarizer_input: SummarizerInput,
@@ -121,6 +122,7 @@ pub async fn generate_text_with_llm(
     Ok(())
 }
 
+#[tracing::instrument(level = "info", ret)]
 fn prepare_openai_input(
     settings: &OpenAISettings,
     summarizer_input: SummarizerInput,
