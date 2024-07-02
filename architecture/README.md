@@ -45,6 +45,8 @@ The `Data Ingestion Services` component is responsible for ingesting the data fr
 
 ## Clinical Trials
 
+#### Link to Excalidraw Canvas for High Level Architecture: https://excalidraw.com/#room=fc98786bbbb1ff061bb2,wnOTLykNfm9eZsrxGhagAg
+
 ### High Level Architecture
 ![Clinical Trials High Level Architecture](images/clinical_trials_hld.png)
 
