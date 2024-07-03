@@ -23,6 +23,7 @@ class SearchSettings(BaseSettings):
     api_base_url: str = "http://127.0.0.1"
     locale: str = "en-US"
 
+
 class EmbeddingSettings(BaseSettings):
     api_url: str = "http://localhost:8080"
     api_key: SecretStr
@@ -90,5 +91,6 @@ class Settings(BaseSettings):
     pubmed_parent_qdrant: QdrantSettings
     pubmed_cluster_qdrant: QdrantSettings
     pubmed_retrieval: PubmedRetrievalSettings = PubmedRetrievalSettings()
+
 
 app_settings = Settings()

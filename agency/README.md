@@ -56,6 +56,10 @@ Agency is a collection of multiple RAG modules. Every module is responsible for 
 # configure the environment variables
 cp .env.template .env
 
+# Copy the environment variables from the aws secret file
+# https://eu-central-1.console.aws.amazon.com/secretsmanager/secret?name=search-agency-development-env&region=eu-central-1
+# and turn on curieo vpn
+
 # start the server
 poetry run app
 ```
