@@ -8,6 +8,7 @@
   - [API Documentation](#api-documentation)
   - [Prerequisites](#prerequisites)
   - [Usage](#usage)
+  - [Contribution](#contribution)
   - [Deployment](#deployment)
 
 ## Introduction
@@ -47,6 +48,9 @@ Additionally, in the `.env` file, some services get additional configuration.
 # setup the environment and configure
 cp .env.template .env
 
+# Copy the environment variables from the aws secret file
+# https://eu-central-1.console.aws.amazon.com/secretsmanager/secret?name=search-server-development-env&region=eu-central-1
+# and turn on curieo vpn
 ```
 
 - database (see below)
@@ -65,7 +69,7 @@ To locally compile and run, optionally, you need to create new tables or schemas
 
 Maintain current ordering in the `migrations` directory; making sure that the order of schema creation is not create error in the database.
 
-```
+```bash
 sqlx migrate add schema_name
 
 # configure the database
