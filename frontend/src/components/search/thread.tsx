@@ -89,7 +89,7 @@ export default function Thread(props: ThreadProps) {
         </div>
       </div>
 
-      <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">
+      <div className="w-[calc(100vw-576px)] sticky bottom-0 pb-4 px-4 flex justify-start backdrop-blur-sm">
         <SearchInput
           handleSearch={handleSearch}
           searchQuery={props.searchQuery}
