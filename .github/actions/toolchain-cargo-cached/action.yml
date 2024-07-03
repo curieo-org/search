@@ -22,6 +22,14 @@ inputs:
     description: Comma-separated list of crates to be additionally installed
     required: false
 
+  cached-workspaces:
+    description: |
+      The cargo workspaces and target directory configuration.
+      Has the form `$workspace -> $target`. The `$target` part is treated as a directory
+      default: ". -> target"
+    default: ". -> target"
+    required: false
+
 runs:
   using: 'composite'
   steps:
@@ -47,7 +55,7 @@ runs:
       # Don't cache if it's a scheduled job.
       if: github.event_name != 'schedule'
       id: toolchain-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.rustup/settings.toml
@@ -82,6 +90,7 @@ runs:
       if: github.event_name != 'schedule'
       with:
         shared-key: ${{ steps.cargo-crates-cachekey.outputs.cachekey }}
+        workspaces: ${{ inputs.cached-workspaces }}
 
     - name: Cargo install dependencies
       # Only install crates if they aren't cached.

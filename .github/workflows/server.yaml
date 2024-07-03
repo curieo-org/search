@@ -27,16 +27,26 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Copy proto files
+      - run: cp -r ../proto ./proto
+
       - name: Setup Rust Toolchain
         uses: ./.github/actions/toolchain-cargo-cached
         with:
           components: llvm-tools-preview, rustfmt, clippy
           crates: cargo-llvm-cov
+          cached-workspaces: server -> target
+
+      - run: |
+          docker compose -f sqlx-test-docker-compose.yaml run -d -p 5432:5432 --name postgres postgres
+          docker exec postgres bash -c "until pg_isready; do sleep 1; done"
 
       - name: Tests & coverage
         run: cargo llvm-cov test --no-fail-fast --workspace
         env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/curieo_search
           SQLX_OFFLINE: true
+          SQLX_OFFLINE_DIR: .sqlx
 
       - name: Linting rustfmt
         run: cargo fmt --all -- --check

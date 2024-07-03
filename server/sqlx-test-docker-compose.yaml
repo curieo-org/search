@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile_sqlx
+      args:
+        VERSION: 14
+    ports:
+      - 5432
+    environment:
+      POSTGRES_DB: curieo_search
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
