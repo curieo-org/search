@@ -26,7 +26,7 @@ jobs:
           python-version-file: "agency/.python-version"
 
       - name: Install dependencies
-        run: poetry install
+        run: source $VENV & poetry install
 
       - name: Linting & formatting
         run: make lint & make fmt-check

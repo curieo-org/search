@@ -18,18 +18,6 @@ struct MockAgencyServer {
     embeddings_compute_response: EmbeddingsOutput,
 }
 
-impl MockAgencyServer {
-    fn set_pubmed_parent_search_response(&mut self, response: PubmedResponse) {
-        self.pubmed_parent_search_response = response
-    }
-    fn set_pubmed_cluster_search_response(&mut self, response: PubmedResponse) {
-        self.pubmed_cluster_search_response = response
-    }
-    fn set_embeddings_compute_response(&mut self, response: EmbeddingsOutput) {
-        self.embeddings_compute_response = response
-    }
-}
-
 #[async_trait]
 impl AgencyService for MockAgencyServer {
     async fn pubmed_parent_search(

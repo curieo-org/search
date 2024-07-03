@@ -1,12 +1,6 @@
-version: "3"
-
 services:
-  postgres:
-    build:
-      context: .
-      dockerfile: Dockerfile_sqlx
-      args:
-        VERSION: 14
+  sqlx_postgres:
+    image: postgres:14-alpine
     ports:
       - 5432
     environment:

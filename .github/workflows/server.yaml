@@ -38,8 +38,8 @@ jobs:
           cached-workspaces: server -> target
 
       - run: |
-          docker compose -f sqlx-test-docker-compose.yaml run -d -p 5432:5432 --name postgres postgres
-          docker exec postgres bash -c "until pg_isready; do sleep 1; done"
+          docker compose -f sqlx-test-docker-compose.yaml run -d -p 5432:5432 --name sqlx_postgres sqlx_postgres
+          docker exec sqlx_postgres bash -c "until pg_isready; do sleep 1; done"
 
       - name: Tests & coverage
         run: cargo llvm-cov test --no-fail-fast --workspace
