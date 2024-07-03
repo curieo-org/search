@@ -1,8 +1,6 @@
 import { Source } from '@/types/search'
 import { HTMLAttributes, useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import LayersIcon from '../icons/layers'
-import { H2 } from '../lib/typography'
 import LinkPreview from '../util/link-preview'
 
 type SourcesMenuProps = HTMLAttributes<HTMLDivElement> & { sources: Source[] }
@@ -30,14 +28,10 @@ export default function SourcesMenu(props: SourcesMenuProps) {
 
   return (
     <div
-      className={twMerge('w-72 flex-none p-3 transition-all duration-300 bg-white/2 rounded-l-xl', className)}
+      className={twMerge('w-72 flex-none p-3 transition-all duration-300 rounded-l-xl', className)}
       {...rest}
       ref={containerRef}
     >
-      <div className="flex items-center justify-center gap-x-2 py-2 mb-2 mr-2.5 bg-white/10 border border-white/10 rounded-lg">
-        <LayersIcon className="text-typography-light dark:text-typography-dark" size={14} />
-        <H2 className="font-medium text-[#DDDDE3] text-sm">Sources</H2>
-      </div>
       <div
         className="flex flex-col gap-y-2.5 overflow-y-scroll scrollbar-visible pr-1"
         style={{ maxHeight: listHeight }}

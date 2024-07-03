@@ -30,8 +30,8 @@ export default function OldSearchResponse(props: OldSearchResponseProps) {
   }, [])
 
   return (
-    <div className="w-full flex">
-      <div className="flex-grow px-10 transition-all duration-300" ref={answerContainerRef}>
+    <div className="w-full flex justify-between">
+      <div className="max-w-[900px] mx-auto flex-grow px-10 transition-all duration-300" ref={answerContainerRef}>
         <SearchTitle className="mb-6" title={searchResult.query} />
         <div className="flex items-center gap-x-3 mb-6">
           <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
