@@ -6,11 +6,14 @@ import { ChangeEvent, HTMLAttributes, KeyboardEvent, useRef } from 'react'
 import PaperPlaneIcon from '../icons/paper-plane'
 import { IconButton } from '../lib/button'
 import { Textarea } from '../lib/form'
+import { twMerge } from 'tailwind-merge'
 
 type SearchInputProps = HTMLAttributes<HTMLDivElement> & {
   handleSearch: () => void
   searchQuery: string
   setSearchQuery: (query: string) => void
+  containerClass?: string
+  innerContainerClass?: string
 }
 
 export default function SearchInput(props: SearchInputProps) {
@@ -42,12 +45,18 @@ export default function SearchInput(props: SearchInputProps) {
   return (
     <Textarea
       ref={textAreaRef}
-      containerClass="grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4"
-      innerContainerClass={classNames(
-        'rounded-2xl bg-background-light/80 dark:bg-background-dark/80 border border-background-dark/40 dark:border-background-light/40 pr-2 focus-within:border-0 focus-within:outline-none focus-within:ring-1 focus-within:ring-primary focus-within:ring-offset-0',
-        {
-          'py-2': textAreaRef?.current?.style.height === `${maxSearchInputHeight}px`,
-        }
+      containerClass={twMerge(
+        'grow rounded-2.5xl p-2.5 bg-background-dark/4 dark:bg-background-light/4',
+        props.containerClass
+      )}
+      innerContainerClass={twMerge(
+        classNames(
+          'rounded-2xl bg-background-light/80 dark:bg-background-dark/80 border border-background-dark/40 dark:border-background-light/40 pr-2 focus-within:border-0 focus-within:outline-none focus-within:ring-1 focus-within:ring-primary focus-within:ring-offset-0',
+          {
+            'py-2': textAreaRef?.current?.style.height === `${maxSearchInputHeight}px`,
+          }
+        ),
+        props.innerContainerClass
       )}
       className={classNames(
         'h-16 pl-6 pr-16 rounded-2xl border-none focus-visible:ring-0 bg-background-light/80 dark:bg-background-dark/80 text-typography-light dark:text-typography-dark placeholder:text-typography-light/40 dark:placeholder:text-typography-dark/40 text-sm xl:text-base',

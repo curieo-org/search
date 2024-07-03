@@ -34,8 +34,8 @@ export default function OldSearchResponse(props: OldSearchResponseProps) {
       <div className="max-w-[900px] mx-auto flex-grow px-10 transition-all duration-300" ref={answerContainerRef}>
         <SearchTitle className="mb-6" title={searchResult.query} />
         <div className="flex items-center gap-x-3 mb-6">
-          <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
-          <Span className="font-light text-white/80 text-xl">Answer</Span>
+          <img src="images/answer-logo.svg" className="h-4 w-auto" alt="answer-logo" />
+          <Span className="font-light text-white/80 text-lg">Answer</Span>
         </div>
         <SearchResponse className="mb-6" response={searchResult.result} />
         <SearchActions

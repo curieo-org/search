@@ -77,14 +77,14 @@ export default function Thread(props: ThreadProps) {
   return (
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="flex flex-col">
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-end py-4 sticky top-0 backdrop-blur-sm">
           <H1 className="px-10 text-2xl xl:text-3xl font-light">{props.data?.thread.title}</H1>
-          <div className="mr-2.5 w-[268px] h-10 flex gap-x-2 items-center justify-center border border-white/10 rounded-lg">
+          <div className="mr-2.5 w-[276px] h-10 flex gap-x-2 items-center justify-center border border-white/10 rounded-lg">
             <LayersIcon className="text-typography-light dark:text-typography-dark" size={14} />
             <H2 className="font-medium text-[#DDDDE3] text-sm">Sources</H2>
           </div>
         </div>
-        <div className="mt-2 flex flex-col gap-y-4">
+        <div className="flex flex-col gap-y-4">
           {_.reverse([...props.data?.searches]).map((search, index) => (
             <Fragment key={`search-response-${props.data.thread.thread_id}-${index}`}>
               <OldSearchResponse search={search} shortenSourcesLength={props.data.searches.length !== 1 || isLoading} />
@@ -96,11 +96,12 @@ export default function Thread(props: ThreadProps) {
         </div>
       </div>
 
-      <div className="w-[calc(100vw-576px)] sticky bottom-0 pb-4 px-4 flex justify-start backdrop-blur-sm">
+      <div className="w-[calc(100vw-576px)] sticky bottom-0 pb-4 px-4">
         <SearchInput
           handleSearch={handleSearch}
           searchQuery={props.searchQuery}
           setSearchQuery={props.handleSetSearchQuery}
+          containerClass="max-w-[900px] mx-auto backdrop-blur-sm"
         />
       </div>
 

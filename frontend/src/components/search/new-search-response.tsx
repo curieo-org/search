@@ -16,7 +16,7 @@ export default function NewSearchResponse(props: NewSearchResponseProps) {
   return (
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="w-full flex">
-        <div className="w-full flex flex-col px-10">
+        <div className="w-full flex flex-col px-10 max-w-[900px]">
           <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} />
           <div className="flex flex-col px-10">
             <div className="flex items-center gap-x-3 my-6">

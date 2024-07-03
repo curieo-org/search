@@ -28,7 +28,7 @@ export default function SourcesMenu(props: SourcesMenuProps) {
 
   return (
     <div
-      className={twMerge('w-72 flex-none p-3 transition-all duration-300 rounded-l-xl', className)}
+      className={twMerge('w-72 flex-none p-3 transition-all duration-300 rounded-l-xl bg-white/2', className)}
       {...rest}
       ref={containerRef}
     >
