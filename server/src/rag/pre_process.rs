@@ -65,7 +65,7 @@ pub async fn rephrase_query(
     let last_n_searches = match search_query_request.thread_id {
         Some(thread_id) => {
             search_services::get_last_n_searches(
-                &pool,
+                pool,
                 settings.search.max_search_context,
                 &thread_id,
             )

@@ -147,20 +147,17 @@ fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult 
             url: result.url,
             description: result.description,
             source_type: SourceType::Url,
-            metadata: HashMap::from_iter(
-                vec![
-                    (
-                        "page_age".to_string(),
-                        result.page_age.unwrap_or("".to_string()),
-                    ),
-                    ("age".to_string(), result.age.unwrap_or("".to_string())),
-                    (
-                        "language".to_string(),
-                        result.language.unwrap_or("".to_string()),
-                    ),
-                ]
-                .into_iter(),
-            ),
+            metadata: HashMap::from_iter(vec![
+                (
+                    "page_age".to_string(),
+                    result.page_age.unwrap_or("".to_string()),
+                ),
+                ("age".to_string(), result.age.unwrap_or("".to_string())),
+                (
+                    "language".to_string(),
+                    result.language.unwrap_or("".to_string()),
+                ),
+            ]),
         },
     }
 }

@@ -13,7 +13,7 @@ pub async fn search(
     settings: &Settings,
     brave_api_config: &brave_search::BraveAPIConfig,
     cache: &CachePool,
-    agency_service: &mut AgencyServiceClient<Channel>,
+    agency_service: &AgencyServiceClient<Channel>,
     search_query: &str,
 ) -> crate::Result<rag::SearchResponse> {
     if let Some(response) = cache.get(search_query).await {
@@ -66,7 +66,7 @@ pub async fn search(
 #[tracing::instrument(level = "debug", ret, err)]
 async fn retrieve_result_from_agency(
     settings: &Settings,
-    agency_service: &mut AgencyServiceClient<Channel>,
+    agency_service: &AgencyServiceClient<Channel>,
     search_query: &str,
 ) -> crate::Result<Vec<rag::RetrievedResult>> {
     let agency_service = Arc::new(agency_service.clone());

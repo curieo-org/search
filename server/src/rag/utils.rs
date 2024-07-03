@@ -1,4 +1,4 @@
-pub fn cosine_similarity(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
+pub fn cosine_similarity(v1: &[f64], v2: &[f64]) -> f64 {
     if v1.len() != v2.len() {
         return 0.0;
     }
@@ -11,5 +11,5 @@ pub fn cosine_similarity(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
         return 0.0;
     }
 
-    return dot_product / magnitude_product;
+    dot_product / magnitude_product
 }

@@ -74,14 +74,14 @@ pub async fn add_search_sources(
     search: &data_models::Search,
     sources: &Vec<Source>,
 ) -> crate::Result<Vec<data_models::Source>> {
-    if sources.len() == 0 {
+    if sources.is_empty() {
         return Err(eyre!("No sources to add").into());
     }
 
     // remove duplicates with same url
     let mut hash_set: HashSet<&String> = sources.iter().map(|s| &s.url).collect();
     let sources = sources
-        .into_iter()
+        .iter()
         .filter(|s| match hash_set.contains(&s.url) {
             true => {
                 hash_set.remove(&s.url);

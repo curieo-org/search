@@ -1,8 +1,6 @@
-use crate::cache::CachePool;
-use crate::proto::agency_service_client::AgencyServiceClient;
 use crate::rag::{self, post_process, pre_process};
 use crate::search::{api_models, services};
-use crate::settings::Settings;
+
 use crate::startup::AppState;
 use crate::users::User;
 use axum::extract::{Query, State};
@@ -14,22 +12,24 @@ use axum::{Json, Router};
 use color_eyre::eyre::eyre;
 use futures::stream::StreamExt;
 use futures::Stream;
-use regex::Regex;
+
 use sqlx::PgPool;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use tonic::transport::Channel;
 
 #[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
-    State(settings): State<Settings>,
-    State(brave_api_config): State<rag::BraveAPIConfig>,
+    State(AppState {
+        cache,
+        agency_service,
+        settings,
+        brave_config,
+        openai_stream_regex,
+        ..
+    }): State<AppState>,
     State(pool): State<PgPool>,
-    State(cache): State<CachePool>,
-    State(mut agency_service): State<AgencyServiceClient<Channel>>,
-    State(openai_stream_regex): State<Regex>,
     user: User,
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
@@ -52,9 +52,9 @@ async fn get_search_query_handler(
         services::insert_new_search(&pool, &user_id, &search_query_request, &rephrased_query),
         rag::search(
             &settings,
-            &brave_api_config,
+            &brave_config,
             &cache,
-            &mut agency_service,
+            &agency_service,
             &rephrased_query
         )
     );

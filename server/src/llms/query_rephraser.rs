@@ -62,7 +62,7 @@ pub async fn rephrase_query(
     headers.insert(
         HeaderName::from_bytes(b"Authorization")
             .map_err(|e| eyre!("Failed to create header: {e}"))?,
-        HeaderValue::from_str(&settings.api_key.expose())
+        HeaderValue::from_str(settings.api_key.expose())
             .map_err(|e| eyre!("Failed to create header: {e}"))?,
     );
 
