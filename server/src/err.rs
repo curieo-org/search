@@ -1,88 +1,129 @@
-use crate::auth::BackendError;
-use crate::cache::CacheError;
+use crate::{auth::AuthError, cache::CacheError, search::SearchError, users::UserError};
 use axum::http::header::WWW_AUTHENTICATE;
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use color_eyre::eyre::eyre;
 use sqlx::error::DatabaseError;
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::fmt::Display;
-use tracing::error;
+use std::fmt::Debug;
+use std::{borrow::Cow, collections::HashMap};
+use tokio::task;
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum AppError {
-    Unauthorized,
-    UnprocessableEntity(ErrorMap),
-    Sqlx(sqlx::Error),
-    GenericError(color_eyre::eyre::Error),
-    Cache(CacheError),
+    #[error(transparent)]
+    SearchError(#[from] SearchError),
+    #[error(transparent)]
+    AuthError(#[from] AuthError),
+    #[error(transparent)]
+    UserError(#[from] UserError),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    GenericError(#[from] color_eyre::eyre::Error),
+
+    #[error(transparent)]
+    Cache(#[from] CacheError),
+
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    TaskJoin(#[from] task::JoinError),
 }
 
 impl AppError {
-    fn status_code(&self) -> StatusCode {
+    fn to_error_code(&self) -> String {
         match self {
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Sqlx(_) | Self::GenericError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Cache(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::SearchError(SearchError::Sqlx(err))
+            | AppError::AuthError(AuthError::Sqlx(err))
+            | AppError::UserError(UserError::Sqlx(err))
+            | AppError::Sqlx(err) => match err {
+                sqlx::Error::RowNotFound => "resource_not_found".to_string(),
+                sqlx::Error::Protocol(_) => "invalid_data".to_string(),
+                sqlx::Error::Database(db_err) => match db_err.code().as_deref() {
+                    Some("23505") => "unique_key_violation".to_string(),
+                    Some("23503") => "foreign_key_violation".to_string(),
+                    _ => "internal_server_error".to_string(),
+                },
+                _ => "internal_server_error".to_string(),
+            },
+
+            AppError::SearchError(err) => match err {
+                SearchError::ToxicQuery(_) => format!("toxic_query"),
+                SearchError::InvalidData(_) => format!("invalid_data"),
+                SearchError::NoResults(_) | SearchError::NoSources(_) => format!("no_results"),
+                _ => format!("internal_server_error"),
+            },
+            AppError::UserError(err) => match err {
+                UserError::InvalidData(_) => "invalid_data".to_string(),
+                UserError::InvalidPassword(_) => "invalid_password".to_string(),
+                _ => "internal_server_error".to_string(),
+            },
+            AppError::AuthError(err) => match err {
+                AuthError::Unauthorized(_) | AuthError::OAuth2(_) => "unauthorized".to_string(),
+                AuthError::InvalidSession(_) => "invalid_session".to_string(),
+                AuthError::NotWhitelisted(_) => "not_whitelisted".to_string(),
+                AuthError::UserAlreadyExists(_) => "user_already_exists".to_string(),
+                AuthError::InvalidData(_) => "invalid_data".to_string(),
+                _ => "internal_server_error".to_string(),
+            },
+            _ => "internal_server_error".to_string(),
         }
     }
-    /// Convenient constructor for `Error::UnprocessableEntity`.
-    ///
-    /// Multiple for the same key are collected into a list for that key.
-    pub fn unprocessable_entity<E>(errors: E) -> Self
-    where
-        ErrorMap: From<E>,
-    {
-        Self::UnprocessableEntity(ErrorMap::from(errors))
+
+    fn to_status_code(&self) -> StatusCode {
+        match self {
+            AppError::SearchError(SearchError::Sqlx(err))
+            | AppError::AuthError(AuthError::Sqlx(err))
+            | AppError::UserError(UserError::Sqlx(err))
+            | AppError::Sqlx(err) => match err {
+                sqlx::Error::RowNotFound => StatusCode::NOT_FOUND,
+                sqlx::Error::Protocol(_) => StatusCode::BAD_REQUEST,
+                sqlx::Error::Database(db_err) => match db_err.code().as_deref() {
+                    Some("23505") => StatusCode::CONFLICT,
+                    Some("23503") => StatusCode::BAD_REQUEST,
+                    _ => StatusCode::INTERNAL_SERVER_ERROR,
+                },
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+
+            AppError::SearchError(err) => match err {
+                SearchError::ToxicQuery(_) | SearchError::InvalidData(_) => {
+                    StatusCode::UNPROCESSABLE_ENTITY
+                }
+                SearchError::NoResults(_) | SearchError::NoSources(_) => StatusCode::NOT_FOUND,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            AppError::AuthError(err) => match err {
+                AuthError::Unauthorized(_)
+                | AuthError::InvalidSession(_)
+                | AuthError::OAuth2(_) => StatusCode::UNAUTHORIZED,
+                AuthError::NotWhitelisted(_) => StatusCode::FORBIDDEN,
+                AuthError::UserAlreadyExists(_) => StatusCode::CONFLICT,
+                AuthError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            AppError::UserError(err) => match err {
+                UserError::InvalidData(_) => StatusCode::UNPROCESSABLE_ENTITY,
+                UserError::InvalidPassword(_) => StatusCode::BAD_REQUEST,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
     }
 }
 
-impl From<color_eyre::eyre::Error> for AppError {
-    fn from(inner: color_eyre::eyre::Error) -> Self {
-        AppError::GenericError(inner)
-    }
-}
-
-impl From<sqlx::Error> for AppError {
-    fn from(inner: sqlx::Error) -> Self {
-        AppError::Sqlx(inner)
-    }
-}
 impl From<sqlx::migrate::MigrateError> for AppError {
     fn from(inner: sqlx::migrate::MigrateError) -> Self {
         AppError::Sqlx(inner.into())
     }
 }
 
-impl From<BackendError> for AppError {
-    fn from(e: BackendError) -> Self {
-        match e {
-            BackendError::Sqlx(e) => AppError::Sqlx(e),
-            BackendError::Reqwest(e) => AppError::GenericError(eyre!(e)),
-            BackendError::OAuth2(e) => AppError::GenericError(eyre!(e)),
-            BackendError::TaskJoin(e) => AppError::GenericError(eyre!(e)),
-        }
-    }
-}
-
-impl Display for AppError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AppError::GenericError(e) => write!(f, "{}", e),
-            AppError::Sqlx(e) => write!(f, "{}", e),
-            AppError::UnprocessableEntity(e) => write!(f, "{:?}", e),
-            AppError::Unauthorized => write!(f, "Unauthorized"),
-            AppError::Cache(e) => write!(f, "{}", e),
-        }
-    }
-}
-
 #[derive(serde::Serialize, Debug)]
 pub struct ErrorMap {
-    errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
+    errors: HashMap<Cow<'static, str>, Cow<'static, str>>,
 }
 
 impl<K, V, I> From<I> for ErrorMap
@@ -95,10 +136,7 @@ where
         let mut errors = HashMap::new();
 
         for (key, val) in i {
-            errors
-                .entry(key.into())
-                .or_insert_with(Vec::new)
-                .push(val.into());
+            errors.entry(key.into()).or_insert_with(|| val.into());
         }
 
         ErrorMap { errors }
@@ -107,10 +145,22 @@ where
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        match self {
-            AppError::Unauthorized => {
-                return (
-                    self.status_code(),
+        let (status_code, error_code, error_message) = (
+            self.to_status_code(),
+            self.to_error_code(),
+            self.to_string(),
+        );
+
+        let error_body = Json(ErrorMap::from([
+            ("message", error_message),
+            ("error_code", error_code),
+        ]));
+
+        // Return a http status code and json body with error message.
+        match status_code {
+            StatusCode::UNAUTHORIZED => {
+                (
+                    status_code,
                     // Include the `WWW-Authenticate` challenge required in the specification
                     // for the `401 Unauthorized` response code:
                     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
@@ -118,24 +168,12 @@ impl IntoResponse for AppError {
                         (WWW_AUTHENTICATE, HeaderValue::from_static("Basic")),
                         (WWW_AUTHENTICATE, HeaderValue::from_static("Bearer")),
                     ]),
-                    Json(ErrorMap::from([("message", "Unauthorized")])),
+                    error_body,
                 )
-                    .into_response();
+                    .into_response()
             }
-            AppError::UnprocessableEntity(e) => {
-                return (StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into_response();
-            }
-            AppError::Sqlx(ref e) => error!("SQLx error: {:?}", e),
-            AppError::GenericError(ref e) => error!("Generic error: {:?}", e),
-            AppError::Cache(ref e) => error!("Redis error: {:?}", e),
-        };
-
-        // Return a http status code and json body with error message.
-        (
-            self.status_code(),
-            Json(ErrorMap::from([("message", "Something went wrong")])),
-        )
-            .into_response()
+            _ => (status_code, error_body).into_response(),
+        }
     }
 }
 
