@@ -116,7 +116,7 @@ impl AuthnBackend for PostgresBackend {
     async fn authenticate(
         &self,
         creds: Self::Credentials,
-    ) -> Result<Option<Self::User>, AuthError> {
+    ) -> Result<Option<Self::User>, Self::Error> {
         match creds {
             Credentials::Password(password_cred) => {
                 password_cred
