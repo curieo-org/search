@@ -1,8 +1,7 @@
 use axum::body::Body;
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
-use server::auth::models::RegisterUserRequest;
-use server::auth::{register, WhitelistedEmail};
+use server::auth::{register, RegisterUserRequest, WhitelistedEmail};
 use server::cache::CachePool;
 use server::routing::router;
 use server::settings::Settings;
@@ -33,7 +32,6 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
         pool.clone(),
         RegisterUserRequest {
             email: "test-email".to_string(),
-            username: "test-username".to_string(),
             password: Some("password".to_string().into()),
             access_token: Default::default(),
         },
@@ -83,9 +81,9 @@ async fn register_users_works(pool: PgPool) {
     let response = router.clone().oneshot(request.clone()).await.unwrap();
     assert_eq!(response.status(), StatusCode::CREATED);
 
-    // Doing the same thing again should return a 422 status code.
+    // Doing the same thing again should return a 409 status code.
     let response = router.clone().oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(response.status(), StatusCode::CONFLICT);
 
     let form = &[
         ("email", "not-whitelisted-email"),
@@ -99,5 +97,5 @@ async fn register_users_works(pool: PgPool) {
         .unwrap();
 
     let response = router.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 }

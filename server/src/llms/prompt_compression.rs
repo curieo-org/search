@@ -1,5 +1,5 @@
 use crate::llms::LLMSettings;
-use color_eyre::eyre::eyre;
+use crate::search::SearchError;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -24,19 +24,15 @@ pub struct PromptCompressionAPIResponse {
 pub async fn compress(
     llm_settings: &LLMSettings,
     prompt_compression_input: PromptCompressionInput,
-) -> crate::Result<PromptCompressionOutput> {
+) -> Result<PromptCompressionOutput, SearchError> {
     let client = Client::new();
     let response = client
         .post(llm_settings.prompt_compression_url.as_str())
         .json(&prompt_compression_input)
         .send()
-        .await
-        .map_err(|e| eyre!("Request to prompt compression failed: {e}"))?;
+        .await?;
 
-    let prompt_compression_response = response
-        .json::<PromptCompressionAPIResponse>()
-        .await
-        .map_err(|e| eyre!("Failed to parse prompt compression response: {e}"))?;
+    let prompt_compression_response = response.json::<PromptCompressionAPIResponse>().await?;
 
     Ok(prompt_compression_response.response)
 }

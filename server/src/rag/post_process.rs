@@ -1,18 +1,18 @@
 use crate::llms::summarizer;
 use crate::proto::Embeddings;
 use crate::rag::utils;
-use crate::search::api_models;
+use crate::search::{api_models, SearchError};
 use crate::settings::Settings;
 use rand::Rng;
 use regex::Regex;
 use std::cmp::Ordering;
 use tokio::sync::mpsc::Sender;
 
-#[tracing::instrument(level = "info", ret, err)]
-pub async fn rerank_search_results(
+#[tracing::instrument(level = "info", ret)]
+pub fn rerank_search_results(
     query_embeddings: &Embeddings,
     results_embeddings: &Vec<Embeddings>,
-) -> crate::Result<Vec<usize>> {
+) -> Vec<usize> {
     let query_dense_embedding = &query_embeddings.dense_embedding;
 
     let mut cosine_similarities: Vec<(usize, f64)> = results_embeddings
@@ -28,12 +28,10 @@ pub async fn rerank_search_results(
 
     cosine_similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
 
-    let result: Vec<usize> = cosine_similarities
+    cosine_similarities
         .iter()
         .map(|(index, _)| *index)
-        .collect();
-
-    return Ok(result);
+        .collect()
 }
 
 #[tracing::instrument(level = "info", ret, err)]
@@ -44,7 +42,7 @@ pub async fn summarize_search_results(
     update_processor: api_models::UpdateResultProcessor,
     stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
-) -> crate::Result<()> {
+) -> Result<(), SearchError> {
     let random_number = rand::thread_rng().gen_range(0.0..1.0);
 
     if random_number < settings.search.beta_usage_ratio {

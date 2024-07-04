@@ -1,23 +1,18 @@
+use crate::llms;
 use crate::rag::{self, post_process, pre_process};
-use crate::search::{api_models, services};
-
+use crate::search::{api_models, services, SearchError};
 use crate::startup::AppState;
 use crate::users::User;
 use axum::extract::{Query, State};
-use axum::http::StatusCode;
 use axum::response::sse::{Event, KeepAlive, Sse};
-use axum::response::IntoResponse;
 use axum::routing::{get, patch};
 use axum::{Json, Router};
-use color_eyre::eyre::eyre;
-use futures::stream::StreamExt;
-use futures::Stream;
-
+use futures::{stream::StreamExt, Stream};
 use sqlx::PgPool;
-use std::convert::Infallible;
-use std::sync::Arc;
+use std::{convert::Infallible, sync::Arc};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
+use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
@@ -33,15 +28,23 @@ async fn get_search_query_handler(
     user: User,
     Query(search_query_request): Query<api_models::SearchQueryRequest>,
 ) -> crate::Result<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
+    search_query_request
+        .validate()
+        .map_err(|e| SearchError::InvalidData(format!("Invalid search query: {}", e)))?;
     let user_id = user.user_id;
 
-    let (query_validity, rephrased_query) = tokio::join!(
-        pre_process::check_query_validity(&settings, &search_query_request),
+    let (query_toxicity, rephrased_query) = tokio::join!(
+        llms::toxicity::predict_toxicity(
+            &settings.llm,
+            llms::ToxicityInput {
+                inputs: search_query_request.query.to_string(),
+            }
+        ),
         pre_process::rephrase_query(&pool, &settings, &search_query_request)
     );
 
-    if let Ok(false) = query_validity {
-        return Err(eyre!("Query is invalid to proceed").into());
+    if let Ok(true) = query_toxicity {
+        return Err(SearchError::ToxicQuery("Query is too toxic to proceed".to_string()).into());
     }
     let rephrased_query = match rephrased_query {
         Ok(rephrased_query) => rephrased_query,
@@ -70,7 +73,7 @@ async fn get_search_query_handler(
         sources,
     })
     .await
-    .map_err(|e| eyre!("Failed to send end result: {}", e))?;
+    .map_err(|e| SearchError::Other(format!("Failed to send search result: {}", e)))?;
 
     let update_processor = api_models::UpdateResultProcessor::new(Arc::new(move |result_suffix| {
         let pool_clone = pool.clone();
@@ -105,12 +108,10 @@ async fn get_one_search_result_handler(
     State(pool): State<PgPool>,
     user: User,
     Query(search_by_id_request): Query<api_models::SearchByIdRequest>,
-) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
-
-    let search_history = services::get_one_search(&pool, &user_id, &search_by_id_request).await?;
-
-    Ok((StatusCode::OK, Json(search_history)))
+) -> crate::Result<Json<api_models::SearchByIdResponse>> {
+    let search_history =
+        services::get_one_search(&pool, &user.user_id, &search_by_id_request).await?;
+    Ok(Json(search_history))
 }
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
@@ -118,12 +119,14 @@ async fn get_threads_handler(
     State(pool): State<PgPool>,
     user: User,
     Query(thread_history_request): Query<api_models::ThreadHistoryRequest>,
-) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
+) -> crate::Result<Json<api_models::ThreadHistoryResponse>> {
+    thread_history_request
+        .validate()
+        .map_err(|e| SearchError::InvalidData(format!("Invalid thread history request: {}", e)))?;
 
-    let search_history = services::get_threads(&pool, &user_id, &thread_history_request).await?;
-
-    Ok((StatusCode::OK, Json(search_history)))
+    let search_history =
+        services::get_threads(&pool, &user.user_id, &thread_history_request).await?;
+    Ok(Json(search_history))
 }
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
@@ -131,10 +134,13 @@ async fn get_one_thread_handler(
     State(pool): State<PgPool>,
     user: User,
     Query(get_thread_request): Query<api_models::GetThreadRequest>,
-) -> crate::Result<impl IntoResponse> {
-    let search_thread = services::get_one_thread(&pool, &user.user_id, &get_thread_request).await?;
+) -> crate::Result<Json<api_models::SearchThreadResponse>> {
+    get_thread_request
+        .validate()
+        .map_err(|e| SearchError::InvalidData(format!("Invalid get thread request: {}", e)))?;
 
-    Ok((StatusCode::OK, Json(search_thread)))
+    let search_thread = services::get_one_thread(&pool, &user.user_id, &get_thread_request).await?;
+    Ok(Json(search_thread))
 }
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
@@ -142,12 +148,13 @@ async fn update_thread_handler(
     State(pool): State<PgPool>,
     user: User,
     Json(update_thread_request): Json<api_models::UpdateThreadRequest>,
-) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
+) -> crate::Result<()> {
+    update_thread_request
+        .validate()
+        .map_err(|e| SearchError::InvalidData(format!("Invalid update thread request: {}", e)))?;
 
-    services::update_thread(&pool, &user_id, &update_thread_request).await?;
-
-    Ok(StatusCode::OK)
+    services::update_thread(&pool, &user.user_id, &update_thread_request).await?;
+    Ok(())
 }
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
@@ -155,12 +162,9 @@ async fn update_search_reaction_handler(
     State(pool): State<PgPool>,
     user: User,
     Json(search_reaction_request): Json<api_models::SearchReactionRequest>,
-) -> crate::Result<impl IntoResponse> {
-    let user_id = user.user_id;
-
-    services::update_search_reaction(&pool, &user_id, &search_reaction_request).await?;
-
-    Ok(StatusCode::OK)
+) -> crate::Result<()> {
+    services::update_search_reaction(&pool, &user.user_id, &search_reaction_request).await?;
+    Ok(())
 }
 
 pub fn routes() -> Router<AppState> {

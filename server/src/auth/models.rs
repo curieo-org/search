@@ -1,39 +1,14 @@
-use crate::auth::oauth2::OAuth2Client;
-use crate::auth::utils;
+use crate::auth::{oauth2::OAuth2Client, utils, AuthError};
 use crate::secrets::Secret;
 use crate::telemetry::spawn_blocking_with_tracing;
 use crate::users::User;
 use async_trait::async_trait;
 use axum::http::header::{AUTHORIZATION, USER_AGENT};
 use axum_login::{AuthnBackend, UserId};
-use oauth2::basic::BasicRequestTokenError;
-use oauth2::reqwest::AsyncHttpClientError;
-use oauth2::url::Url;
-use oauth2::{AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
-use serde::de::Error;
-use serde::{Deserialize, Deserializer};
+use oauth2::{url::Url, AuthorizationCode, CsrfToken, PkceCodeVerifier, TokenResponse};
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use tokio::task;
-
-#[derive(Deserialize, Clone, Debug)]
-#[serde(remote = "Self")]
-pub struct RegisterUserRequest {
-    pub email: String,
-    pub username: String,
-    pub password: Option<Secret<String>>,
-    pub access_token: Option<Secret<String>>,
-}
-
-impl<'de> Deserialize<'de> for RegisterUserRequest {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = Self::deserialize(deserializer)?;
-        if s.password.is_some() && s.access_token.is_some() {
-            return Err(Error::custom("should only have password or access token"));
-        }
-
-        Ok(s)
-    }
-}
+use validator::Validate;
 
 #[derive(Debug, Deserialize)]
 struct UserInfo {
@@ -63,15 +38,14 @@ impl PostgresBackend {
 async fn password_authenticate(
     db: &PgPool,
     password_credentials: PasswordCredentials,
-) -> Result<Option<User>, BackendError> {
+) -> Result<Option<User>, AuthError> {
     let user = sqlx::query_as!(
         User,
-        "select * from users where username = $1 and password_hash is not null",
-        password_credentials.username
+        "select * from users where email = $1 and password_hash is not null",
+        password_credentials.email
     )
     .fetch_optional(db)
-    .await
-    .map_err(BackendError::Sqlx)?;
+    .await?;
 
     // Verifying the password is blocking and potentially slow, so we do it via
     // `spawn_blocking`.
@@ -86,7 +60,7 @@ async fn oauth_authenticate(
     db: &PgPool,
     oauth2_clients: &[OAuth2Client],
     oauth_creds: OAuthCredentials,
-) -> Result<Option<User>, BackendError> {
+) -> Result<Option<User>, AuthError> {
     // Ensure the CSRF state has not been tampered with.
     if oauth_creds.old_state.secret() != oauth_creds.new_state.secret() {
         return Ok(None);
@@ -97,7 +71,7 @@ async fn oauth_authenticate(
     let token_res = client
         .exchange_code(AuthorizationCode::new(oauth_creds.code))
         .await
-        .map_err(BackendError::OAuth2)?;
+        .map_err(|e| AuthError::Unauthorized(e.to_string()))?;
 
     // Use access token to request user info.
     let user_info = reqwest::Client::new()
@@ -108,11 +82,9 @@ async fn oauth_authenticate(
             format!("Bearer {}", token_res.access_token().secret()),
         )
         .send()
-        .await
-        .map_err(BackendError::Reqwest)?
+        .await?
         .json::<UserInfo>()
-        .await
-        .map_err(BackendError::Reqwest)?;
+        .await?;
 
     // Persist user in our database, so we can use `get_user`.
     let user = sqlx::query_as!(
@@ -128,8 +100,7 @@ async fn oauth_authenticate(
         token_res.access_token().secret()
     )
     .fetch_one(db)
-    .await
-    .map_err(BackendError::Sqlx)?;
+    .await?;
 
     Ok(Some(user))
 }
@@ -139,7 +110,7 @@ async fn oauth_authenticate(
 impl AuthnBackend for PostgresBackend {
     type User = User;
     type Credentials = Credentials;
-    type Error = BackendError;
+    type Error = AuthError;
 
     #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn authenticate(
@@ -148,6 +119,9 @@ impl AuthnBackend for PostgresBackend {
     ) -> Result<Option<Self::User>, Self::Error> {
         match creds {
             Credentials::Password(password_cred) => {
+                password_cred
+                    .validate()
+                    .map_err(|e| AuthError::Unauthorized(format!("Invalid credentials: {}", e)))?;
                 password_authenticate(&self.db, password_cred).await
             }
             Credentials::OAuth(oauth_creds) => {
@@ -157,7 +131,7 @@ impl AuthnBackend for PostgresBackend {
     }
 
     #[tracing::instrument(level = "info", skip(self), ret, err)]
-    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
+    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, AuthError> {
         sqlx::query_as!(
             Self::User,
             "select * from users where user_id = $1",
@@ -165,7 +139,7 @@ impl AuthnBackend for PostgresBackend {
         )
         .fetch_optional(&self.db)
         .await
-        .map_err(Self::Error::Sqlx)
+        .map_err(|e| e.into())
     }
 }
 
@@ -176,9 +150,10 @@ pub enum Credentials {
     OAuth(OAuthCredentials),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct PasswordCredentials {
-    pub username: String,
+    #[validate(email)]
+    pub email: String,
     pub password: Secret<String>,
     pub csrf_token: Option<CsrfToken>,
     pub next: Option<String>,
@@ -191,31 +166,16 @@ pub struct OAuthCredentials {
     pub new_state: CsrfToken,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum BackendError {
-    #[error(transparent)]
-    Sqlx(sqlx::Error),
-
-    #[error(transparent)]
-    Reqwest(reqwest::Error),
-
-    #[error(transparent)]
-    OAuth2(BasicRequestTokenError<AsyncHttpClientError>),
-
-    #[error(transparent)]
-    TaskJoin(#[from] task::JoinError),
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WhitelistedEmail {
+    pub email: String,
+    pub approved: bool,
 }
 
 // We use a type alias for convenience.
 //
 // Note that we've supplied our concrete backend here.
 pub type AuthSession = axum_login::AuthSession<PostgresBackend>;
-
-#[derive(Debug)]
-pub struct WhitelistedEmail {
-    pub email: String,
-    pub approved: bool,
-}
 
 #[cfg(test)]
 mod tests {

@@ -1,27 +1,31 @@
-use crate::auth::models::{AuthSession, Credentials, RegisterUserRequest};
 use crate::auth::services;
-use crate::auth::{OAuthCredentials, PasswordCredentials};
-use crate::err::AppError;
+use crate::auth::{
+    AuthError, AuthSession, Credentials, OAuthCredentials, PasswordCredentials, RegisterUserRequest,
+};
 use crate::startup::AppState;
 use crate::users::UserRecord;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
-use axum::routing::{get, post};
+use axum::routing::{delete, get, patch, post, put};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
-use color_eyre::eyre::eyre;
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
+use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
 ) -> crate::Result<impl IntoResponse> {
+    request
+        .validate()
+        .map_err(|e| AuthError::InvalidData(format!("Invalid data: {}", e)))?;
+
     if !services::is_email_whitelisted(&pool, &request.email).await? {
-        return Err(eyre!("This email is not whitelisted!").into());
+        return Err(AuthError::NotWhitelisted(format!("This email is not whitelisted!")).into());
     }
     services::register(pool, request)
         .await
@@ -38,12 +42,12 @@ async fn login_handler(
         .await
     {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AppError::Unauthorized),
-        Err(_) => return Err(eyre!("Could not authenticate user").into()),
+        Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
+        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(eyre!("Could not login user").into());
+        return Err(AuthError::Other(format!("Could not login user")).into());
     }
     //if let Credentials::Password(_pw_creds) = creds {
     //    if let Some(ref next) = pw_creds.next {
@@ -86,6 +90,7 @@ async fn oauth_handler(
 
     Redirect::to(auth_url.as_str()).into_response()
 }
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuthzResp {
     code: String,
@@ -102,7 +107,9 @@ pub async fn oauth_callback_handler(
     }): Query<AuthzResp>,
 ) -> crate::Result<Response> {
     let Ok(Some(old_state)) = session.get(CSRF_STATE_KEY).await else {
-        return Err(eyre!("Session did not contain old csrf state").into());
+        return Err(
+            AuthError::Unauthorized(format!("Session did not contain old csrf state")).into(),
+        );
     };
 
     let creds = Credentials::OAuth(OAuthCredentials {
@@ -113,12 +120,12 @@ pub async fn oauth_callback_handler(
 
     let user = match auth_session.authenticate(creds).await {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AppError::Unauthorized),
-        Err(_) => return Err(eyre!("Could not authenticate user").into()),
+        Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
+        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(eyre!("Could not login user").into());
+        return Err(AuthError::Other(format!("Could not login user")).into());
     }
 
     if let Ok(Some(next)) = session.remove::<String>(NEXT_URL_KEY).await {
@@ -133,7 +140,7 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     auth_session
         .logout()
         .await
-        .map_err(|e| eyre!("Failed to logout: {}", e))?;
+        .map_err(|e| AuthError::Other(format!("Could not logout user: {}", e)))?;
 
     Ok(())
 }
@@ -144,7 +151,7 @@ async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<Us
         .user
         .map(UserRecord::from)
         .map(Json::from)
-        .ok_or_else(|| AppError::Unauthorized)
+        .ok_or_else(|| AuthError::Unauthorized(format!("Invalid user session")).into())
 }
 
 pub fn routes() -> Router<AppState> {
@@ -154,6 +161,10 @@ pub fn routes() -> Router<AppState> {
         .route("/oauth", post(oauth_handler))
         .route("/oauth_callback", get(oauth_callback_handler))
         .route("/logout", get(logout_handler))
-        .route("/get-session", get(get_session_handler))
+        .route("/session", get(get_session_handler))
+        .route("/session", post(get_session_handler))
+        .route("/session", patch(get_session_handler))
+        .route("/session", delete(get_session_handler))
+        .route("/session", put(get_session_handler))
         .route("/callback/credentials", post(login_handler))
 }

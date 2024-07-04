@@ -1,7 +1,6 @@
 use httpmock::prelude::POST;
 use httpmock::MockServer;
-use server::auth::models::RegisterUserRequest;
-use server::auth::register;
+use server::auth::{register, RegisterUserRequest};
 use server::cache::CachePool;
 use server::llms::{PromptCompressionAPIResponse, PromptCompressionOutput};
 use server::rag::search;
@@ -68,7 +67,6 @@ async fn insert_search_and_get_search_history_test(pool: PgPool) -> Result<()> {
         pool.clone(),
         RegisterUserRequest {
             email: "test-email".to_string(),
-            username: "test-username".to_string(),
             password: Some("password".to_string().into()),
             access_token: Default::default(),
         },
@@ -106,7 +104,6 @@ async fn update_search_reaction_test(pool: PgPool) -> Result<()> {
         pool.clone(),
         RegisterUserRequest {
             email: "test-email".to_string(),
-            username: "test-username".to_string(),
             password: Some("password".to_string().into()),
             access_token: Default::default(),
         },

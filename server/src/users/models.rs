@@ -7,7 +7,6 @@ use axum::response::{IntoResponse, Redirect, Response};
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use sqlx::types::time;
-use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum UserGroup {
@@ -108,34 +107,5 @@ impl AuthUser for User {
         }
 
         &[]
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UpdatePasswordRequest {
-    pub old_password: Secret<String>,
-    pub new_password: Secret<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UpdateProfileRequest {
-    pub username: Option<String>,
-    pub email: Option<String>,
-    pub fullname: Option<String>,
-    pub title: Option<String>,
-    pub company: Option<String>,
-}
-
-impl UpdateProfileRequest {
-    pub fn has_any_value(&self) -> bool {
-        [
-            self.username.is_some(),
-            self.email.is_some(),
-            self.fullname.is_some(),
-            self.title.is_some(),
-            self.company.is_some(),
-        ]
-        .iter()
-        .any(|&x| x)
     }
 }
