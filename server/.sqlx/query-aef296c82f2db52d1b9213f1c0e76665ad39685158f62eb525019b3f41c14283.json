@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n      update users\n      set\n        username = coalesce($1::text, username),\n        email = coalesce($2::text, email),\n        fullname = coalesce($3::text, fullname),\n        title = coalesce($4::text, title),\n        company = coalesce($5::text, company)\n      where user_id = $6 returning *\n      ",
+  "query": "\n        update users\n        set\n          username = coalesce($1::text, username),\n          email = coalesce($2::text, email),\n          fullname = coalesce($3::text, fullname),\n          title = coalesce($4::text, title),\n          company = coalesce($5::text, company)\n          where user_id = $6 returning *\n        ",
   "describe": {
     "columns": [
       {
@@ -83,5 +83,5 @@
       true
     ]
   },
-  "hash": "16ab4584237414a8b3f1011fb10b45e788e6f3b415b8f72e48927ec5f99b8fe3"
+  "hash": "aef296c82f2db52d1b9213f1c0e76665ad39685158f62eb525019b3f41c14283"
 }
