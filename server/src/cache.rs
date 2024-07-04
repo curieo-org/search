@@ -1,12 +1,9 @@
-use crate::err::AppError;
 use crate::secrets::Secret;
 use axum::extract::FromRef;
 use bb8::Pool;
-use bb8_redis::bb8;
-use bb8_redis::RedisConnectionManager;
+use bb8_redis::{bb8, RedisConnectionManager};
 use redis::{AsyncCommands, SetOptions};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -34,12 +31,6 @@ pub enum CacheError {
     BB8(#[from] bb8::RunError<redis::RedisError>),
     #[error("Cache deserialize error: {0}")]
     Serde(#[from] serde_json::Error),
-}
-
-impl From<CacheError> for AppError {
-    fn from(e: CacheError) -> Self {
-        AppError::Cache(e)
-    }
 }
 
 impl CachePool {

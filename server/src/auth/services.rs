@@ -1,28 +1,38 @@
-use crate::auth::models;
-use crate::auth::utils;
-use crate::err::{AppError, ResultExt};
+use crate::auth::AuthError;
+use crate::auth::{api_models, models, utils};
+use crate::err::ResultExt;
 use crate::users::{User, UserRecord};
-use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
 #[tracing::instrument(level = "info", ret, err)]
-pub async fn register(pool: PgPool, request: models::RegisterUserRequest) -> crate::Result<UserRecord> {
+pub async fn register(
+    pool: PgPool,
+    request: api_models::RegisterUserRequest,
+) -> crate::Result<UserRecord> {
     if let Some(password) = request.password {
         let password_hash = utils::hash_password(password).await?;
         let user = sqlx::query_as!(
             User,
             "insert into users (email, username, password_hash) values ($1, $2, $3) returning *",
             request.email,
-            request.username,
+            request.email,
             password_hash.expose()
         )
         .fetch_one(&pool)
         .await
         .on_constraint("users_username_key", |_| {
-            AppError::unprocessable_entity([("username", "username taken")])
+            AuthError::UserAlreadyExists(format!(
+                "User with username {} already exists",
+                request.email
+            ))
+            .into()
         })
         .on_constraint("users_email_key", |_| {
-            AppError::unprocessable_entity([("email", "email taken")])
+            AuthError::UserAlreadyExists(format!(
+                "User with email {} already exists",
+                request.email
+            ))
+            .into()
         })?;
 
         return Ok(user.into());
@@ -31,30 +41,46 @@ pub async fn register(pool: PgPool, request: models::RegisterUserRequest) -> cra
             User,
             "insert into users (email, username, access_token) values ($1, $2, $3) returning *",
             request.email,
-            request.username,
+            request.email,
             access_token.expose()
         )
         .fetch_one(&pool)
         .await
         .on_constraint("users_username_key", |_| {
-            AppError::unprocessable_entity([("username", "username taken")])
+            AuthError::UserAlreadyExists(format!(
+                "User with username {} already exists",
+                request.email
+            ))
+            .into()
         })
         .on_constraint("users_email_key", |_| {
-            AppError::unprocessable_entity([("email", "email taken")])
+            AuthError::UserAlreadyExists(format!(
+                "User with email {} already exists",
+                request.email
+            ))
+            .into()
         })?;
 
         return Ok(user.into());
     }
-    Err(eyre!("Either password or access_token must be provided to create a user").into())
+
+    Err(AuthError::InvalidData(format!(
+        "Either password or access_token must be provided to create a user"
+    ))
+    .into())
 }
 
-pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> crate::Result<bool> {
-    let whitelisted_email = sqlx::query_as!(models::WhitelistedEmail, "SELECT * FROM whitelisted_emails WHERE email = $1", email)
+pub async fn is_email_whitelisted(pool: &PgPool, email: &String) -> Result<bool, AuthError> {
+    let whitelisted_email = sqlx::query_as!(
+        models::WhitelistedEmail,
+        "SELECT * FROM whitelisted_emails WHERE email = $1",
+        email
+    )
     .fetch_one(pool)
     .await;
 
     match whitelisted_email {
+        Err(_) => Ok(false),
         Ok(whitelisted_email) => Ok(whitelisted_email.approved),
-        _ => Ok(false)
     }
- }
+}

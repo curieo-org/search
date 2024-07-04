@@ -1,10 +1,9 @@
 use crate::cache::CachePool;
 use crate::llms::prompt_compression;
 use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::rag::{self, post_process, pre_process};
-use crate::rag::{brave_search, pubmed_search};
+use crate::rag::{self, brave_search, post_process, pre_process, pubmed_search};
+use crate::search::SearchError;
 use crate::settings::Settings;
-use color_eyre::eyre::eyre;
 use std::sync::Arc;
 use tonic::transport::Channel;
 
@@ -15,7 +14,7 @@ pub async fn search(
     cache: &CachePool,
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &String,
-) -> crate::Result<rag::SearchResponse> {
+) -> Result<rag::SearchResponse, SearchError> {
     if let Some(response) = cache.get(&search_query).await {
         return Ok(response);
     }
@@ -41,7 +40,7 @@ pub async fn search(
     }
 
     if retrieved_results.is_empty() {
-        return Err(eyre!("No results found").into());
+        return Err(SearchError::NoSources(format!("No sources found")).into());
     }
 
     let compressed_results = prompt_compression::compress(
@@ -68,7 +67,7 @@ async fn retrieve_result_from_agency(
     settings: &Settings,
     agency_service: &mut AgencyServiceClient<Channel>,
     search_query: &String,
-) -> crate::Result<Vec<rag::RetrievedResult>> {
+) -> Result<Vec<rag::RetrievedResult>, SearchError> {
     let agency_service = Arc::new(agency_service.clone());
     let query_embeddings =
         pre_process::compute_embeddings(Arc::clone(&agency_service), search_query).await?;
@@ -108,7 +107,7 @@ async fn retrieve_result_from_agency(
     }
 
     let reranked_indices =
-        post_process::rerank_search_results(&query_embeddings, &source_embeddings).await?;
+        post_process::rerank_search_results(&query_embeddings, &source_embeddings);
 
     let top_k = reranked_indices
         .len()

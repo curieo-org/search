@@ -1,9 +1,7 @@
 use crate::settings::LogFmt;
-use opentelemetry::global;
-use opentelemetry::KeyValue;
+use opentelemetry::{global, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::propagation::TraceContextPropagator;
-use opentelemetry_sdk::{runtime, trace, Resource};
+use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace, Resource};
 use tokio::task::JoinHandle;
 use tracing::{subscriber::set_global_default, Subscriber};
 use tracing_error::ErrorLayer;
