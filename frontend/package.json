@@ -10,7 +10,7 @@
     "lint-fix": "next lint --fix"
   },
   "dependencies": {
-    "@auth/core": "^0.32.0",
+    "@auth/core": "^0.34.0",
     "@sentry/nextjs": "^8.12.0",
     "@tanstack/react-query": "^5.37.1",
     "date-fns": "^3.6.0",
@@ -36,7 +36,7 @@
     "@types/react-dom": "^18",
     "classnames": "^2.5.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.3",
+    "eslint-config-next": "14.2.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
     "postcss": "^8",
