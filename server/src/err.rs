@@ -51,10 +51,10 @@ impl AppError {
             },
 
             AppError::SearchError(err) => match err {
-                SearchError::ToxicQuery(_) => format!("toxic_query"),
-                SearchError::InvalidData(_) => format!("invalid_data"),
-                SearchError::NoResults(_) | SearchError::NoSources(_) => format!("no_results"),
-                _ => format!("internal_server_error"),
+                SearchError::ToxicQuery(_) => "toxic_query".to_string(),
+                SearchError::InvalidData(_) => "invalid_data".to_string(),
+                SearchError::NoResults(_) | SearchError::NoSources(_) => "no_results".to_string(),
+                _ => "internal_server_error".to_string(),
             },
             AppError::UserError(err) => match err {
                 UserError::InvalidData(_) => "invalid_data".to_string(),

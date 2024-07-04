@@ -1,4 +1,5 @@
 use crate::auth::utils::hash_password;
+use crate::auth::WhitelistedEmail;
 use crate::secrets::Secret;
 use crate::users::{api_models, models, UserError};
 use sqlx::PgPool;
@@ -15,12 +16,13 @@ pub async fn update_profile(
     let user = sqlx::query_as!(
         models::User,
         "
-            update users
-            set
-                fullname = coalesce($1::text, fullname),
-                title = coalesce($2::text, title),
-                company = coalesce($3::text, company)
-            where user_id = $4 returning *
+        update users
+        set
+
+          fullname = coalesce($1::text, fullname),
+          title = coalesce($2::text, title),
+          company = coalesce($3::text, company)
+          where user_id = $4 returning *
         ",
         update_profile_request.fullname,
         update_profile_request.title,
@@ -50,4 +52,15 @@ pub async fn update_password(
     .await?;
 
     return Ok(());
+}
+
+#[tracing::instrument(level = "info", ret, err)]
+pub async fn whitelist_email(pool: &PgPool, email: &str) -> crate::Result<WhitelistedEmail> {
+    Ok(sqlx::query_as!(
+        WhitelistedEmail,
+        "insert into whitelisted_emails (email, approved) values ($1, true) returning *",
+        email,
+    )
+    .fetch_one(pool)
+    .await?)
 }

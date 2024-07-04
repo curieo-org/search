@@ -1,7 +1,6 @@
-name: Python CI
-
+name: Agency CI
 on:
-  push:
+  workflow_call:
 
 defaults:
   run:
@@ -14,8 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install poetry
-        run: pipx install poetry
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: "1.8.3"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - uses: actions/setup-python@v5
         with:
@@ -23,7 +26,7 @@ jobs:
           python-version-file: "agency/.python-version"
 
       - name: Install dependencies
-        run: poetry install
+        run: source $VENV & poetry install
 
       - name: Linting & formatting
         run: make lint & make fmt-check

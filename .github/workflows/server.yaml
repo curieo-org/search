@@ -1,0 +1,55 @@
+name: Rust Server CI
+on:
+  workflow_call:
+
+defaults:
+  run:
+    working-directory: server
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  RUSTFLAGS: "-D warnings"
+  RUSTUP_MAX_RETRIES: 10
+
+jobs:
+  coverage-and-linting:
+    name: Test coverage & linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Copy proto files
+      - run: cp -r ../proto ./proto
+
+      - name: Setup Rust Toolchain
+        uses: ./.github/actions/toolchain-cargo-cached
+        with:
+          components: llvm-tools-preview, rustfmt, clippy
+          crates: cargo-llvm-cov
+          cached-workspaces: server -> target
+
+      - run: |
+          docker compose -f sqlx-test-docker-compose.yaml run -d -p 5432:5432 --name sqlx_postgres sqlx_postgres
+          docker exec sqlx_postgres bash -c "until pg_isready; do sleep 1; done"
+
+      - name: Tests & coverage
+        run: cargo llvm-cov test --no-fail-fast --workspace
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/curieo_search
+          SQLX_OFFLINE: true
+          SQLX_OFFLINE_DIR: .sqlx
+
+      - name: Linting rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Linting clippy
+        run: cargo clippy --

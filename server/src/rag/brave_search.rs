@@ -24,6 +24,54 @@ pub struct BraveAPIConfig {
     pub headers: HeaderMap<HeaderValue>,
 }
 
+impl From<BraveSettings> for BraveAPIConfig {
+    fn from(brave_settings: BraveSettings) -> Self {
+        let queries = vec![
+            (String::from("count"), brave_settings.count.to_string()),
+            (
+                String::from("goggles_id"),
+                brave_settings.goggles_id.clone(),
+            ),
+            (
+                String::from("result_filter"),
+                brave_settings.result_filter.clone(),
+            ),
+            (
+                String::from("search_lang"),
+                brave_settings.search_lang.clone(),
+            ),
+            (
+                String::from("extra_snippets"),
+                brave_settings.extra_snippets.to_string(),
+            ),
+            (
+                String::from("safesearch"),
+                brave_settings.safesearch.clone(),
+            ),
+        ];
+
+        let headers = HeaderMap::from_iter(
+            vec![
+                ("Accept", "application/json"),
+                ("Accept-Encoding", "gzip"),
+                (
+                    "X-Subscription-Token",
+                    brave_settings.subscription_key.expose(),
+                ),
+            ]
+            .into_iter()
+            .map(|(k, v)| {
+                (
+                    HeaderName::from_bytes(k.as_bytes()).unwrap(),
+                    HeaderValue::from_str(v).unwrap(),
+                )
+            }),
+        );
+
+        BraveAPIConfig { queries, headers }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BraveWebSearchResult {
     pub title: String,
@@ -43,52 +91,6 @@ struct BraveWebAPIResponse {
 #[derive(Debug, Serialize, Deserialize)]
 struct BraveAPIResponse {
     pub web: BraveWebAPIResponse,
-}
-
-pub fn prepare_brave_api_config(brave_settings: &BraveSettings) -> BraveAPIConfig {
-    let queries = vec![
-        (String::from("count"), brave_settings.count.to_string()),
-        (
-            String::from("goggles_id"),
-            brave_settings.goggles_id.clone(),
-        ),
-        (
-            String::from("result_filter"),
-            brave_settings.result_filter.clone(),
-        ),
-        (
-            String::from("search_lang"),
-            brave_settings.search_lang.clone(),
-        ),
-        (
-            String::from("extra_snippets"),
-            brave_settings.extra_snippets.to_string(),
-        ),
-        (
-            String::from("safesearch"),
-            brave_settings.safesearch.clone(),
-        ),
-    ];
-
-    let headers = HeaderMap::from_iter(
-        vec![
-            ("Accept", "application/json"),
-            ("Accept-Encoding", "gzip"),
-            (
-                "X-Subscription-Token",
-                brave_settings.subscription_key.expose(),
-            ),
-        ]
-        .into_iter()
-        .map(|(k, v)| {
-            (
-                HeaderName::from_bytes(k.as_bytes()).unwrap(),
-                HeaderValue::from_str(v).unwrap(),
-            )
-        }),
-    );
-
-    BraveAPIConfig { queries, headers }
 }
 
 #[tracing::instrument(level = "info", ret, err)]
@@ -124,10 +126,7 @@ pub async fn web_search(
 }
 
 fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult {
-    let extra_snippets = match result.extra_snippets {
-        Some(snippets) => snippets,
-        None => vec![],
-    };
+    let extra_snippets = result.extra_snippets.unwrap_or_default();
 
     RetrievedResult {
         text: result.description.clone() + "\n\n" + extra_snippets.join("\n\n").as_str(),
@@ -136,20 +135,17 @@ fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult 
             url: result.url,
             description: result.description,
             source_type: SourceType::Url,
-            metadata: HashMap::from_iter(
-                vec![
-                    (
-                        "page_age".to_string(),
-                        result.page_age.unwrap_or("".to_string()),
-                    ),
-                    ("age".to_string(), result.age.unwrap_or("".to_string())),
-                    (
-                        "language".to_string(),
-                        result.language.unwrap_or("".to_string()),
-                    ),
-                ]
-                .into_iter(),
-            ),
+            metadata: HashMap::from_iter(vec![
+                (
+                    "page_age".to_string(),
+                    result.page_age.unwrap_or("".to_string()),
+                ),
+                ("age".to_string(), result.age.unwrap_or("".to_string())),
+                (
+                    "language".to_string(),
+                    result.language.unwrap_or("".to_string()),
+                ),
+            ]),
         },
     }
 }

@@ -1,17 +1,18 @@
 use axum::body::Body;
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{Request, StatusCode};
-use server::auth::models::RegisterUserRequest;
-use server::auth::register;
+use server::auth::{register, RegisterUserRequest, WhitelistedEmail};
 use server::cache::CachePool;
 use server::routing::router;
 use server::settings::Settings;
-use server::startup::agency_service_connect;
 use server::startup::AppState;
 use server::users::selectors::get_user;
+use server::users::services::whitelist_email;
 use server::Result;
 use sqlx::PgPool;
 use tower::ServiceExt;
+
+mod utils;
 
 /// Helper function to create a GET request for a given URI.
 fn _send_get_request(uri: &str) -> Request<Body> {
@@ -31,7 +32,6 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
         pool.clone(),
         RegisterUserRequest {
             email: "test-email".to_string(),
-            username: "test-username".to_string(),
             password: Some("password".to_string().into()),
             access_token: Default::default(),
         },
@@ -45,28 +45,30 @@ async fn register_and_get_users_test(pool: PgPool) -> Result<()> {
 
     Ok(())
 }
-
 #[sqlx::test]
 async fn register_users_works(pool: PgPool) {
+    let WhitelistedEmail { email, .. } =
+        whitelist_email(&pool, "my-email@email.com").await.unwrap();
+
     let settings = Settings::new();
     let cache = CachePool::new(&settings.cache).await.unwrap();
-    let agency_service = agency_service_connect(&settings.agency_api.expose())
-        .await
-        .unwrap();
+    let (_, agency_service) = utils::agency_server_and_client_stub().await;
+    let brave_api_config = settings.brave.clone().into();
     let state = AppState::new(
-        pool.clone(),
+        pool,
         cache,
         agency_service,
-        settings.oauth2_clients.clone(),
+        vec![],
         settings,
+        brave_api_config,
+        regex::Regex::new("").unwrap(),
     )
     .await
     .unwrap();
-
     let router = router(state).unwrap();
 
     let form = &[
-        ("email", "my-email@email.com"),
+        ("email", email.as_str()),
         ("username", "my-username"),
         ("password", "my-password"),
     ];
@@ -79,12 +81,12 @@ async fn register_users_works(pool: PgPool) {
     let response = router.clone().oneshot(request.clone()).await.unwrap();
     assert_eq!(response.status(), StatusCode::CREATED);
 
-    // Doing the same thing again should return a 422 status code.
+    // Doing the same thing again should return a 409 status code.
     let response = router.clone().oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(response.status(), StatusCode::CONFLICT);
 
     let form = &[
-        ("email", "another-email@email.com"),
+        ("email", "not-whitelisted-email"),
         ("username", "another-username"),
         ("access_token", "my-access-token"),
     ];
@@ -95,5 +97,5 @@ async fn register_users_works(pool: PgPool) {
         .unwrap();
 
     let response = router.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::CREATED);
+    assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 }

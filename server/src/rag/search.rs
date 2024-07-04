@@ -12,16 +12,16 @@ pub async fn search(
     settings: &Settings,
     brave_api_config: &brave_search::BraveAPIConfig,
     cache: &CachePool,
-    agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &String,
+    agency_service: &AgencyServiceClient<Channel>,
+    search_query: &str,
 ) -> Result<rag::SearchResponse, SearchError> {
-    if let Some(response) = cache.get(&search_query).await {
+    if let Some(response) = cache.get(search_query).await {
         return Ok(response);
     }
 
     let (agency_results, fallback_results) = tokio::join!(
         retrieve_result_from_agency(settings, agency_service, search_query),
-        brave_search::web_search(&settings.brave, brave_api_config, &search_query),
+        brave_search::web_search(&settings.brave, brave_api_config, search_query),
     );
 
     let mut retrieved_results = Vec::new();
@@ -40,13 +40,13 @@ pub async fn search(
     }
 
     if retrieved_results.is_empty() {
-        return Err(SearchError::NoSources(format!("No sources found")).into());
+        return Err(SearchError::NoSources("No sources found".to_string()));
     }
 
     let compressed_results = prompt_compression::compress(
         &settings.llm,
         prompt_compression::PromptCompressionInput {
-            query: search_query.clone(),
+            query: search_query.to_string(),
             target_token: 300,
             context_texts_list: retrieved_results.iter().map(|r| r.text.clone()).collect(),
         },
@@ -65,8 +65,8 @@ pub async fn search(
 #[tracing::instrument(level = "info", ret, err)]
 async fn retrieve_result_from_agency(
     settings: &Settings,
-    agency_service: &mut AgencyServiceClient<Channel>,
-    search_query: &String,
+    agency_service: &AgencyServiceClient<Channel>,
+    search_query: &str,
 ) -> Result<Vec<rag::RetrievedResult>, SearchError> {
     let agency_service = Arc::new(agency_service.clone());
     let query_embeddings =

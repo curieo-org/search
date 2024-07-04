@@ -70,7 +70,7 @@ pub async fn rephrase_query(
     let mut headers = HeaderMap::new();
     headers.insert(
         HeaderName::from_bytes(b"Authorization")?,
-        HeaderValue::from_str(&settings.api_key.expose())?,
+        HeaderValue::from_str(settings.api_key.expose())?,
     );
 
     let prompt = prepare_rephrase_query_prompt(query_rephraser_input);

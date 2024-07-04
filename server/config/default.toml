@@ -16,6 +16,7 @@ top_p = 0.7
 [openai]
 api_url = "https://api.openai.com/v1/chat/completions"
 model = "gpt-4o"
+api_key = "<openai-api-key>"
 
 [query_rephraser]
 model = "mistralai/Mistral-7B-Instruct-v0.2"
@@ -26,14 +27,18 @@ top_k = 20
 repetition_penalty = 1.0
 n = 1
 stop = "\n\n---"
+api_key = "<query-rephraser-api-key>"
 
 [llm]
+toxicity_auth_token = "<toxicity-auth-token>"
 toxicity_threshold = 0.75
 
 [pubmed]
 url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
 
 [brave]
+subscription_key = "<subscription-key>"
+goggles_id = "<goggles-id>"
 url = "https://api.search.brave.com/res/v1/web/search"
 count = 10
 result_filter = "query,web"

@@ -64,9 +64,9 @@ pub async fn register(
         return Ok(user.into());
     }
 
-    Err(AuthError::InvalidData(format!(
-        "Either password or access_token must be provided to create a user"
-    ))
+    Err(AuthError::InvalidData(
+        "Either password or access_token must be provided to create a user".to_string(),
+    )
     .into())
 }
 
