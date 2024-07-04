@@ -4,6 +4,7 @@ import LoadingSearchResult from '@/components/search/loading-search-result'
 import NewSearch from '@/components/search/new-search'
 import NewSearchResponse from '@/components/search/new-search-response'
 import Thread from '@/components/search/thread'
+import SpinnerLoading from '@/components/util/spinner-loading'
 import { MAX_QUERY_LENGTH } from '@/constants/search'
 import { useFetchThreadByIdQuery } from '@/queries/search/fetch-thread-by-id-query'
 import { useSearchQuery } from '@/queries/search/search-query'
@@ -93,13 +94,17 @@ export default function Search() {
 
   return (
     <>
-      {!!thread ? (
-        <Thread
-          data={thread}
-          refetch={refetchThread}
-          searchQuery={searchQuery}
-          handleSetSearchQuery={handleSetSearchQuery}
-        />
+      {Boolean(threadIdFromParams) ? (
+        !!thread ? (
+          <Thread
+            data={thread}
+            refetch={refetchThread}
+            searchQuery={searchQuery}
+            handleSetSearchQuery={handleSetSearchQuery}
+          />
+        ) : (
+          <SpinnerLoading />
+        )
       ) : isLoading ? (
         <>
           {isStreaming ? (
