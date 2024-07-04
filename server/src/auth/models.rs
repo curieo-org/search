@@ -9,29 +9,10 @@ use oauth2::reqwest::async_http_client;
 use oauth2::{AuthorizationCode, TokenResponse};
 use openidconnect::core::CoreUserInfoClaims;
 use openidconnect::{AccessToken, CsrfToken};
-use serde::de::Error;
-use serde::{Deserialize, Deserializer};
+
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-
-#[derive(Deserialize, Clone, Debug)]
-#[serde(remote = "Self")]
-pub struct RegisterUserRequest {
-    pub email: String,
-    pub username: String,
-    pub password: Option<Secret<String>>,
-    pub access_token: Option<Secret<String>>,
-}
-
-impl<'de> Deserialize<'de> for RegisterUserRequest {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = Self::deserialize(deserializer)?;
-        if s.password.is_some() && s.access_token.is_some() {
-            return Err(Error::custom("should only have password or access token"));
-        }
-
-        Ok(s)
-    }
-}
+use validator::Validate;
 
 #[derive(Debug, Clone)]
 pub struct PostgresBackend {
@@ -56,15 +37,15 @@ impl PostgresBackend {
             .cloned()
     }
 
-    #[tracing::instrument(level = "debug", ret, err)]
+    #[tracing::instrument(level = "info", ret, err)]
     async fn password_authenticate(
         &self,
         password_credentials: PasswordCredentials,
     ) -> Result<Option<User>, AuthError> {
         let user = sqlx::query_as!(
             User,
-            "select * from users where username = $1 and password_hash is not null",
-            password_credentials.username
+            "select * from users where email = $1 and password_hash is not null",
+            password_credentials.email
         )
         .fetch_optional(&self.db)
         .await
@@ -78,7 +59,7 @@ impl PostgresBackend {
         .await?
     }
 
-    #[tracing::instrument(level = "debug", ret, err)]
+    #[tracing::instrument(level = "info", ret, err)]
     async fn oauth_authenticate(
         &self,
         oauth_creds: OAuthCredentials,
@@ -125,7 +106,7 @@ impl PostgresBackend {
         Ok(Some(user))
     }
 
-    #[tracing::instrument(level = "debug", ret, err)]
+    #[tracing::instrument(level = "info", ret, err)]
     async fn validate_access_token(
         &self,
         AccessTokenCredentials {
@@ -196,20 +177,25 @@ impl AuthnBackend for PostgresBackend {
     type Credentials = Credentials;
     type Error = AuthError;
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
     async fn authenticate(
         &self,
         creds: Self::Credentials,
     ) -> Result<Option<Self::User>, Self::Error> {
         match creds {
-            Credentials::Password(password_cred) => self.password_authenticate(password_cred).await,
+            Credentials::Password(password_cred) => {
+                password_cred
+                    .validate()
+                    .map_err(|e| AuthError::Unauthorized(format!("Invalid credentials: {}", e)))?;
+                self.password_authenticate(password_cred).await
+            }
             Credentials::OAuth(oauth_creds) => self.oauth_authenticate(oauth_creds).await,
             Credentials::AccessToken(token) => self.validate_access_token(token).await,
         }
     }
 
-    #[tracing::instrument(level = "debug", skip(self), ret, err)]
-    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
+    #[tracing::instrument(level = "info", skip(self), ret, err)]
+    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, AuthError> {
         sqlx::query_as!(
             Self::User,
             "select * from users where user_id = $1",
@@ -217,7 +203,7 @@ impl AuthnBackend for PostgresBackend {
         )
         .fetch_optional(&self.db)
         .await
-        .map_err(Self::Error::Sqlx)
+        .map_err(|e| e.into())
     }
 }
 
@@ -229,9 +215,10 @@ pub enum Credentials {
     AccessToken(AccessTokenCredentials),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct PasswordCredentials {
-    pub username: String,
+    #[validate(email)]
+    pub email: String,
     pub password: Secret<String>,
     pub csrf_token: Option<CsrfToken>,
     pub next: Option<String>,
@@ -251,15 +238,16 @@ pub struct AccessTokenCredentials {
     pub access_token: AccessToken,
 }
 
-// We use a type alias for convenience.
-//
-// Note that we've supplied our concrete backend here.
-pub type AuthSession = axum_login::AuthSession<PostgresBackend>;
-
+#[derive(Debug, Serialize, Deserialize)]
 pub struct WhitelistedEmail {
     pub email: String,
     pub approved: bool,
 }
+
+// We use a type alias for convenience.
+//
+// Note that we've supplied our concrete backend here.
+pub type AuthSession = axum_login::AuthSession<PostgresBackend>;
 
 #[cfg(test)]
 mod tests {

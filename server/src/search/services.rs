@@ -1,17 +1,18 @@
 use crate::rag::Source;
-use crate::search::{api_models, data_models};
-use color_eyre::eyre::eyre;
+use crate::search::{api_models, data_models, SearchError};
 use sqlx::PgPool;
 use std::collections::HashSet;
 use uuid::Uuid;
 
-#[tracing::instrument(level = "debug", ret, err)]
+type Result<T> = std::result::Result<T, SearchError>;
+
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
     search_query_request: &api_models::SearchQueryRequest,
     rephrased_query: &str,
-) -> crate::Result<data_models::Search> {
+) -> Result<data_models::Search> {
     let thread = match search_query_request.thread_id {
         Some(thread_id) => {
             sqlx::query_as!(
@@ -49,12 +50,12 @@ pub async fn insert_new_search(
     return Ok(search);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn append_search_result(
     pool: &PgPool,
     search: &data_models::Search,
-    result_suffix: &String,
-) -> crate::Result<data_models::Search> {
+    result_suffix: &str,
+) -> Result<data_models::Search> {
     // Only used by internal services, so no need to check if user_id is the owner of the search
     let search = sqlx::query_as!(
         data_models::Search,
@@ -68,14 +69,14 @@ pub async fn append_search_result(
     Ok(search)
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn add_search_sources(
     pool: &PgPool,
     search: &data_models::Search,
     sources: &Vec<Source>,
-) -> crate::Result<Vec<data_models::Source>> {
+) -> Result<Vec<data_models::Source>> {
     if sources.is_empty() {
-        return Err(eyre!("No sources to add").into());
+        return Err(SearchError::NoSources("No sources to add".to_string()));
     }
 
     // remove duplicates with same url
@@ -121,12 +122,12 @@ pub async fn add_search_sources(
     return Ok(sources);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_one_search(
     pool: &PgPool,
     user_id: &Uuid,
     search_by_id_request: &api_models::SearchByIdRequest,
-) -> crate::Result<api_models::SearchByIdResponse> {
+) -> Result<api_models::SearchByIdResponse> {
     let search = sqlx::query_as!(
         data_models::Search,
         "select s.* from searches s \
@@ -151,12 +152,12 @@ pub async fn get_one_search(
     return Ok(api_models::SearchByIdResponse { search, sources });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_last_n_searches(
     pool: &PgPool,
     last_n: u8,
     thread_id: &Uuid,
-) -> crate::Result<Vec<data_models::Search>> {
+) -> Result<Vec<data_models::Search>> {
     // Only used by internal services, so no need to check if user_id is the owner of the search
     let searches = sqlx::query_as!(
         data_models::Search,
@@ -172,12 +173,12 @@ pub async fn get_last_n_searches(
     return Ok(searches);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_threads(
     pool: &PgPool,
     user_id: &Uuid,
     thread_history_request: &api_models::ThreadHistoryRequest,
-) -> crate::Result<api_models::ThreadHistoryResponse> {
+) -> Result<api_models::ThreadHistoryResponse> {
     let threads = sqlx::query_as!(
         data_models::Thread,
         "select * from threads where user_id = $1 order by created_at desc limit $2 offset $3",
@@ -191,12 +192,12 @@ pub async fn get_threads(
     return Ok(api_models::ThreadHistoryResponse { threads });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn get_one_thread(
     pool: &PgPool,
     user_id: &Uuid,
     thread_by_id_request: &api_models::GetThreadRequest,
-) -> crate::Result<api_models::SearchThreadResponse> {
+) -> Result<api_models::SearchThreadResponse> {
     let thread = sqlx::query_as!(
         data_models::Thread,
         "select * from threads where thread_id = $1 and user_id = $2",
@@ -246,12 +247,12 @@ pub async fn get_one_thread(
     return Ok(api_models::SearchThreadResponse { thread, searches });
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_thread(
     pool: &PgPool,
     user_id: &Uuid,
     update_thread_request: &api_models::UpdateThreadRequest,
-) -> crate::Result<data_models::Thread> {
+) -> Result<data_models::Thread> {
     let thread = sqlx::query_as!(
         data_models::Thread,
         "update threads set title = $1 where thread_id = $2 and user_id = $3 returning *",
@@ -265,12 +266,12 @@ pub async fn update_thread(
     return Ok(thread);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_search_reaction(
     pool: &PgPool,
     user_id: &Uuid,
     search_reaction_request: &api_models::SearchReactionRequest,
-) -> crate::Result<data_models::Search> {
+) -> Result<data_models::Search> {
     let search = sqlx::query_as!(
         data_models::Search,
         "update searches s set reaction = $1 from threads t \

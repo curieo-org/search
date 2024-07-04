@@ -1,7 +1,6 @@
 use crate::rag::{RetrievedResult, Source};
-use crate::search::SourceType;
+use crate::search::{SearchError, SourceType};
 use crate::secrets::Secret;
-use color_eyre::eyre::eyre;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -23,27 +22,6 @@ pub struct BraveSettings {
 pub struct BraveAPIConfig {
     pub queries: Vec<(String, String)>,
     pub headers: HeaderMap<HeaderValue>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BraveWebSearchResult {
-    pub title: String,
-    pub url: String,
-    pub description: String,
-    pub page_age: Option<String>,
-    pub age: Option<String>,
-    pub language: Option<String>,
-    pub extra_snippets: Option<Vec<String>>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct BraveWebAPIResponse {
-    pub results: Vec<BraveWebSearchResult>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct BraveAPIResponse {
-    pub web: BraveWebAPIResponse,
 }
 
 impl From<BraveSettings> for BraveAPIConfig {
@@ -94,12 +72,33 @@ impl From<BraveSettings> for BraveAPIConfig {
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BraveWebSearchResult {
+    pub title: String,
+    pub url: String,
+    pub description: String,
+    pub page_age: Option<String>,
+    pub age: Option<String>,
+    pub language: Option<String>,
+    pub extra_snippets: Option<Vec<String>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BraveWebAPIResponse {
+    pub results: Vec<BraveWebSearchResult>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BraveAPIResponse {
+    pub web: BraveWebAPIResponse,
+}
+
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn web_search(
     brave_settings: &BraveSettings,
     brave_api_config: &BraveAPIConfig,
     search_query: &str,
-) -> crate::Result<Vec<RetrievedResult>> {
+) -> Result<Vec<RetrievedResult>, SearchError> {
     let api_url = brave_settings.url.clone() + "?q=" + search_query;
 
     let client = Client::new();
@@ -108,21 +107,13 @@ pub async fn web_search(
         .query(&brave_api_config.queries)
         .headers(brave_api_config.headers.clone())
         .send()
-        .await
-        .map_err(|e| eyre!("Request to brave failed: {e}"))?;
+        .await?;
 
     if !response.status().is_success() {
-        response
-            .error_for_status_ref()
-            .map_err(|e| eyre!("Request failed: {e}"))?;
+        response.error_for_status_ref()?;
     }
 
-    let brave_response: serde_json::Value = response
-        .json()
-        .await
-        .map_err(|e| eyre!("Failed to parse response: {e}"))?;
-    let brave_response: BraveAPIResponse = serde_json::from_value(brave_response)
-        .map_err(|e| eyre!("Failed to parse response: {e}"))?;
+    let brave_response: BraveAPIResponse = serde_json::from_value(response.json().await?)?;
 
     let retrieved_results: Vec<RetrievedResult> = brave_response
         .web

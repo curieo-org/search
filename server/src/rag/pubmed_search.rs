@@ -1,8 +1,8 @@
-use crate::proto::agency_service_client::AgencyServiceClient;
-use crate::proto::{Embeddings, PubmedResponse, PubmedSource};
+use crate::proto::{
+    agency_service_client::AgencyServiceClient, Embeddings, PubmedResponse, PubmedSource,
+};
 use crate::rag::{RetrievedResult, Source};
-use crate::search::SourceType;
-use color_eyre::eyre::eyre;
+use crate::search::{SearchError, SourceType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -29,43 +29,45 @@ pub fn convert_to_retrieved_result(
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn pubmed_parent_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<PubmedSource>> {
+) -> Result<Vec<PubmedSource>, SearchError> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
         .pubmed_parent_search(request)
-        .await
-        .map_err(|e| eyre!("Request to agency failed: {e}"))?
+        .await?
         .into_inner();
 
     if response.status != 200 {
-        return Err(eyre!("Failed to get pubmed parent search results").into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get pubmed parent search results".to_string(),
+        ));
     }
 
     Ok(response.sources)
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn pubmed_cluster_search(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     embeddings: &Embeddings,
-) -> crate::Result<Vec<PubmedSource>> {
+) -> Result<Vec<PubmedSource>, SearchError> {
     let request = tonic::Request::new(embeddings.clone());
     let mut agency_service = agency_service.as_ref().clone();
 
     let response: PubmedResponse = agency_service
         .pubmed_cluster_search(request)
-        .await
-        .map_err(|e| eyre!("Request to agency failed: {e}"))?
+        .await?
         .into_inner();
 
     if response.status != 200 {
-        return Err(eyre!("Failed to get pubmed cluster search results").into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get pubmed cluster search results".to_string(),
+        ));
     }
 
     Ok(response.sources)

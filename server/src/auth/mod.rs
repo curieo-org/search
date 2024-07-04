@@ -1,4 +1,5 @@
 use ::oauth2::ConfigurationError;
+pub use api_models::*;
 pub use models::*;
 use oauth2::basic::BasicRequestTokenError;
 use oauth2::reqwest::AsyncHttpClientError;
@@ -6,6 +7,7 @@ use openidconnect::{DiscoveryError, UserInfoError};
 pub use routes::*;
 pub use services::*;
 use tokio::task;
+pub mod api_models;
 pub mod models;
 pub mod oauth_2;
 pub mod routes;
@@ -47,4 +49,17 @@ pub enum AuthError {
 
     #[error(transparent)]
     OIDC(#[from] OIDCError),
+
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
+    #[error("Invalid session: {0}")]
+    InvalidSession(String),
+    #[error("Other error: {0}")]
+    UserAlreadyExists(String),
+    #[error("Other error: {0}")]
+    InvalidData(String),
+    #[error("Not whitelisted: {0}")]
+    NotWhitelisted(String),
+    #[error("Other error: {0}")]
+    Other(String),
 }

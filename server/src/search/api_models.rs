@@ -1,10 +1,10 @@
-use crate::search::Search;
-use crate::search::{Source, Thread};
+use crate::search::{Search, Source, Thread};
+use reqwest::header::{InvalidHeaderName, InvalidHeaderValue};
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use std::future::Future;
-use std::pin::Pin;
-use std::sync::Arc;
+use serde_json::Error as SerdeError;
+use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc};
+use tonic::Status as TonicStatus;
+use validator::Validate;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;
 
@@ -31,14 +31,15 @@ impl Debug for UpdateResultProcessor {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum RouteCategory {
-    ResearchArticle = 0,
-    ClinicalTrials = 1,
-    Drug = 2,
-    NotSpecified = 3,
+    ResearchArticle,
+    ClinicalTrials,
+    Drug,
+    NotSpecified,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct SearchQueryRequest {
+    #[validate(length(min = 1, max = 300))]
     pub query: String,
     pub thread_id: Option<uuid::Uuid>,
 }
@@ -49,9 +50,11 @@ pub struct SearchByIdResponse {
     pub sources: Vec<Source>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct ThreadHistoryRequest {
+    #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
+    #[validate(range(min = 0))]
     pub offset: Option<u8>,
 }
 
@@ -60,10 +63,12 @@ pub struct ThreadHistoryResponse {
     pub threads: Vec<Thread>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct GetThreadRequest {
     pub thread_id: uuid::Uuid,
+    #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
+    #[validate(range(min = 0))]
     pub offset: Option<u8>,
 }
 
@@ -84,8 +89,43 @@ pub struct SearchReactionRequest {
     pub reaction: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct UpdateThreadRequest {
     pub thread_id: uuid::Uuid,
+    #[validate(length(min = 1, max = 255))]
     pub title: String,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum SearchError {
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    ReqwestHeaderName(#[from] InvalidHeaderName),
+
+    #[error(transparent)]
+    ReqwestHeaderValue(#[from] InvalidHeaderValue),
+
+    #[error(transparent)]
+    Serde(#[from] SerdeError),
+
+    #[error(transparent)]
+    Tonic(#[from] TonicStatus),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error("Toxic query: {0}")]
+    ToxicQuery(String),
+    #[error("Agency failure: {0}")]
+    InvalidData(String),
+    #[error("No results: {0}")]
+    AgencyFailure(String),
+    #[error("No sources: {0}")]
+    NoResults(String),
+    #[error("No sources: {0}")]
+    NoSources(String),
+    #[error("Other error: {0}")]
+    Other(String),
 }

@@ -1,6 +1,5 @@
 use axum::Router;
-use axum_login::tower_sessions::cookie::time::Duration;
-use axum_login::tower_sessions::cookie::SameSite;
+use axum_login::tower_sessions::cookie::{time::Duration, SameSite};
 use axum_login::tower_sessions::{CachingSessionStore, Expiry, SessionManagerLayer};
 use axum_login::{login_required, AuthManagerLayerBuilder};
 use sentry_tower::{NewSentryLayer, SentryHttpLayer};
@@ -12,7 +11,7 @@ use crate::auth::sessions::{DashStore, RedisStore};
 use crate::startup::AppState;
 use crate::{auth, health_check, search, users};
 
-pub fn router(state: AppState) -> color_eyre::Result<Router> {
+pub fn router(state: AppState) -> crate::Result<Router> {
     // Session layer.
     //
     // This uses `tower-sessions` to establish a layer that will provide the session
@@ -34,7 +33,10 @@ pub fn router(state: AppState) -> color_eyre::Result<Router> {
     let api_routes = Router::new()
         .nest("/users", users::routes())
         .nest("/search", search::routes())
-        .route_layer(login_required!(PostgresBackend, login_url = "/auth/login"))
+        .route_layer(login_required!(
+            PostgresBackend,
+            login_url = "/auth/session"
+        ))
         .nest("/auth", auth::routes());
 
     Ok(Router::new()

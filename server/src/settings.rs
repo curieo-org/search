@@ -1,8 +1,6 @@
 use crate::auth::oauth_2::OIDCClientInfo;
-use crate::cache::CacheSettings;
-use crate::llms;
-use crate::rag;
 use crate::secrets::Secret;
+use crate::{cache::CacheSettings, llms, rag};
 use config::{Config, Environment, File};
 use dotenvy::dotenv;
 use once_cell::sync::Lazy;
@@ -76,6 +74,7 @@ impl<'de> Deserialize<'de> for Env {
 #[allow(unused)]
 pub struct Settings {
     pub environment: Env,
+    pub opentelemetry_collector: String,
     pub log: Log,
     pub host: String,
     pub port: u16,

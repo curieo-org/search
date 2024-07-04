@@ -20,25 +20,31 @@ api_key = "<openai-api-key>"
 
 [query_rephraser]
 model = "mistralai/Mistral-7B-Instruct-v0.2"
-max_tokens = 100
+max_tokens = 512
+temperature = 0.0
+top_p = 1.0
+top_k = 20
+repetition_penalty = 1.0
+n = 1
+stop = "\n\n---"
 api_key = "<query-rephraser-api-key>"
 
 [llm]
+toxicity_auth_token = "<toxicity-auth-token>"
 toxicity_threshold = 0.75
-toxicity_auth_token = ""
 
 [pubmed]
 url_prefix = "https://pubmed.ncbi.nlm.nih.gov"
 
 [brave]
+subscription_key = "<subscription-key>"
+goggles_id = "<goggles-id>"
 url = "https://api.search.brave.com/res/v1/web/search"
 count = 10
 result_filter = "query,web"
 search_lang = "en"
 extra_snippets = true
 safesearch = "strict"
-goggles_id = ""
-subscription_key = ""
 
 [log]
 level = "debug"

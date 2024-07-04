@@ -1,6 +1,5 @@
 use crate::llms::OpenAISettings;
-use crate::search::api_models;
-use color_eyre::eyre::eyre;
+use crate::search::{api_models, SearchError};
 use futures::StreamExt;
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -49,6 +48,7 @@ pub struct SummarizerStreamOutput {
     pub generated_text: Option<String>,
 }
 
+#[tracing::instrument(level = "info", ret)]
 fn prepare_llm_context_string(
     settings: &SummarizerSettings,
     summarizer_input: SummarizerInput,
@@ -68,13 +68,13 @@ fn prepare_llm_context_string(
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn generate_text_with_llm(
     settings: SummarizerSettings,
     summarizer_input: SummarizerInput,
     update_processor: api_models::UpdateResultProcessor,
     tx: Sender<api_models::SearchByIdResponse>,
-) -> crate::Result<()> {
+) -> Result<(), SearchError> {
     let summarizer_input = prepare_llm_context_string(&settings, summarizer_input);
     let client = Client::new();
 
@@ -82,29 +82,27 @@ pub async fn generate_text_with_llm(
         .post(settings.api_url.as_str())
         .json(&summarizer_input)
         .send()
-        .await
-        .map_err(|e| eyre!("Request to summarizer failed: {e}"))?;
+        .await?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(eyre!("Request failed with status: {:?}", response.status()).into());
+        response.error_for_status_ref()?;
     }
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
 
     while let Some(chunk) = stream.next().await {
         // remove `data` from the start of the chunk and `\n\n` from the end
-        let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
+        let chunk = chunk?;
         let chunk = &chunk[5..chunk.len() - 2];
 
-        let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(chunk)
-            .map_err(|e| eyre!("Failed to parse summarizer response: {e}"))?;
+        let summarizer_api_response = serde_json::from_slice::<SummarizerStreamOutput>(chunk)?;
 
         if !summarizer_api_response.token.special {
             let mut search = update_processor
                 .process(summarizer_api_response.token.text.clone())
                 .await
-                .map_err(|e| eyre!("Failed to update result: {e}"))?;
+                .map_err(|e| SearchError::Other(format!("Failed to process update: {}", e)))?;
 
             buffer.push_str(&summarizer_api_response.token.text);
             search.result = buffer.clone();
@@ -124,6 +122,7 @@ pub async fn generate_text_with_llm(
     Ok(())
 }
 
+#[tracing::instrument(level = "info", ret)]
 fn prepare_openai_input(
     settings: &OpenAISettings,
     summarizer_input: SummarizerInput,
@@ -155,20 +154,18 @@ fn prepare_openai_input(
     })
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn generate_text_with_openai(
     settings: OpenAISettings,
     summarizer_input: SummarizerInput,
     update_processor: api_models::UpdateResultProcessor,
     stream_regex: Regex,
     tx: Sender<api_models::SearchByIdResponse>,
-) -> crate::Result<()> {
+) -> Result<(), SearchError> {
     let mut headers = HeaderMap::new();
     headers.insert(
-        HeaderName::from_bytes(b"Authorization")
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
-        HeaderValue::from_str(settings.api_key.expose())
-            .map_err(|e| eyre!("Failed to create header: {e}"))?,
+        HeaderName::from_bytes(b"Authorization")?,
+        HeaderValue::from_str(settings.api_key.expose())?,
     );
 
     let client = Client::new();
@@ -179,12 +176,11 @@ pub async fn generate_text_with_openai(
         .json(&summarizer_input)
         .headers(headers)
         .send()
-        .await
-        .map_err(|e| eyre!("Request to summarizer failed: {e}"))?;
+        .await?;
 
     // stream the response
     if !response.status().is_success() {
-        return Err(eyre!("Request failed with status: {:?}", response.status()).into());
+        response.error_for_status_ref()?;
     }
 
     let mut stream = response.bytes_stream();
@@ -192,7 +188,7 @@ pub async fn generate_text_with_openai(
     let mut buffer = String::new();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| eyre!("Failed to read chunk: {e}"))?;
+        let chunk = chunk?;
         stream_data.push_str(&String::from_utf8_lossy(&chunk));
 
         let parsed_chunk = stream_regex
@@ -219,7 +215,7 @@ pub async fn generate_text_with_openai(
         let mut search = update_processor
             .process(parsed_chunk.clone())
             .await
-            .map_err(|e| eyre!("Failed to update result: {e}"))?;
+            .map_err(|e| SearchError::Other(format!("Failed to process update: {}", e)))?;
 
         buffer.push_str(&parsed_chunk);
         search.result = buffer.clone();

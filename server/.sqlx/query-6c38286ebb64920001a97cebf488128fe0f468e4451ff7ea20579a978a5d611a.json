@@ -1,47 +1,44 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from users where username = $1 and password_hash is not null",
+  "query": "update threads set title = $1 where thread_id = $2 and user_id = $3 returning *",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "user_id",
+        "name": "thread_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "username",
-        "type_info": "Text"
+        "name": "user_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "email",
-        "type_info": "Text"
+        "name": "title",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "password_hash",
-        "type_info": "Text"
+        "name": "context",
+        "type_info": "Jsonb"
       },
       {
         "ordinal": 4,
-        "name": "access_token",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Varchar",
+        "Uuid",
+        "Uuid"
       ]
     },
     "nullable": [
@@ -49,10 +46,9 @@
       false,
       false,
       true,
-      true,
       false,
-      true
+      false
     ]
   },
-  "hash": "2af097ecfc139606f581858bfebfb6db10aec38671ebe21c8a579d81ffc699d8"
+  "hash": "6c38286ebb64920001a97cebf488128fe0f468e4451ff7ea20579a978a5d611a"
 }

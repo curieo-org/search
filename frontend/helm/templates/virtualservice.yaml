@@ -7,7 +7,7 @@ spec:
   gateways:
     - {{ .Release.Name }}-gateway
   hosts:
-    - {{ .Release.Name }}.{{ .Values.service.dns_zone }}
+    - search.{{ .Values.service.dns_zone }}
   http:
     - match:
         - port: 443

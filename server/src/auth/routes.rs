@@ -1,35 +1,39 @@
-use crate::auth::models::{AuthSession, Credentials, RegisterUserRequest};
+use crate::auth::api_models::RegisterUserRequest;
 use crate::auth::oauth_2::Issuer;
-use crate::auth::services;
-use crate::auth::{AccessTokenCredentials, OAuthCredentials, PasswordCredentials};
-use crate::err::AppError;
+use crate::auth::{services, AccessTokenCredentials};
+use crate::auth::{AuthError, AuthSession, Credentials, OAuthCredentials, PasswordCredentials};
 use crate::startup::AppState;
 use crate::users::UserRecord;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::{get, post};
+use axum::routing::{delete, get, patch, post, put};
 use axum::{Form, Json, Router};
 use axum_login::tower_sessions::Session;
 use color_eyre::eyre::eyre;
 use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
+use validator::Validate;
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
 ) -> crate::Result<impl IntoResponse> {
+    request
+        .validate()
+        .map_err(|e| AuthError::InvalidData(format!("Invalid data: {}", e)))?;
+
     if !services::is_email_whitelisted(&pool, &request.email).await? {
-        return Err(eyre!("This email is not whitelisted!").into());
+        return Err(AuthError::NotWhitelisted("This email is not whitelisted!".to_string()).into());
     }
     services::register(pool, request)
         .await
         .map(|user| (StatusCode::CREATED, Json(user)))
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn login_handler(
     mut auth_session: AuthSession,
     Form(creds): Form<PasswordCredentials>,
@@ -39,12 +43,12 @@ async fn login_handler(
         .await
     {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AppError::Unauthorized),
-        Err(_) => return Err(eyre!("Could not authenticate user").into()),
+        Ok(None) => return Err(AuthError::Unauthorized("Invalid credentials".to_string()).into()),
+        Err(_) => return Err(AuthError::Other("Could not authenticate user".to_string()).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(eyre!("Could not login user").into());
+        return Err(AuthError::Other("Could not login user".to_string()).into());
     }
     Ok(Json(UserRecord::from(user)))
 }
@@ -59,7 +63,7 @@ pub struct AuthzResp {
     state: CsrfToken,
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 pub async fn oauth_callback_handler(
     mut auth_session: AuthSession,
     session: Session,
@@ -67,7 +71,9 @@ pub async fn oauth_callback_handler(
     Query(AuthzResp { code, state }): Query<AuthzResp>,
 ) -> crate::Result<Json<UserRecord>> {
     let Ok(Some(old_state)) = session.get(CSRF_STATE_KEY).await else {
-        return Err(eyre!("Session did not contain old csrf state").into());
+        return Err(
+            AuthError::Unauthorized("Session did not contain old csrf state".to_string()).into(),
+        );
     };
 
     let creds = Credentials::OAuth(OAuthCredentials {
@@ -79,8 +85,8 @@ pub async fn oauth_callback_handler(
 
     let user = match auth_session.authenticate(creds).await {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AppError::Unauthorized),
-        Err(_) => return Err(eyre!("Could not authenticate user").into()),
+        Ok(None) => return Err(AuthError::Unauthorized("Invalid credentials".to_string()).into()),
+        Err(_) => return Err(AuthError::Other("Could not authenticate user".to_string()).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
@@ -98,32 +104,32 @@ pub async fn verify_access_token_handler(
     let creds = Credentials::AccessToken(access_token_credentials);
     let user = match auth_session.authenticate(creds).await {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AppError::Unauthorized),
+        Ok(None) => return Err(AuthError::Unauthorized("Invalid access token".to_string()).into()),
         Err(_) => return Err(eyre!("Could not authenticate user").into()),
     };
     if auth_session.login(&user).await.is_err() {
-        return Err(eyre!("Could not login user").into());
+        return Err(AuthError::Other("Could not login user".to_string()).into());
     }
     Ok(Json(UserRecord::from(user)))
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     auth_session
         .logout()
         .await
-        .map_err(|e| eyre!("Failed to logout: {}", e))?;
+        .map_err(|e| AuthError::Other(format!("Could not logout user: {}", e)))?;
 
     Ok(())
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
     auth_session
         .user
         .map(UserRecord::from)
         .map(Json::from)
-        .ok_or_else(|| AppError::Unauthorized)
+        .ok_or_else(|| AuthError::Unauthorized("Invalid user session".to_string()).into())
 }
 
 pub fn routes() -> Router<AppState> {
@@ -132,7 +138,11 @@ pub fn routes() -> Router<AppState> {
         .route("/login", post(login_handler))
         .route("/oauth_callback/:issuer", get(oauth_callback_handler))
         .route("/logout", get(logout_handler))
-        .route("/get-session", get(get_session_handler))
+        .route("/session", get(get_session_handler))
+        .route("/session", post(get_session_handler))
+        .route("/session", patch(get_session_handler))
+        .route("/session", delete(get_session_handler))
+        .route("/session", put(get_session_handler))
         .route("/callback/credentials", post(login_handler))
         .route("/verify_access_token", post(verify_access_token_handler))
 }

@@ -1,16 +1,16 @@
-import { H1 } from '@/components/lib/typography'
-import AccountDetails from '@/components/settings/account-details'
 import LogoutSection from '@/components/settings/log-out-section'
-import ProfileInfo from '@/components/settings/profile-info'
+import SettingsContent from '@/components/settings/settings-content'
+import SettingsNavmenu from '@/components/settings/settings-navmenu'
 
 export default function Settings() {
   return (
     <div className="w-full mt-10 flex justify-center items-center">
-      <div className="w-[480px] xl:w-[600px] mx-auto flex flex-col items-center">
-        <H1 className="mb-8 text-3xl font-semibold">Settings</H1>
-        <ProfileInfo className="mb-8" />
-        <AccountDetails className="mb-2" />
-        <LogoutSection />
+      <div className="flex gap-x-12">
+        <div className="bg-white/2 rounded-2.5xl p-5 h-56">
+          <SettingsNavmenu />
+          <LogoutSection className="mt-8" />
+        </div>
+        <SettingsContent />
       </div>
     </div>
   )

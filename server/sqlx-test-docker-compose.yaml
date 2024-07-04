@@ -1,0 +1,9 @@
+services:
+  sqlx_postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5432
+    environment:
+      POSTGRES_DB: curieo_search
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password

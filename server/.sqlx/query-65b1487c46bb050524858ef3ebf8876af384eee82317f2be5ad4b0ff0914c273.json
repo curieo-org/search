@@ -20,21 +20,41 @@
       },
       {
         "ordinal": 3,
+        "name": "fullname",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "company",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "user_group",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
         "name": "password_hash",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 8,
         "name": "access_token",
         "type_info": "Text"
       },
       {
-        "ordinal": 5,
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 6,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -47,6 +67,10 @@
     "nullable": [
       false,
       false,
+      false,
+      true,
+      true,
+      true,
       false,
       true,
       true,

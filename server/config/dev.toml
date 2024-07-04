@@ -1,6 +1,7 @@
 db = "postgresql://postgres:postgres@localhost/curieo_search"
 agency_api = "http://127.0.0.1:50051"
 oauth2_clients = []
+opentelemetry_collector = "http://localhost:4317"
 
 [llm]
 prompt_compression_url = "http://localhost:8000/compress"

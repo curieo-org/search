@@ -4,7 +4,7 @@ use crate::users::User;
 use password_auth::{generate_hash, verify_password};
 use tokio::task::spawn_blocking;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub fn verify_user_password(
     user: Option<User>,
     password_candidate: Secret<String>,

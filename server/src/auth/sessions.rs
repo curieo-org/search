@@ -1,10 +1,11 @@
 use crate::cache::{CacheError, CachePool};
 use async_trait::async_trait;
-use axum_login::tower_sessions::session::{Id, Record};
-use axum_login::tower_sessions::{session_store, SessionStore};
+use axum_login::tower_sessions::{
+    session::{Id, Record},
+    session_store, SessionStore,
+};
 use dashmap::DashMap;
 use redis::{ExistenceCheck, SetExpiry, SetOptions};
-use std::fmt::Debug;
 use std::sync::Arc;
 use time::OffsetDateTime;
 

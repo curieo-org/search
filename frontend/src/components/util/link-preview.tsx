@@ -1,75 +1,36 @@
 'use client'
 
+import { Source } from '@/types/search'
 import { handleOpenLinkInNewTab } from '@/utils/navigation'
-import { HTMLAttributes, MouseEvent, useEffect, useState } from 'react'
+import { HTMLAttributes, MouseEvent } from 'react'
 import { twMerge } from 'tailwind-merge'
+import BookIcon from '../icons/book'
 import { H3, P } from '../lib/typography'
-import SourceSkeleton from '../skeletons/source-skeleton'
-import TextLink from './text-link'
+import HtmlRenderer from './html-renderer'
 
 type LinkPreviewProps = HTMLAttributes<HTMLDivElement> & {
-  url: string
-  metadata: Record<string, string>
+  source: Source
 }
 
-type PreviewData = { title: string; description: string; image: string }
-
 export default function LinkPreview(props: LinkPreviewProps) {
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const { url, metadata, className, ...rest } = props
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let title = metadata.title || ''
-        let description = metadata.abstract || metadata.description || ''
-        description = description.replace(/(<([^>]+)>)/gi, '')
-        let image = metadata.image || ''
-
-        if (!title) {
-          const response = await fetch(props.url)
-          const data = await response.text()
-          const parser = new DOMParser()
-          const doc = parser.parseFromString(data, 'text/html')
-          title = doc.querySelector('title')?.textContent || ''
-          description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || ''
-          image = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
-        }
-
-        setPreviewData({ title, description, image })
-        setLoading(false)
-      } catch (error) {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [url])
-
+  const { source, className, ...rest } = props
   const handleOpenLink = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>) => {
     e.preventDefault()
     e.stopPropagation()
-    handleOpenLinkInNewTab(url)
-  }
-
-  if (loading) {
-    return <SourceSkeleton className={className} />
-  }
-
-  if (!previewData) {
-    return (
-      <div {...rest} className={twMerge('cursor-pointer', className)} onClick={handleOpenLink}>
-        <P className="text-sm text-red-500 mb-2">Failed to fetch link preview.</P>
-        <TextLink href={url} />
-      </div>
-    )
+    handleOpenLinkInNewTab(source.url)
   }
 
   return (
     <div {...rest} onClick={handleOpenLink} className={twMerge('cursor-pointer', className)}>
-      <H3 className="mb-2 text-sm text-opacity-80 font-semibold line-clamp-2">{previewData.title}</H3>
-      <P className="text-2xs text-opacity-70 line-clamp-4">{previewData.description}</P>
+      <div className="flex flex-col pt-1">
+        <BookIcon size={16} />
+      </div>
+      <div className="flex flex-col">
+        <H3 className="mb-2 text-sm text-opacity-80 font-semibold line-clamp-2">{source.title}</H3>
+        <P className="text-2xs text-opacity-70 line-clamp-4">
+          <HtmlRenderer htmlString={source.description} />
+        </P>
+      </div>
     </div>
   )
 }
