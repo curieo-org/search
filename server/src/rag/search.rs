@@ -8,7 +8,7 @@ use color_eyre::eyre::eyre;
 use std::sync::Arc;
 use tonic::transport::Channel;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn search(
     settings: &Settings,
     brave_api_config: &brave_search::BraveAPIConfig,
@@ -63,7 +63,7 @@ pub async fn search(
     return Ok(response);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 async fn retrieve_result_from_agency(
     settings: &Settings,
     agency_service: &AgencyServiceClient<Channel>,

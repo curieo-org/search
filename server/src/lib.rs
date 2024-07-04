@@ -29,6 +29,7 @@ pub async fn run() -> Result<Application> {
 
     let subscriber = get_subscriber(
         "search-server".into(),
+        &SETTINGS.opentelemetry_collector,
         SETTINGS.log.level.clone(),
         SETTINGS.log.format.clone(),
     );

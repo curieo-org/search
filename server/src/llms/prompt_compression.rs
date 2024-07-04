@@ -20,6 +20,7 @@ pub struct PromptCompressionAPIResponse {
     pub response: PromptCompressionOutput,
 }
 
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn compress(
     llm_settings: &LLMSettings,
     prompt_compression_input: PromptCompressionInput,

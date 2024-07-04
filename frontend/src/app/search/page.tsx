@@ -1,46 +1,98 @@
 'use client'
 
-import { P } from '@/components/lib/typography'
-import SearchInput from '@/components/search/search-input'
+import NewSearch from '@/components/search/new-search'
+import NewSearchResponse from '@/components/search/new-search-response'
+import Thread from '@/components/search/thread'
 import SearchResultPageSkeleton from '@/components/skeletons/search-result-page-skeleton'
+import { useFetchThreadByIdQuery } from '@/queries/search/fetch-thread-by-id-query'
 import { useSearchQuery } from '@/queries/search/search-query'
-import { useSearchStore } from '@/stores/search/search-store'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 
 export default function Search() {
-  const router = useRouter()
-  const { reset } = useSearchStore()
-  const { data, isLoading, isSuccess, isError, refetch: fetchSearchResult } = useSearchQuery()
+  const searchParams = useSearchParams()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [queryTrigger, setQueryTrigger] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const {
+    data: newSearchResult,
+    isCompleted,
+    isError,
+    isTimedOut,
+  } = useSearchQuery(searchQuery, queryTrigger, setIsStreaming)
   const handleSearch = () => {
-    fetchSearchResult().then(r => r)
+    setIsLoading(true)
+    setQueryTrigger(true)
   }
+  const threadIdFromParams = searchParams.get('thread_id')
+  const [threadId, setThreadId] = useState('')
+  const { data: thread, refetch: refetchThread } = useFetchThreadByIdQuery({ threadId: threadId as string })
 
   useEffect(() => {
-    if (isSuccess) {
-      reset()
-      router.push(`/search/${data.search_history_id}`)
+    setThreadId(threadIdFromParams as string)
+  }, [threadIdFromParams])
+
+  useEffect(() => {
+    if (isCompleted) {
+      setSearchQuery('')
+      setQueryTrigger(false)
+      setIsLoading(false)
+      setIsStreaming(false)
+      if (newSearchResult.length === 0) {
+        toast.error('Failed to fetch search result. Please try again later...')
+      } else {
+        setThreadId(newSearchResult[0].search.thread_id)
+        const params = new URLSearchParams()
+        params.set('thread_id', newSearchResult[0].search.thread_id)
+        window.history.pushState(null, '', `?${params.toString()}`)
+      }
     }
-  }, [isSuccess])
+  }, [isCompleted])
+
+  useEffect(() => {
+    if (isTimedOut) {
+      setIsLoading(false)
+      setIsStreaming(false)
+      setSearchQuery('')
+      setQueryTrigger(false)
+      toast.error('The server took too long to respond. Please try again later.')
+    }
+  }, [isTimedOut])
 
   useEffect(() => {
     if (isError) {
-      toast.error('Failed to fetch search result. Please try again later...')
+      setIsLoading(false)
+      setIsStreaming(false)
+      setSearchQuery('')
+      setQueryTrigger(false)
+      toast.error('The server ran into an error while generating stream.')
     }
   }, [isError])
 
+  useEffect(() => {
+    if (Boolean(threadId)) {
+      refetchThread().then(r => r)
+    }
+  }, [threadId])
+
   return (
     <>
-      {isLoading ? (
-        <SearchResultPageSkeleton />
+      {!!thread ? (
+        <Thread data={thread} refetch={refetchThread} />
+      ) : isLoading ? (
+        <>{isStreaming ? <NewSearchResponse response={newSearchResult} /> : <SearchResultPageSkeleton />}</>
       ) : (
-        <div className="w-full h-[90vh] flex justify-center items-center">
-          <div className="w-full max-w-[720px] flex flex-col items-center px-4">
-            <P className="mb-10 text-2xl xl:text-3xl transition-all duration-300">How can I help you today?</P>
-            <SearchInput handleSearch={handleSearch} />
-          </div>
-        </div>
+        <NewSearch
+          handleSearch={() => {
+            if (!isLoading) {
+              handleSearch()
+            }
+          }}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
       )}
     </>
   )

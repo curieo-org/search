@@ -10,7 +10,7 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use tonic::transport::Channel;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn compute_embeddings(
     agency_service: Arc<AgencyServiceClient<Channel>>,
     search_query: &str,
@@ -36,7 +36,7 @@ pub async fn compute_embeddings(
     }
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn check_query_validity(
     settings: &Settings,
     search_query_request: &api_models::SearchQueryRequest,
@@ -56,7 +56,7 @@ pub async fn check_query_validity(
     Ok(!toxicity_prediction)
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn rephrase_query(
     pool: &PgPool,
     settings: &Settings,

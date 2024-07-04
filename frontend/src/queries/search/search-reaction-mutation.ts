@@ -1,18 +1,15 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { SearchReactionBody } from '@/types/search'
 import { searchReaction } from '@/actions/search'
+import { SearchReactionBody } from '@/types/search'
+import { useMutation } from '@tanstack/react-query'
 
-export const useSearchReactionMutation = () => {
-  const queryClient = useQueryClient()
-
+export const useSearchReactionMutation = (setReaction: (reaction: boolean) => void) => {
   return useMutation({
     mutationKey: ['search-reaction'],
     async mutationFn(payload: SearchReactionBody) {
       return await searchReaction(payload)
     },
-    onSuccess: async data => {
-      queryClient.setQueryData(['search-by-id', data.search_history_id], data)
-      await queryClient.invalidateQueries({ queryKey: ['search-history'] })
+    onSuccess: async (data, payload) => {
+      setReaction(payload.reaction)
     },
   })
 }

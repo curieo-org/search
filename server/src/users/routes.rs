@@ -11,7 +11,7 @@ use axum::{Form, Json, Router};
 use color_eyre::eyre::eyre;
 use sqlx::PgPool;
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_user_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
     let user = auth_session
         .user
@@ -21,7 +21,7 @@ async fn get_user_handler(auth_session: AuthSession) -> crate::Result<Json<UserR
     Ok(Json(user))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_profile_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -36,7 +36,7 @@ async fn update_profile_handler(
     Ok(Json(UserRecord::from(updated_user)))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_password_handler(
     State(pool): State<PgPool>,
     user: User,

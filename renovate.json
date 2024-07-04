@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard"
+  ],
+  "packageRules": [
+    {
+      "description": "Group all patch updates together",
+      "matchUpdateTypes": ["patch"],
+      "groupName": "all patch updates"
+    },
+    {
+      "description": "Group all minor updates together",
+      "matchUpdateTypes": ["minor"],
+      "groupName": "all minor updates"
+    },
+    {
+      "description": "Group all major updates together",
+      "matchUpdateTypes": ["major"],
+      "groupName": "all major updates"
+    },
+    {
+      "description": "Group all pin and digest updates together",
+      "matchUpdateTypes": ["pin", "digest"],
+      "groupName": "all pin and digest updates"
+    }
+  ],
+  "schedule": ["before 5am on monday"],
+  "baseBranches": ["main"],
+  "labels": ["dependencies"],
+  "timezone": "Europe/Amsterdam"
+}

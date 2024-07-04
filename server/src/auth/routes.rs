@@ -15,7 +15,7 @@ use oauth2::CsrfToken;
 use serde::Deserialize;
 use sqlx::PgPool;
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn register_handler(
     State(pool): State<PgPool>,
     Form(request): Form<RegisterUserRequest>,
@@ -28,7 +28,7 @@ async fn register_handler(
         .map(|user| (StatusCode::CREATED, Json(user)))
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn login_handler(
     mut auth_session: AuthSession,
     Form(creds): Form<PasswordCredentials>,
@@ -92,7 +92,7 @@ pub struct AuthzResp {
     state: CsrfToken,
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 pub async fn oauth_callback_handler(
     mut auth_session: AuthSession,
     session: Session,
@@ -128,7 +128,7 @@ pub async fn oauth_callback_handler(
     }
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     auth_session
         .logout()
@@ -138,7 +138,7 @@ async fn logout_handler(mut auth_session: AuthSession) -> crate::Result<()> {
     Ok(())
 }
 
-#[tracing::instrument(level = "debug", skip_all)]
+#[tracing::instrument(level = "info", skip_all)]
 async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<UserRecord>> {
     auth_session
         .user

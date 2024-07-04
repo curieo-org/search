@@ -19,7 +19,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_search_query_handler(
     State(AppState {
         cache,
@@ -100,7 +100,7 @@ async fn get_search_query_handler(
     Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(std::time::Duration::from_secs(30))))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_one_search_result_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -113,7 +113,7 @@ async fn get_one_search_result_handler(
     Ok((StatusCode::OK, Json(search_history)))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_threads_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -126,7 +126,7 @@ async fn get_threads_handler(
     Ok((StatusCode::OK, Json(search_history)))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_one_thread_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -137,7 +137,7 @@ async fn get_one_thread_handler(
     Ok((StatusCode::OK, Json(search_thread)))
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_thread_handler(
     State(pool): State<PgPool>,
     user: User,
@@ -150,7 +150,7 @@ async fn update_thread_handler(
     Ok(StatusCode::OK)
 }
 
-#[tracing::instrument(level = "debug", skip_all, ret, err(Debug))]
+#[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_search_reaction_handler(
     State(pool): State<PgPool>,
     user: User,

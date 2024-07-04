@@ -18,7 +18,9 @@ export const colors = {
   },
   custom: {
     gray: {
+      '50': 'F9F9F9',
       '100': '#A8A9AD',
+      '150': '#9CA3AF',
       '200': '#8B8D98',
       '900': '#1E1E1E',
     },

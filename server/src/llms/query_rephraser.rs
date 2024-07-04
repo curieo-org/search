@@ -10,6 +10,12 @@ pub struct QueryRephraserSettings {
     pub api_url: String,
     pub max_tokens: u16,
     pub model: String,
+    pub temperature: f32,
+    pub top_p: f32,
+    pub top_k: i32,
+    pub repetition_penalty: f32,
+    pub n: i32,
+    pub stop: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,14 +51,14 @@ pub struct QueryRephraserOutput {
 }
 
 fn prepare_prompt(query_rephraser_input: &QueryRephraserInput) -> String {
-    "Rephrase the input text based on the context and the final sentence. So that it can be understood without the context.\n\n---\n\nFollow the following format.\n\nContext: contains the chat history\n\nQuestion: ${question}\n\nReasoning: Let's think step by step in order to ${produce the answer}. We ...\n\nAnswer: Given a chat history and the latest user question, which might reference the context from the chat history, formulate a standalone question that can be understood from the history without needing the chat history. DO NOT ANSWER THE QUESTION - just reformulate it\n\n---\n\nContext: ".to_string()
+    "[INST] Rephrase the input text based on the context and the final sentence. So that it can be understood without the context. Return the rephrased question only\n\n---\n\nFollow the following format.\n\nContext: contains the chat history\n\nQuestion: ${question}\n\nReasoning: Let's think step by step in order to ${produce the answer}. We ...\n\nAnswer: Given a chat history and the latest user question, which might reference the context from the chat history, formulate a standalone question that can be understood from the history without needing the chat history. DO NOT ANSWER THE QUESTION - just reformulate it and return the rephrased question only \n\n---\n\nContext: ".to_string()
         + query_rephraser_input.previous_context.iter().map(|x| format!("{}: {}", x.query, x.result)).collect::<Vec<String>>().join("\n").as_str()
         + "\n\nQuestion: "
         + query_rephraser_input.query.as_str()
-        + "\n\nReasoning: Let's think step by step in order to...\n\nAnswer: "
+        + "\n\nReasoning: Let's think step by step in order to...\n\nAnswer: [/INST]"
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn rephrase_query(
     settings: &QueryRephraserSettings,
     query_rephraser_input: &QueryRephraserInput,
@@ -74,12 +80,12 @@ pub async fn rephrase_query(
             "model": settings.model,
             "prompt": prompt,
             "max_tokens": settings.max_tokens,
-            // "temperature": 1.0,
-            // "top_p": 1.0,
-            // "top_k": 50,
-            // "frequency_penalty": 0.0,
-            // "presence_penalty": 0.0,
-            // "repetition_penalty": 1.0,
+            "temperature": settings.temperature,
+            "top_p": settings.top_p,
+            "top_k": settings.top_k,
+            "repetition_penalty": settings.repetition_penalty,
+            "n": settings.n,
+            "stop": settings.stop
         }))
         .headers(headers)
         .send()

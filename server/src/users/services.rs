@@ -5,7 +5,7 @@ use crate::users::models;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_profile(
     pool: &PgPool,
     user_id: &Uuid,
@@ -14,15 +14,15 @@ pub async fn update_profile(
     let user = sqlx::query_as!(
         models::User,
         "
-      update users
-      set
-        username = coalesce($1::text, username),
-        email = coalesce($2::text, email),
-        fullname = coalesce($3::text, fullname),
-        title = coalesce($4::text, title),
-        company = coalesce($5::text, company)
-      where user_id = $6 returning *
-      ",
+        update users
+        set
+          username = coalesce($1::text, username),
+          email = coalesce($2::text, email),
+          fullname = coalesce($3::text, fullname),
+          title = coalesce($4::text, title),
+          company = coalesce($5::text, company)
+          where user_id = $6 returning *
+        ",
         update_profile_request.username,
         update_profile_request.email,
         update_profile_request.fullname,
@@ -36,7 +36,7 @@ pub async fn update_profile(
     return Ok(user);
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn update_password(
     pool: &PgPool,
     user_id: &Uuid,

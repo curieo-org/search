@@ -18,7 +18,7 @@ struct ToxicityScore {
     pub label: String,
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn predict_toxicity(
     llm_settings: &LLMSettings,
     toxicity_input: ToxicityInput,
