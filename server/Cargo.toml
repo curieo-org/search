@@ -69,7 +69,6 @@ sentry-tower = { version = "0.34.0", features = ["http"] }
 regex = "1.10.5"
 
 [dev-dependencies]
-wiremock-grpc = "0.0.3-alpha2"
 tempfile = "3.10.1"
 httpmock = "0.7.0"
 
