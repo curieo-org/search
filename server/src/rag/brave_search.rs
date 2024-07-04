@@ -135,10 +135,7 @@ pub async fn web_search(
 }
 
 fn convert_to_retrieved_result(result: BraveWebSearchResult) -> RetrievedResult {
-    let extra_snippets = match result.extra_snippets {
-        Some(snippets) => snippets,
-        None => vec![],
-    };
+    let extra_snippets = result.extra_snippets.unwrap_or_default();
 
     RetrievedResult {
         text: result.description.clone() + "\n\n" + extra_snippets.join("\n\n").as_str(),
