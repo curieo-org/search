@@ -11,7 +11,7 @@ pub async fn insert_new_search(
     pool: &PgPool,
     user_id: &Uuid,
     search_query_request: &api_models::SearchQueryRequest,
-    rephrased_query: &String,
+    rephrased_query: &str,
 ) -> Result<data_models::Search> {
     let thread = match search_query_request.thread_id {
         Some(thread_id) => {
@@ -54,7 +54,7 @@ pub async fn insert_new_search(
 pub async fn append_search_result(
     pool: &PgPool,
     search: &data_models::Search,
-    result_suffix: &String,
+    result_suffix: &str,
 ) -> Result<data_models::Search> {
     // Only used by internal services, so no need to check if user_id is the owner of the search
     let search = sqlx::query_as!(
@@ -75,14 +75,14 @@ pub async fn add_search_sources(
     search: &data_models::Search,
     sources: &Vec<Source>,
 ) -> Result<Vec<data_models::Source>> {
-    if sources.len() == 0 {
-        return Err(SearchError::NoSources("No sources to add".to_string()).into());
+    if sources.is_empty() {
+        return Err(SearchError::NoSources("No sources to add".to_string()));
     }
 
     // remove duplicates with same url
     let mut hash_set: HashSet<&String> = sources.iter().map(|s| &s.url).collect();
     let sources = sources
-        .into_iter()
+        .iter()
         .filter(|s| match hash_set.contains(&s.url) {
             true => {
                 hash_set.remove(&s.url);

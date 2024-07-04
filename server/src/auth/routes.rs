@@ -25,7 +25,7 @@ async fn register_handler(
         .map_err(|e| AuthError::InvalidData(format!("Invalid data: {}", e)))?;
 
     if !services::is_email_whitelisted(&pool, &request.email).await? {
-        return Err(AuthError::NotWhitelisted(format!("This email is not whitelisted!")).into());
+        return Err(AuthError::NotWhitelisted("This email is not whitelisted!".to_string()).into());
     }
     services::register(pool, request)
         .await
@@ -42,12 +42,12 @@ async fn login_handler(
         .await
     {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
-        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
+        Ok(None) => return Err(AuthError::Unauthorized("Invalid credentials".to_string()).into()),
+        Err(_) => return Err(AuthError::Other("Could not authenticate user".to_string()).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(AuthError::Other(format!("Could not login user")).into());
+        return Err(AuthError::Other("Could not login user".to_string()).into());
     }
     //if let Credentials::Password(_pw_creds) = creds {
     //    if let Some(ref next) = pw_creds.next {
@@ -108,7 +108,7 @@ pub async fn oauth_callback_handler(
 ) -> crate::Result<Response> {
     let Ok(Some(old_state)) = session.get(CSRF_STATE_KEY).await else {
         return Err(
-            AuthError::Unauthorized(format!("Session did not contain old csrf state")).into(),
+            AuthError::Unauthorized("Session did not contain old csrf state".to_string()).into(),
         );
     };
 
@@ -120,12 +120,12 @@ pub async fn oauth_callback_handler(
 
     let user = match auth_session.authenticate(creds).await {
         Ok(Some(user)) => user,
-        Ok(None) => return Err(AuthError::Unauthorized(format!("Invalid credentials")).into()),
-        Err(_) => return Err(AuthError::Other(format!("Could not authenticate user")).into()),
+        Ok(None) => return Err(AuthError::Unauthorized("Invalid credentials".to_string()).into()),
+        Err(_) => return Err(AuthError::Other("Could not authenticate user".to_string()).into()),
     };
 
     if auth_session.login(&user).await.is_err() {
-        return Err(AuthError::Other(format!("Could not login user")).into());
+        return Err(AuthError::Other("Could not login user".to_string()).into());
     }
 
     if let Ok(Some(next)) = session.remove::<String>(NEXT_URL_KEY).await {
@@ -151,7 +151,7 @@ async fn get_session_handler(auth_session: AuthSession) -> crate::Result<Json<Us
         .user
         .map(UserRecord::from)
         .map(Json::from)
-        .ok_or_else(|| AuthError::Unauthorized(format!("Invalid user session")).into())
+        .ok_or_else(|| AuthError::Unauthorized("Invalid user session".to_string()).into())
 }
 
 pub fn routes() -> Router<AppState> {

@@ -24,11 +24,15 @@ pub async fn compute_embeddings(
         .into_inner();
 
     if response.status != 200 {
-        return Err(SearchError::AgencyFailure("Failed to get embeddings".to_string()).into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get embeddings".to_string(),
+        ));
     }
 
     match response.embeddings {
-        None => Err(SearchError::AgencyFailure("No embeddings found".to_string()).into()),
+        None => Err(SearchError::AgencyFailure(
+            "No embeddings found".to_string(),
+        )),
         Some(embeddings) => Ok(embeddings),
     }
 }
@@ -41,7 +45,7 @@ pub async fn rephrase_query(
 ) -> Result<String, SearchError> {
     let last_n_searches = match search_query_request.thread_id {
         Some(thread_id) => search_services::get_last_n_searches(
-            &pool,
+            pool,
             settings.search.max_search_context,
             &thread_id,
         )

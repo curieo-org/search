@@ -16,7 +16,7 @@ pub struct PromptCompressionOutput {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct PromptCompressionAPIResponse {
+pub struct PromptCompressionAPIResponse {
     pub response: PromptCompressionOutput,
 }
 
