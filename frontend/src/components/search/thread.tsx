@@ -40,8 +40,10 @@ export default function Thread(props: ThreadProps) {
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [isLoading, newSearchResult])
+    if (isCompleted || isLoading) {
+      scrollToBottom()
+    }
+  }, [isCompleted, isLoading])
 
   useEffect(() => {
     props.handleSetSearchQuery('')
@@ -91,7 +93,11 @@ export default function Thread(props: ThreadProps) {
               {props.data.searches.length !== 1 && <div className="h-0.5 bg-white/20 ml-10 mr-6"></div>}
             </Fragment>
           ))}
-          {isLoading ? <NewThreadSearch response={newSearchResult} isStreaming={isStreaming} /> : <></>}
+          {isLoading ? (
+            <NewThreadSearch searchQuery={props.searchQuery} response={newSearchResult} isStreaming={isStreaming} />
+          ) : (
+            <></>
+          )}
           <div className="h-4"></div>
         </div>
       </div>

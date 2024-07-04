@@ -1,5 +1,6 @@
 'use client'
 
+import LoadingSearchResult from '@/components/search/loading-search-result'
 import NewSearch from '@/components/search/new-search'
 import NewSearchResponse from '@/components/search/new-search-response'
 import Thread from '@/components/search/thread'
@@ -101,7 +102,13 @@ export default function Search() {
           handleSetSearchQuery={handleSetSearchQuery}
         />
       ) : isLoading ? (
-        <>{isStreaming ? <NewSearchResponse response={newSearchResult} /> : <SearchResultPageSkeleton />}</>
+        <>
+          {isStreaming ? (
+            <NewSearchResponse response={newSearchResult} />
+          ) : (
+            <LoadingSearchResult className="mt-4" searchQuery={searchQuery} />
+          )}
+        </>
       ) : (
         <NewSearch
           handleSearch={() => {

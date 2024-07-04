@@ -20,8 +20,8 @@ export default function NewSearchResponse(props: NewSearchResponseProps) {
           <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} />
           <div className="flex flex-col px-10">
             <div className="flex items-center gap-x-3 my-6">
-              <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
-              <Span className="font-light text-white/80 text-xl">Answer</Span>
+              <img src="images/answer-logo.svg" className="h-4 w-auto" alt="answer-logo" />
+              <Span className="font-light text-white/80 text-lg">Answer</Span>
             </div>
             <SearchResponse
               className="w-full"

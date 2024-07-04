@@ -3,12 +3,13 @@ import _ from 'lodash'
 import { HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Span } from '../lib/typography'
-import SearchResultSkeleton from '../skeletons/search-result-skeleton'
+import LoadingSearchResult from './loading-search-result'
 import SearchResponse from './search-response'
-import SourcesMenu from './sources-menu'
 import SearchTitle from './search-title'
+import SourcesMenu from './sources-menu'
 
 type NewThreadSearchProps = HTMLAttributes<HTMLDivElement> & {
+  searchQuery: string
   response: SearchByIdResponse[]
   isStreaming: boolean
 }
@@ -42,7 +43,7 @@ export default function NewThreadSearch(props: NewThreadSearchProps) {
           </div>
         </div>
       ) : (
-        <SearchResultSkeleton className="mx-10" />
+        <LoadingSearchResult searchQuery={props.searchQuery} />
       )}
     </>
   )
