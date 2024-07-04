@@ -59,7 +59,7 @@ pub async fn whitelist_email(pool: &PgPool, email: &str) -> crate::Result<Whitel
     Ok(sqlx::query_as!(
         WhitelistedEmail,
         "insert into whitelisted_emails (email, approved) values ($1, true) returning *",
-        "my-email@email.com",
+        email,
     )
     .fetch_one(pool)
     .await?)
