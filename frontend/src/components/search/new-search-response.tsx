@@ -13,10 +13,11 @@ type NewSearchResponseProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export default function NewSearchResponse(props: NewSearchResponseProps) {
+  console.log(props.response)
   return (
     <div className={twMerge('w-full min-h-screen flex flex-col justify-between', props.className)}>
       <div className="w-full flex">
-        <div className="w-full flex flex-col px-10 max-w-[900px]">
+        <div className="w-full max-w-[900px] mx-auto flex flex-col px-10">
           <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} />
           <div className="flex flex-col px-10">
             <div className="flex items-center gap-x-3 my-6">
@@ -35,8 +36,13 @@ export default function NewSearchResponse(props: NewSearchResponseProps) {
         <SourcesMenu className="mt-10" sources={_.flatten(props.response.map(streamData => streamData.sources))} />
       </div>
 
-      <div className="w-full sticky bottom-0 pb-4 px-8 flex justify-start backdrop-blur-sm max-w-[840px]">
-        <SearchInput handleSearch={() => {}} searchQuery="" setSearchQuery={query => {}} />
+      <div className="w-[calc(100vw-576px)] sticky bottom-0 pb-4 px-4">
+        <SearchInput
+          handleSearch={() => {}}
+          searchQuery=""
+          setSearchQuery={query => {}}
+          containerClass="max-w-[900px] mx-auto backdrop-blur-sm"
+        />
       </div>
     </div>
   )

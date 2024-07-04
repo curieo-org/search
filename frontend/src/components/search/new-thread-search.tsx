@@ -1,7 +1,6 @@
 import { SearchByIdResponse } from '@/types/search'
 import _ from 'lodash'
-import { HTMLAttributes } from 'react'
-import { twMerge } from 'tailwind-merge'
+import { HTMLAttributes, useEffect, useRef, useState } from 'react'
 import { Span } from '../lib/typography'
 import LoadingSearchResult from './loading-search-result'
 import SearchResponse from './search-response'
@@ -15,32 +14,44 @@ type NewThreadSearchProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export default function NewThreadSearch(props: NewThreadSearchProps) {
+  const answerContainerRef = useRef<HTMLDivElement>(null)
+  const [answerContainerHeight, setAnswerContainerHeight] = useState<number>(0)
+
+  useEffect(() => {
+    const updateHeight = () => {
+      if (answerContainerRef.current) {
+        setAnswerContainerHeight(answerContainerRef.current?.offsetHeight)
+      }
+    }
+
+    updateHeight()
+
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [props.response])
+
   return (
     <>
       {props.isStreaming ? (
-        <div className={twMerge('w-full', props.className)}>
-          <SearchTitle className="mx-10 mt-10" title={props.response[0]?.search.query} />
-          <div className="w-full flex">
-            <div className="w-full flex flex-col px-10 justify-between">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-x-3 my-6">
-                  <img src="images/answer-logo.svg" className="w-10 h-10" alt="answer-logo" />
-                  <Span className="font-light text-white/80 text-xl">Answer</Span>
-                </div>
-                <SearchResponse
-                  className="w-full"
-                  response={_.join(
-                    props.response.map(streamData => streamData.search.result),
-                    ''
-                  )}
-                />
-              </div>
+        <div className="w-full flex justify-between">
+          <div className="max-w-[900px] mx-auto flex-grow px-10 transition-all duration-300" ref={answerContainerRef}>
+            <SearchTitle className="mb-6" title={props.response[0]?.search.query} />
+            <div className="flex items-center gap-x-3 mb-6">
+              <img src="images/answer-logo.svg" className="h-4 w-auto" alt="answer-logo" />
+              <Span className="font-light text-white/80 text-lg">Answer</Span>
             </div>
-            <SourcesMenu
-              className="w-60 xl:w-96 max-h-screen overflow-y-scroll scrollbar-visible -mb-4 -mt-10 over py-2 pr-2 mr-1 transition-all duration-300"
-              sources={_.flatten(props.response.map(streamData => streamData.sources))}
+            <SearchResponse
+              className="mb-6"
+              response={_.join(
+                props.response.map(streamData => streamData.search.result),
+                ''
+              )}
             />
           </div>
+          <SourcesMenu
+            sources={_.flatten(props.response.map(streamData => streamData.sources))}
+            style={{ maxHeight: answerContainerHeight }}
+          />
         </div>
       ) : (
         <LoadingSearchResult searchQuery={props.searchQuery} />
