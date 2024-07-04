@@ -54,7 +54,7 @@ pub async fn update_password(
     return Ok(());
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn whitelist_email(pool: &PgPool, email: &str) -> crate::Result<WhitelistedEmail> {
     Ok(sqlx::query_as!(
         WhitelistedEmail,

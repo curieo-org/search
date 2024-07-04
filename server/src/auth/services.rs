@@ -4,7 +4,7 @@ use crate::err::ResultExt;
 use crate::users::{User, UserRecord};
 use sqlx::PgPool;
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn register(
     pool: PgPool,
     request: api_models::RegisterUserRequest,

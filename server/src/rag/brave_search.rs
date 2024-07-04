@@ -93,7 +93,7 @@ struct BraveAPIResponse {
     pub web: BraveWebAPIResponse,
 }
 
-#[tracing::instrument(level = "debug", ret, err)]
+#[tracing::instrument(level = "info", ret, err)]
 pub async fn web_search(
     brave_settings: &BraveSettings,
     brave_api_config: &BraveAPIConfig,
