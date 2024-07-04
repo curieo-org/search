@@ -24,11 +24,15 @@ pub async fn compute_embeddings(
         .into_inner();
 
     if response.status != 200 {
-        return Err(SearchError::AgencyFailure("Failed to get embeddings".to_string()).into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get embeddings".to_string(),
+        ));
     }
 
     match response.embeddings {
-        None => Err(SearchError::AgencyFailure("No embeddings found".to_string()).into()),
+        None => Err(SearchError::AgencyFailure(
+            "No embeddings found".to_string(),
+        )),
         Some(embeddings) => Ok(embeddings),
     }
 }

@@ -40,7 +40,7 @@ pub async fn search(
     }
 
     if retrieved_results.is_empty() {
-        return Err(SearchError::NoSources(format!("No sources found")).into());
+        return Err(SearchError::NoSources("No sources found".to_string()));
     }
 
     let compressed_results = prompt_compression::compress(

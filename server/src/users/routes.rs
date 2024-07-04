@@ -23,7 +23,7 @@ async fn update_profile_handler(
     let user_id = user.user_id;
     if !update_profile_request.has_any_value() {
         return Err(
-            UserError::InvalidData(format!("At least one field has to be updated.")).into(),
+            UserError::InvalidData("At least one field has to be updated.".to_string()).into(),
         );
     }
     let updated_user = services::update_profile(&pool, &user_id, update_profile_request).await?;
@@ -42,9 +42,10 @@ async fn update_password_handler(
     if update_password_request.old_password.expose()
         == update_password_request.new_password.expose()
     {
-        return Err(
-            UserError::InvalidData(format!("Old and new password can not be the same.")).into(),
-        );
+        return Err(UserError::InvalidData(
+            "Old and new password can not be the same.".to_string(),
+        )
+        .into());
     }
 
     match verify_user_password(Some(user), update_password_request.old_password) {
@@ -53,7 +54,9 @@ async fn update_password_handler(
                 .await?;
             Ok(())
         }
-        _ => Err(UserError::InvalidPassword(format!("Failed to authenticate old password")).into()),
+        _ => Err(
+            UserError::InvalidPassword("Failed to authenticate old password".to_string()).into(),
+        ),
     }
 }
 

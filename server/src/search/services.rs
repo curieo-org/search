@@ -76,7 +76,7 @@ pub async fn add_search_sources(
     sources: &Vec<Source>,
 ) -> Result<Vec<data_models::Source>> {
     if sources.is_empty() {
-        return Err(SearchError::NoSources("No sources to add".to_string()).into());
+        return Err(SearchError::NoSources("No sources to add".to_string()));
     }
 
     // remove duplicates with same url

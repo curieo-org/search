@@ -43,10 +43,9 @@ pub async fn pubmed_parent_search(
         .into_inner();
 
     if response.status != 200 {
-        return Err(SearchError::AgencyFailure(format!(
-            "Failed to get pubmed parent search results"
-        ))
-        .into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get pubmed parent search results".to_string(),
+        ));
     }
 
     Ok(response.sources)
@@ -66,10 +65,9 @@ pub async fn pubmed_cluster_search(
         .into_inner();
 
     if response.status != 200 {
-        return Err(SearchError::AgencyFailure(format!(
-            "Failed to get pubmed cluster search results"
-        ))
-        .into());
+        return Err(SearchError::AgencyFailure(
+            "Failed to get pubmed cluster search results".to_string(),
+        ));
     }
 
     Ok(response.sources)
