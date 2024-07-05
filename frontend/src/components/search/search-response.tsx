@@ -11,7 +11,10 @@ export default function SearchResponse(props: SearchResponseProps) {
   return (
     <div className={twMerge('flex flex-col gap-y-2', props.className)}>
       {props.response.split('\\n').map((paragraph, index) => (
-        <div key={`response-paragraph-${index}`} style={{ animation: `fade-in ${Math.min(1 + index * 0.5, 5)}s` }}>
+        <div
+          key={`response-paragraph-${index}`}
+          //style={{ animation: `fade-in ${Math.min(1 + index * 0.5, 5)}s` }}
+        >
           <Markdown className="text-sm text-white/80" remarkPlugins={[remarkGfm]}>
             {paragraph}
           </Markdown>
