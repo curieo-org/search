@@ -58,8 +58,8 @@ redis = { version = "0.25.4", features = [
 rand = "0.8.5"
 futures = "0.3.30"
 axum-extra = { version = "0.9.3", features = ["typed-header"] }
-tonic = "0.12.0"
-prost = "0.13.0"
+tonic = "0.11.0"
+prost = "0.12.6"
 bb8-redis = "0.15.0"
 time = { version = "0.3.36", features = ["serde"] }
 dashmap = { version = "6.0.1", features = ["inline", "serde"] }
@@ -83,4 +83,4 @@ version = "0.9.102"
 features = ["vendored"]
 
 [build-dependencies]
-tonic-build = "0.12.0"
+tonic-build = "0.11.0"
