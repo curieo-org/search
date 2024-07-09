@@ -6,6 +6,7 @@
   - [Introduction](#introduction)
   - [Data Ingestion Services](#data-ingestion-services)
   - [Clinical Trials](#clinical-trials)
+      - [Link to Excalidraw Canvas for High Level Architecture: https://excalidraw.com/#room=fc98786bbbb1ff061bb2,wnOTLykNfm9eZsrxGhagAg](#link-to-excalidraw-canvas-for-high-level-architecture-httpsexcalidrawcomroomfc98786bbbb1ff061bb2wnotlyknfm9ezsrxghagag)
     - [High Level Architecture](#high-level-architecture)
   - [Pubmed](#pubmed)
     - [High Level Architecture](#high-level-architecture-1)

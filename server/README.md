@@ -148,9 +148,7 @@ Follow the below `HTTP Status Code` to maintain the consistency in the error han
 ## Error Response Format
 ```json
 {
-    "errors": {
-        "message": ""
-        "error_code": ""
-    }
+    "error_message": ""
+    "error_code": ""
 }
 ```

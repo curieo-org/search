@@ -5,8 +5,8 @@ use axum::response::{IntoResponse, Response};
 use axum::Json;
 use sqlx::error::DatabaseError;
 use std::fmt::Debug;
-use std::{borrow::Cow, collections::HashMap};
 use tokio::task;
+use utoipa::ToSchema;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
@@ -121,26 +121,10 @@ impl From<sqlx::migrate::MigrateError> for AppError {
     }
 }
 
-#[derive(serde::Serialize, Debug)]
-pub struct ErrorMap {
-    errors: HashMap<Cow<'static, str>, Cow<'static, str>>,
-}
-
-impl<K, V, I> From<I> for ErrorMap
-where
-    K: Into<Cow<'static, str>>,
-    V: Into<Cow<'static, str>>,
-    I: IntoIterator<Item = (K, V)>,
-{
-    fn from(i: I) -> Self {
-        let mut errors = HashMap::new();
-
-        for (key, val) in i {
-            errors.entry(key.into()).or_insert_with(|| val.into());
-        }
-
-        ErrorMap { errors }
-    }
+#[derive(serde::Serialize, Debug, ToSchema)]
+pub struct ErrorResponse {
+    error_code: String,
+    error_message: String,
 }
 
 impl IntoResponse for AppError {
@@ -151,10 +135,10 @@ impl IntoResponse for AppError {
             self.to_string(),
         );
 
-        let error_body = Json(ErrorMap::from([
-            ("message", error_message),
-            ("error_code", error_code),
-        ]));
+        let error_body = Json(ErrorResponse {
+            error_code,
+            error_message,
+        });
 
         // Return a http status code and json body with error message.
         match status_code {

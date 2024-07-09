@@ -1,8 +1,9 @@
 use crate::custom_types::DateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub enum SourceType {
     Pdf,
     Image,
@@ -19,7 +20,7 @@ impl From<i32> for SourceType {
     }
 }
 
-#[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
+#[derive(FromRow, Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub struct Thread {
     pub thread_id: uuid::Uuid,
     pub user_id: uuid::Uuid,
@@ -30,7 +31,7 @@ pub struct Thread {
     pub updated_at: DateTime,
 }
 
-#[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
+#[derive(FromRow, Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub struct Search {
     pub search_id: uuid::Uuid,
     pub thread_id: uuid::Uuid,
@@ -44,7 +45,7 @@ pub struct Search {
     pub updated_at: DateTime,
 }
 
-#[derive(FromRow, Serialize, Deserialize, Clone, Debug)]
+#[derive(FromRow, Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub struct Source {
     pub source_id: uuid::Uuid,
     pub url: String,

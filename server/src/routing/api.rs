@@ -1,3 +1,7 @@
+use crate::auth::models::PostgresBackend;
+use crate::auth::sessions::{DashStore, RedisStore};
+use crate::startup::AppState;
+use crate::{auth, err, health_check, search, users};
 use axum::Router;
 use axum_login::tower_sessions::cookie::{time::Duration, SameSite};
 use axum_login::tower_sessions::{CachingSessionStore, Expiry, SessionManagerLayer};
@@ -5,11 +9,12 @@ use axum_login::{login_required, AuthManagerLayerBuilder};
 use sentry_tower::{NewSentryLayer, SentryHttpLayer};
 use tower_http::trace::{self, TraceLayer};
 use tracing::Level;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
-use crate::auth::models::PostgresBackend;
-use crate::auth::sessions::{DashStore, RedisStore};
-use crate::startup::AppState;
-use crate::{auth, health_check, search, users};
+#[derive(OpenApi)]
+#[openapi(components(schemas(err::ErrorResponse)))]
+struct OpenApiDoc;
 
 pub fn router(state: AppState) -> crate::Result<Router> {
     // Session layer.
@@ -30,6 +35,9 @@ pub fn router(state: AppState) -> crate::Result<Router> {
     let backend = PostgresBackend::new(state.db.clone(), state.oauth2_clients.clone());
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
+    let mut doc = OpenApiDoc::openapi();
+    doc.merge(search::OpenApiDoc::openapi());
+
     let api_routes = Router::new()
         .nest("/users", users::routes())
         .nest("/search", search::routes())
@@ -40,6 +48,7 @@ pub fn router(state: AppState) -> crate::Result<Router> {
         .nest("/auth", auth::routes());
 
     Ok(Router::new()
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", doc))
         .merge(api_routes)
         // Health check should be accessible regardless of session middleware
         .merge(health_check::routes())

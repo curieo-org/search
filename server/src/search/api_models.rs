@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc};
 use tonic::Status as TonicStatus;
+use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
 pub type BoxedFuture = Pin<Box<dyn Future<Output = crate::Result<Search>> + Send>>;
@@ -44,13 +45,13 @@ pub struct SearchQueryRequest {
     pub thread_id: Option<uuid::Uuid>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct SearchByIdResponse {
     pub search: Search,
     pub sources: Vec<Source>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate, IntoParams)]
 pub struct ThreadHistoryRequest {
     #[validate(range(min = 1, max = 20))]
     pub limit: Option<u8>,
@@ -58,12 +59,12 @@ pub struct ThreadHistoryRequest {
     pub offset: Option<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct ThreadHistoryResponse {
     pub threads: Vec<Thread>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate, IntoParams)]
 pub struct GetThreadRequest {
     pub thread_id: uuid::Uuid,
     #[validate(range(min = 1, max = 20))]
@@ -72,24 +73,24 @@ pub struct GetThreadRequest {
     pub offset: Option<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct SearchThreadResponse {
     pub thread: Thread,
     pub searches: Vec<SearchByIdResponse>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, IntoParams)]
 pub struct SearchByIdRequest {
     pub search_id: uuid::Uuid,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub struct SearchReactionRequest {
     pub search_id: uuid::Uuid,
     pub reaction: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate, ToSchema)]
 pub struct UpdateThreadRequest {
     pub thread_id: uuid::Uuid,
     #[validate(length(min = 1, max = 255))]

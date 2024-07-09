@@ -1,6 +1,6 @@
 use crate::llms;
 use crate::rag::{self, post_process, pre_process};
-use crate::search::{api_models, services, SearchError};
+use crate::search::{api_models, data_models, services, SearchError};
 use crate::startup::AppState;
 use crate::users::User;
 use axum::extract::{Query, State};
@@ -12,6 +12,7 @@ use sqlx::PgPool;
 use std::{convert::Infallible, sync::Arc};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
+use utoipa::OpenApi;
 use validator::Validate;
 
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
@@ -103,6 +104,12 @@ async fn get_search_query_handler(
     Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(std::time::Duration::from_secs(30))))
 }
 
+#[utoipa::path(
+    get,
+    path = "/search/one",
+    responses((status = OK, body = SearchByIdResponse)),
+    params(api_models::SearchByIdRequest)
+)]
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_one_search_result_handler(
     State(pool): State<PgPool>,
@@ -114,6 +121,15 @@ async fn get_one_search_result_handler(
     Ok(Json(search_history))
 }
 
+#[utoipa::path(
+    get,
+    path = "/search/history",
+    responses((status = OK, body = ThreadHistoryResponse)),
+    params(api_models::ThreadHistoryRequest)
+)]
+// (status = UNAUTHORIZED, description = "Unauthorized", body = ErrorResponse),
+// (status = UNPROCESSABLE_ENTITY, description = "Invalid data", body = ErrorResponse),
+// (status = INTERNAL_SERVER_ERROR, description = "Internal server error", body = ErrorResponse)
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_threads_handler(
     State(pool): State<PgPool>,
@@ -129,6 +145,12 @@ async fn get_threads_handler(
     Ok(Json(search_history))
 }
 
+#[utoipa::path(
+    get,
+    path = "/search/thread",
+    responses((status = OK, body = SearchThreadResponse)),
+    params(api_models::GetThreadRequest)
+)]
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn get_one_thread_handler(
     State(pool): State<PgPool>,
@@ -143,6 +165,12 @@ async fn get_one_thread_handler(
     Ok(Json(search_thread))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/search/threads",
+    responses((status = OK)),
+    request_body = UpdateThreadRequest
+)]
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_thread_handler(
     State(pool): State<PgPool>,
@@ -157,6 +185,12 @@ async fn update_thread_handler(
     Ok(())
 }
 
+#[utoipa::path(
+    patch,
+    path = "/search/reaction",
+    responses((status = OK)),
+    request_body = SearchReactionRequest
+)]
 #[tracing::instrument(level = "info", skip_all, ret, err(Debug))]
 async fn update_search_reaction_handler(
     State(pool): State<PgPool>,
@@ -166,6 +200,29 @@ async fn update_search_reaction_handler(
     services::update_search_reaction(&pool, &user.user_id, &search_reaction_request).await?;
     Ok(())
 }
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        get_threads_handler,
+        get_one_thread_handler,
+        get_one_search_result_handler,
+        update_thread_handler,
+        update_search_reaction_handler,
+    ),
+    components(schemas(
+        api_models::ThreadHistoryResponse,
+        api_models::SearchThreadResponse,
+        api_models::SearchByIdResponse,
+        api_models::UpdateThreadRequest,
+        api_models::SearchReactionRequest,
+        data_models::Thread,
+        data_models::Search,
+        data_models::Source,
+        data_models::SourceType,
+    ))
+)]
+pub struct OpenApiDoc;
 
 pub fn routes() -> Router<AppState> {
     Router::new()
