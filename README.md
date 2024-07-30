@@ -12,6 +12,8 @@
 
 ## Introduction
 Welcome to Curieo Search, the search engine on a mission to revolutionize how you access healthcare information. Our goal is simple yet ambitious: to be the best healthcare search engine available, offering unparalleled access to accurate, up-to-date, and relevant medical information.
+![image](https://github.com/user-attachments/assets/0c5f6a69-e06c-4b4e-abd0-78b028ab32a1)
+
 
 ## Documentation
 - [System Architecture](./architecture/README.md)
