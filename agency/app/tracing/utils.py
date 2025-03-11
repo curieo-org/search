@@ -12,7 +12,6 @@ from opentelemetry.instrumentation.llamaindex import (
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.sdk import trace as trace_sdk
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
