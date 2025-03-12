@@ -75,7 +75,7 @@ The `Search Web Services` component is responsible for providing the search func
 ![User Flow](images/search_userflow.png)
 
 ### Features and User Actions
-1. **Sign Up**: Users can sign up for the application using their email address or google account. After the sign-up, users will optioanlly provide their personal information e.g. `about`, `location`, `profile picture`, `survey questions` etc.
+1. **Sign Up**: Users can sign up for the application using their email address or google account. After the sign-up, users will optionally provide their personal information e.g. `about`, `location`, `profile picture`, `survey questions` etc.
 2. **Sign In**: Users can sign in to the application using their email address or google account.
 3. **Search**: Users can search with any query and the system will display the search results and related sources.
 4. **Threads**: All of the searches will be stored as a thread. Users can search for more queries in a existing thread or start a new search thread. Users can rename the thread.
@@ -95,12 +95,14 @@ The `Search Web Services` component is responsible for providing the search func
 
 ### Frontend
 Technologies:
+
 1. Next.js
 2. Tailwind CSS
 3. Axios API Client
 
 ### API Server
 Technologies:
+
 1. Rust
 2. Axum Web Framework
 3. Postgres Database
@@ -109,6 +111,7 @@ Technologies:
 
 ### Agency Modules
 Technologies:
+
 1. Python
 2. gRPC Server
 3. Llama Index
